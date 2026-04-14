@@ -1,0 +1,71 @@
+# ============================================================================
+# Multi-stage Dockerfile for Amutot NestJS Backend
+# ============================================================================
+# Stage 1: Builder
+# ============================================================================
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Install build dependencies
+RUN apk add --no-cache python3 make g++
+
+# Copy workspace files and package manager config
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY tsconfig.json ./
+
+# Copy shared packages
+COPY packages ./packages
+
+# Copy API app
+COPY apps/api ./apps/api
+
+# Install dependencies using pnpm
+RUN npm install -g pnpm@9.0.0 && \
+    pnpm install --frozen-lockfile --prod=false
+
+# Generate Prisma client
+RUN pnpm --filter api run generate
+
+# Build the application
+RUN pnpm --filter api run build
+
+# ============================================================================
+# Stage 2: Runtime
+# ============================================================================
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install runtime dependencies only
+RUN apk add --no-cache curl
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nestjs -u 1001
+
+# Copy from builder
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
+COPY --from=builder /app/apps/api/dist ./apps/api/dist
+COPY --from=builder /app/packages ./packages
+COPY --from=builder /app/prisma ./prisma
+
+# Install pnpm
+RUN npm install -g pnpm@9.0.0
+
+# Set ownership
+RUN chown -R nestjs:nodejs /app
+
+# Switch to non-root user
+USER nestjs
+
+# Health check endpoint
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:${API_PORT:-3001}/api/v1/health || exit 1
+
+# Expose API port
+EXPOSE ${API_PORT:-3001}
+
+# Start application
+CMD ["node", "apps/api/dist/main.js"]

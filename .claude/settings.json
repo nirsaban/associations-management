@@ -1,0 +1,22 @@
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "autoCompactThreshold": 50,
+  "includeGitInstructions": true,
+  "hooks": {
+    "PostToolUse": [
+      {
+        "tools": ["Edit", "Write"],
+        "action": "runCommand",
+        "command": "pnpm lint --fix"
+      }
+    ],
+    "Stop": [
+      {
+        "action": "logReminder",
+        "message": "Remember to clear any sensitive data from your context and verify all changes follow the Definition of Done checklist in CLAUDE.md"
+      }
+    ]
+  }
+}

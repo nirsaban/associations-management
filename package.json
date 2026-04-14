@@ -1,0 +1,52 @@
+{
+  "name": "amutot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Amutot: SaaS platform for Israeli nonprofit organizations",
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "test:watch": "turbo run test:watch",
+    "typecheck": "turbo run typecheck",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
+    "prisma:generate": "pnpm --filter api prisma:generate",
+    "prisma:migrate": "pnpm --filter api prisma:migrate",
+    "prisma:migrate:deploy": "pnpm --filter api prisma migrate deploy",
+    "prisma:studio": "pnpm --filter api prisma:studio",
+    "prisma:seed": "pnpm --filter api prisma:seed",
+    "clean": "turbo run clean && rm -rf node_modules .turbo"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "@typescript-eslint/eslint-plugin": "^6.17.0",
+    "@typescript-eslint/parser": "^6.17.0",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-prettier": "^5.1.2",
+    "prettier": "^3.1.1",
+    "prisma": "5.22.0",
+    "turbo": "^1.10.16",
+    "typescript": "^5.3.3",
+    "vitest": "^1.1.0"
+  },
+  "pnpm": {
+    "overrides": {},
+    "peerDependencyRules": {
+      "ignoreMissing": [
+        "eslint"
+      ]
+    }
+  },
+  "dependencies": {
+    "@prisma/client": "5.22.0"
+  }
+}

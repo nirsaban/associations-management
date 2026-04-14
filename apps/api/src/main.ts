@@ -1,0 +1,78 @@
+import { NestFactory } from '@nestjs/core';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { ValidationPipe } from '@nestjs/common';
+import morgan from 'morgan';
+import { AppModule } from './app.module';
+
+async function bootstrap(): Promise<void> {
+  const app = await NestFactory.create(AppModule);
+
+  // Enable CORS
+  app.enableCors({
+    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    credentials: true,
+  });
+
+  // Use morgan for HTTP request logging
+  app.use(morgan('combined'));
+
+  // Global validation pipe
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
+    }),
+  );
+
+  // Set global API prefix
+  app.setGlobalPrefix('api/v1');
+
+  // Swagger documentation
+  const config = new DocumentBuilder()
+    .setTitle('Amutot API')
+    .setDescription('API for Amutot Management Platform - Multi-tenant SaaS for Israeli nonprofits')
+    .setVersion('1.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      },
+      'access-token',
+    )
+    .addTag('Auth', 'Authentication endpoints')
+    .addTag('Platform', 'Platform management (SUPER_ADMIN only)')
+    .addTag('Associations', 'Organization setup and management (ADMIN only)')
+    .addTag('Users', 'User management endpoints')
+    .addTag('Groups', 'Group management endpoints')
+    .addTag('Families', 'Family management endpoints')
+    .addTag('Weekly Orders', 'Weekly order management')
+    .addTag('Weekly Distributors', 'Distributor assignment')
+    .addTag('Payments', 'Payment processing')
+    .addTag('Reminders', 'Reminder management')
+    .addTag('Notifications', 'User notifications')
+    .addTag('CSV Import', 'CSV import utilities')
+    .addTag('Dashboard', 'Dashboard data')
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, document, {
+    swaggerOptions: {
+      persistAuthorization: true,
+    },
+  });
+
+  const PORT = process.env.PORT || 3001;
+  await app.listen(PORT);
+  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Swagger docs available at http://localhost:${PORT}/api/docs`);
+}
+
+bootstrap().catch((error) => {
+  console.error('Failed to start application:', error);
+  process.exit(1);
+});

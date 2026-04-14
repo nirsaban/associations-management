@@ -1,0 +1,401 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum SystemRole {
+  SUPER_ADMIN  // Platform administrator (not tied to any organization)
+  ADMIN        // Organization administrator
+  USER         // Regular user
+}
+
+enum GroupRole {
+  MEMBER
+  MANAGER
+}
+
+enum OrderStatus {
+  PENDING
+  COMPLETED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  BANK_TRANSFER
+  CHECK
+  CASH
+  OTHER
+}
+
+enum ReminderChannel {
+  SMS
+  PUSH
+  WHATSAPP
+}
+
+enum NotificationType {
+  ORDER_CREATED
+  ORDER_COMPLETED
+  PAYMENT_DUE
+  PAYMENT_RECEIVED
+  USER_INVITED
+  GROUP_CREATED
+  DISTRIBUTION_STARTED
+  DISTRIBUTION_COMPLETED
+  SYSTEM_ALERT
+}
+
+// ============================================================================
+// ORGANIZATION & USERS
+// ============================================================================
+
+model Organization {
+  id              String   @id @default(cuid())
+  name            String   @db.VarChar(255)
+  slug            String   @unique @db.VarChar(100)
+  phone           String?  @db.VarChar(20)
+  email           String?  @db.VarChar(255)
+  address         String?  @db.Text
+  logoUrl         String?  @db.VarChar(500)
+  settings        Json?    @default("{}")
+  isActive        Boolean  @default(true)
+  setupCompleted  Boolean  @default(false) // Track if first admin completed setup wizard
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  users              User[]
+  groups             Group[]
+  families           Family[]
+  groupMemberships   GroupMembership[]
+  groupFamilies      GroupFamily[]
+  weeklyOrders       WeeklyOrder[]
+  weeklyDistributors WeeklyDistributor[]
+  payments           Payment[]
+  paymentReminders   PaymentReminder[]
+  notifications      Notification[]
+  auditLogs          AuditLog[]
+
+  @@index([createdAt])
+  @@index([isActive])
+  @@map("organizations")
+}
+
+model User {
+  id                     String   @id @default(cuid())
+  organizationId         String?  // Nullable for SUPER_ADMIN users (platform admins)
+  phone                  String   @db.VarChar(20)
+  fullName               String   @db.VarChar(255)
+  email                  String?  @db.VarChar(255)
+  avatarUrl              String?  @db.VarChar(500)
+  systemRole             SystemRole @default(USER)
+  isActive               Boolean  @default(true)
+  isImported             Boolean  @default(false)
+  registrationCompleted  Boolean  @default(false)
+  pushSubscription       Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  organization       Organization?     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  managedGroups      Group[]            @relation("GroupManager")
+  groupMemberships   GroupMembership[]
+  weeklyOrders       WeeklyOrder[]      @relation("OrderCompletedBy")
+  weeklyDistributor  WeeklyDistributor?
+  payments           Payment[]
+  paymentReminders   PaymentReminder[]
+  notifications      Notification[]
+  auditLogs          AuditLog[]
+
+  @@unique([organizationId, phone])
+  @@index([organizationId])
+  @@index([createdAt])
+  @@index([isActive])
+  @@map("users")
+}
+
+// ============================================================================
+// GROUPS & MEMBERSHIPS
+// ============================================================================
+
+model Group {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String   @db.VarChar(255)
+  managerId      String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  organization       Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  manager            User              @relation("GroupManager", fields: [managerId], references: [id], onDelete: Restrict)
+  memberships        GroupMembership[]
+  groupFamilies      GroupFamily[]
+  weeklyOrders       WeeklyOrder[]
+  weeklyDistributors WeeklyDistributor[]
+
+  @@index([organizationId])
+  @@index([managerId])
+  @@index([createdAt])
+  @@map("groups")
+}
+
+model GroupMembership {
+  id             String   @id @default(cuid())
+  organizationId String
+  groupId        String
+  userId         String
+  role           GroupRole @default(MEMBER)
+  joinedAt       DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  group        Group        @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@index([organizationId])
+  @@index([groupId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("group_memberships")
+}
+
+// ============================================================================
+// FAMILIES & DISTRIBUTION
+// ============================================================================
+
+model Family {
+  id             String   @id @default(cuid())
+  organizationId String
+  familyName     String   @db.VarChar(255)
+  address        String?  @db.Text
+  contactPhone   String?  @db.VarChar(20)
+  notes          String?  @db.Text
+  metadata       Json?    @default("{}")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  organization  Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  groupFamilies GroupFamily[]
+  weeklyOrders  WeeklyOrder[]
+
+  @@index([organizationId])
+  @@index([createdAt])
+  @@map("families")
+}
+
+model GroupFamily {
+  id             String @id @default(cuid())
+  organizationId String
+  groupId        String
+  familyId       String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  group        Group        @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  family       Family       @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, familyId])
+  @@index([organizationId])
+  @@index([groupId])
+  @@index([familyId])
+  @@map("group_families")
+}
+
+// ============================================================================
+// WEEKLY ORDERS & DISTRIBUTION
+// ============================================================================
+
+model WeeklyOrder {
+  id             String   @id @default(cuid())
+  organizationId String
+  groupId        String
+  familyId       String
+  weekStart      DateTime @db.Date
+  items          Json     @default("[]")
+  notes          String?  @db.Text
+  status         OrderStatus @default(PENDING)
+  completedBy    String?
+  completedAt    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  group        Group        @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  family       Family       @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  completedByUser User?       @relation("OrderCompletedBy", fields: [completedBy], references: [id], onDelete: SetNull)
+
+  @@unique([groupId, familyId, weekStart])
+  @@index([organizationId])
+  @@index([groupId])
+  @@index([familyId])
+  @@index([weekStart])
+  @@index([status])
+  @@index([createdAt])
+  @@map("weekly_orders")
+}
+
+model WeeklyDistributor {
+  id             String   @id @default(cuid())
+  organizationId String
+  groupId        String
+  userId         String   @unique
+  weekStart      DateTime @db.Date
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  group        Group        @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, weekStart])
+  @@index([organizationId])
+  @@index([groupId])
+  @@index([weekStart])
+  @@map("weekly_distributors")
+}
+
+// ============================================================================
+// PAYMENTS & REMINDERS
+// ============================================================================
+
+model Payment {
+  id              String   @id @default(cuid())
+  organizationId  String
+  userId          String
+  amount          Decimal  @db.Decimal(12, 2)
+  monthKey        String   @db.VarChar(7) // Format: "2026-04"
+  method          PaymentMethod
+  transactionId   String?  @db.VarChar(255)
+  status          PaymentStatus @default(PENDING)
+  webhookPayload  Json?
+  paidAt          DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, monthKey])
+  @@unique([transactionId])
+  @@index([organizationId])
+  @@index([userId])
+  @@index([monthKey])
+  @@index([status])
+  @@index([createdAt])
+  @@map("payments")
+}
+
+model PaymentReminder {
+  id              String   @id @default(cuid())
+  organizationId  String
+  userId          String
+  monthKey        String   @db.VarChar(7) // Format: "2026-04"
+  reminderNumber  Int      // 1, 2, or 3
+  sentAt          DateTime
+  channel         ReminderChannel
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, monthKey, reminderNumber])
+  @@index([organizationId])
+  @@index([userId])
+  @@index([monthKey])
+  @@index([sentAt])
+  @@map("payment_reminders")
+}
+
+// ============================================================================
+// NOTIFICATIONS & AUDIT
+// ============================================================================
+
+model Notification {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String
+  title          String   @db.VarChar(255)
+  body           String   @db.Text
+  type           NotificationType
+  isRead         Boolean  @default(false)
+  readAt         DateTime?
+  metadata       Json?    @default("{}")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model AuditLog {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String?
+  action         String   @db.VarChar(100)
+  entity         String   @db.VarChar(100)
+  entityId       String   @db.VarChar(255)
+  changes        Json?
+  ipAddress      String?  @db.VarChar(45) // IPv6 support
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([entity])
+  @@index([entityId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}

@@ -1,0 +1,293 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =====================
+   DESIGN TOKENS (CSS Variables)
+   ===================== */
+
+:root {
+  /* Primary Colors - Chesed Harmony */
+  --color-primary: #004650;
+  --color-primary-container: #135f6b;
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #e0f7fa;
+  --color-primary-hover: #003a42;
+
+  /* Surface */
+  --color-surface: #f8fafa;
+  --color-surface-container-low: #f2f4f4;
+  --color-surface-container: #eceef0;
+  --color-surface-container-high: #e6e8ea;
+  --color-on-surface: #191c1d;
+  --color-on-surface-variant: #3f484a;
+
+  /* Secondary */
+  --color-secondary: #456646;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #5a7c5a;
+  --color-on-secondary-container: #e8f5e8;
+
+  /* Tertiary */
+  --color-tertiary: #563900;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #8b5900;
+  --color-on-tertiary-container: #ffe8c6;
+
+  /* Semantic Colors */
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #410002;
+
+  --color-success: #2e7d32;
+  --color-on-success: #ffffff;
+  --color-success-container: #c8e6c9;
+  --color-on-success-container: #1b5e20;
+
+  --color-warning: #f57c00;
+  --color-on-warning: #ffffff;
+  --color-warning-container: #ffe0b2;
+  --color-on-warning-container: #e65100;
+
+  /* Border */
+  --color-border: #e0e3e5;
+  --color-border-light: #f0f2f4;
+
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+
+  /* Typography - Font Stack */
+  --font-headline: 'Be Vietnam Pro', system-ui, sans-serif;
+  --font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-label: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+/* =====================
+   GLOBAL BASE STYLES
+   ===================== */
+
+html {
+  direction: rtl;
+  lang: he;
+}
+
+body {
+  @apply bg-surface text-on-surface font-body;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  @apply box-border;
+}
+
+/* =====================
+   TYPOGRAPHY
+   ===================== */
+
+h1, h2, h3, h4, h5, h6 {
+  @apply font-headline font-normal;
+}
+
+h1 {
+  @apply text-headline-lg;
+}
+
+h2 {
+  @apply text-headline-md;
+}
+
+h3 {
+  @apply text-headline-sm;
+}
+
+h4, h5, h6 {
+  @apply text-title-lg;
+}
+
+p {
+  @apply text-body-md;
+}
+
+/* =====================
+   FORM ELEMENTS
+   ===================== */
+
+input,
+textarea,
+select {
+  @apply font-body text-body-md;
+}
+
+input[type='text'],
+input[type='email'],
+input[type='password'],
+input[type='tel'],
+input[type='number'],
+textarea,
+select {
+  @apply w-full rounded-md border border-border bg-surface-container-low px-4 py-3 text-on-surface placeholder-on-surface-variant focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-20;
+}
+
+input::placeholder {
+  @apply text-on-surface-variant;
+}
+
+/* =====================
+   BUTTONS
+   ===================== */
+
+button {
+  @apply relative inline-flex items-center justify-center gap-2 rounded-md font-label text-label-md font-medium transition-all duration-200;
+}
+
+/* Primary Button */
+.btn-primary {
+  @apply bg-gradient-to-b from-primary to-primary-container text-on-primary hover:shadow-lg hover:from-primary-hover hover:to-primary active:shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none;
+}
+
+/* Secondary Button */
+.btn-secondary {
+  @apply bg-secondary text-on-secondary hover:shadow-lg hover:bg-secondary active:shadow-md disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+/* Tertiary Button */
+.btn-tertiary {
+  @apply bg-tertiary text-on-tertiary hover:shadow-lg hover:bg-tertiary active:shadow-md disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+/* Outline Button */
+.btn-outline {
+  @apply border border-primary bg-surface text-primary hover:bg-surface-container-low active:bg-surface-container disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+/* Ghost Button */
+.btn-ghost {
+  @apply bg-transparent text-primary hover:bg-primary hover:bg-opacity-10 active:bg-opacity-20 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+/* =====================
+   CARDS & CONTAINERS
+   ===================== */
+
+.card {
+  @apply rounded-lg bg-surface-container-low p-6 shadow-sm transition-shadow hover:shadow-md;
+}
+
+.card-elevated {
+  @apply rounded-lg bg-surface p-6 shadow-md transition-shadow hover:shadow-lg;
+}
+
+/* =====================
+   UTILITIES
+   ===================== */
+
+.text-label-sm {
+  @apply text-xs font-medium;
+}
+
+.text-label-md {
+  @apply text-sm font-medium;
+}
+
+.text-body-sm {
+  @apply text-sm;
+}
+
+.text-body-md {
+  @apply text-base;
+}
+
+.text-body-lg {
+  @apply text-lg;
+}
+
+.text-title-sm {
+  @apply text-sm font-medium;
+}
+
+.text-title-md {
+  @apply text-base font-medium;
+}
+
+.text-title-lg {
+  @apply text-lg font-medium;
+}
+
+/* =====================
+   SCROLLBAR STYLING
+   ===================== */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-on-surface-variant);
+}
+
+/* =====================
+   ANIMATION
+   ===================== */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 300ms ease-in-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 300ms ease-in-out;
+}
+
+/* =====================
+   RTL OVERRIDES
+   ===================== */
+
+html[dir='rtl'] {
+  direction: rtl;
+}
+
+html[dir='rtl'] input[type='search'] {
+  direction: rtl;
+}

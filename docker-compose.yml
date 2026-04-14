@@ -1,0 +1,155 @@
+version: '3.9'
+
+services:
+  # ============================================================================
+  # PostgreSQL Database
+  # ============================================================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: amutot-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: amutot
+      POSTGRES_USER: amutot
+      POSTGRES_PASSWORD: amutot_dev_password_change_in_production
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U amutot']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - amutot-network
+
+  # ============================================================================
+  # pgAdmin - PostgreSQL Management UI (Optional, for development)
+  # ============================================================================
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: amutot-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - '5050:80'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    networks:
+      - amutot-network
+
+  # ============================================================================
+  # NestJS Backend API
+  # ============================================================================
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile.api
+      args:
+        NODE_ENV: development
+    container_name: amutot-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      DATABASE_URL: postgresql://amutot:amutot_dev_password_change_in_production@postgres:5432/amutot
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-key-change-in-production}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-dev-refresh-secret-key}
+      NEXT_PUBLIC_API_URL: http://localhost:3001/api/v1
+      API_PORT: 3001
+      API_GLOBAL_PREFIX: api/v1
+      LOG_LEVEL: ${LOG_LEVEL:-debug}
+      THROTTLE_TTL: 60000
+      THROTTLE_LIMIT: 100
+    ports:
+      - '3001:3001'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./apps/api:/app/apps/api
+      - ./packages:/app/packages
+      - /app/node_modules
+      - /app/apps/api/node_modules
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3001/api/v1/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - amutot-network
+
+  # ============================================================================
+  # Next.js Frontend Web App
+  # ============================================================================
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile.web
+      args:
+        NODE_ENV: development
+        NEXT_PUBLIC_API_URL: http://localhost:3001/api/v1
+        NEXT_PUBLIC_APP_URL: http://localhost:3000
+    container_name: amutot-web
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      NEXT_PUBLIC_API_URL: http://localhost:3001/api/v1
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      NEXT_PUBLIC_APP_NAME: Amutot
+    ports:
+      - '3000:3000'
+    depends_on:
+      api:
+        condition: service_healthy
+    volumes:
+      - ./apps/web:/app/apps/web
+      - ./packages:/app/packages
+      - /app/node_modules
+      - /app/apps/web/node_modules
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - amutot-network
+
+  # ============================================================================
+  # Redis Cache (Optional, for session store and caching)
+  # Uncomment to enable
+  # ============================================================================
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: amutot-redis
+  #   restart: unless-stopped
+  #   ports:
+  #     - '6379:6379'
+  #   volumes:
+  #     - redis-data:/data
+  #   healthcheck:
+  #     test: ['CMD', 'redis-cli', 'ping']
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #   networks:
+  #     - amutot-network
+
+volumes:
+  postgres-data:
+    driver: local
+  pgadmin-data:
+    driver: local
+  # redis-data:
+  #   driver: local
+
+networks:
+  amutot-network:
+    driver: bridge

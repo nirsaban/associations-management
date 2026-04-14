@@ -1,0 +1,244 @@
+/**
+ * Global styles for Amutot UI
+ * Imports design tokens and establishes RTL-ready base styles
+ */
+
+@import './tokens.css';
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  direction: rtl;
+  lang: he;
+}
+
+html,
+body {
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-primary);
+  background-color: var(--color-background);
+}
+
+body {
+  overflow-x: hidden;
+}
+
+/* Headings */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  margin-block-end: var(--spacing-sm);
+}
+
+h1 {
+  font-size: var(--font-size-4xl);
+}
+
+h2 {
+  font-size: var(--font-size-3xl);
+}
+
+h3 {
+  font-size: var(--font-size-2xl);
+}
+
+h4 {
+  font-size: var(--font-size-xl);
+}
+
+h5 {
+  font-size: var(--font-size-lg);
+}
+
+h6 {
+  font-size: var(--font-size-base);
+}
+
+/* Paragraphs and text */
+p {
+  margin-block-end: var(--spacing-sm);
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
+}
+
+a:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Form elements */
+input,
+textarea,
+select {
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-base);
+  border-color: var(--color-outline-variant);
+  color: var(--color-text-primary);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Button reset */
+button {
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-base);
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+button:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Lists */
+ul,
+ol {
+  margin-block-end: var(--spacing-sm);
+  padding-inline-start: var(--spacing-lg);
+}
+
+li {
+  margin-block-end: var(--spacing-xs);
+}
+
+/* Code blocks */
+code {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  background-color: var(--color-surface-container-low);
+  color: var(--color-error);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+}
+
+pre {
+  background-color: var(--color-surface-container-low);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-lg);
+  overflow-x: auto;
+  margin-block-end: var(--spacing-lg);
+}
+
+pre code {
+  background-color: transparent;
+  color: var(--color-text-primary);
+  padding: 0;
+}
+
+/* HR */
+hr {
+  border: none;
+  border-block-end: 1px solid var(--color-outline-variant);
+  margin-block: var(--spacing-lg);
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-block-end: var(--spacing-lg);
+}
+
+th,
+td {
+  padding: var(--spacing-md);
+  text-align: start;
+  border-block-end: 1px solid var(--color-outline-variant);
+}
+
+th {
+  background-color: var(--color-surface-container-low);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+tr:hover {
+  background-color: var(--color-surface-container-low);
+}
+
+/* Scrollbar styling (webkit browsers) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface-container-low);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-outline);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-secondary);
+}
+
+/* Selection styling */
+::selection {
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+::-moz-selection {
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+/* Focus visible for accessibility */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Utility classes for RTL layouts */
+.text-start {
+  text-align: start;
+}
+
+.text-end {
+  text-align: end;
+}
+
+.ms-auto {
+  margin-inline-start: auto;
+}
+
+.me-auto {
+  margin-inline-end: auto;
+}
+
+.flex-row-reverse {
+  flex-direction: row-reverse;
+}

@@ -1,0 +1,147 @@
+apps/api/
+├── .env.example                      # Example environment variables
+├── .env.schema                       # Environment variable schema
+├── .eslintrc.js                      # ESLint configuration
+├── .gitignore                        # Git ignore patterns
+├── .prettierrc                       # Prettier code formatting
+├── nest-cli.json                     # NestJS CLI config
+├── package.json                      # Dependencies and scripts
+├── README.md                         # Full documentation
+├── tsconfig.json                     # TypeScript configuration
+├── tsconfig.build.json               # TypeScript build config
+│
+└── src/
+    ├── main.ts                       # Application bootstrap
+    ├── app.module.ts                 # Root application module
+    │
+    ├── common/                       # Shared infrastructure
+    │   ├── prisma/
+    │   │   ├── prisma.module.ts      # Global Prisma module
+    │   │   └── prisma.service.ts     # PrismaClient with soft-delete middleware
+    │   │
+    │   ├── guards/
+    │   │   ├── jwt-auth.guard.ts     # JWT authentication guard
+    │   │   └── roles.guard.ts        # Role-based authorization guard
+    │   │
+    │   ├── decorators/
+    │   │   ├── current-user.decorator.ts    # @CurrentUser() param decorator
+    │   │   ├── organization.decorator.ts    # @OrganizationId() param decorator
+    │   │   └── roles.decorator.ts           # @Roles() method decorator
+    │   │
+    │   ├── interceptors/
+    │   │   └── transform.interceptor.ts     # Response envelope transformation
+    │   │
+    │   ├── filters/
+    │   │   └── http-exception.filter.ts     # Standardized error responses
+    │   │
+    │   └── pipes/
+    │       └── organization-scope.pipe.ts   # organizationId validation
+    │
+    └── modules/
+        │
+        ├── auth/
+        │   ├── auth.module.ts
+        │   ├── auth.service.ts
+        │   ├── auth.controller.ts
+        │   ├── strategies/
+        │   │   └── jwt.strategy.ts
+        │   └── dto/
+        │       ├── login.dto.ts
+        │       ├── verify-otp.dto.ts
+        │       └── token-response.dto.ts
+        │
+        ├── users/
+        │   ├── users.module.ts
+        │   ├── users.service.ts
+        │   ├── users.controller.ts
+        │   └── dto/
+        │       ├── create-user.dto.ts
+        │       ├── update-user.dto.ts
+        │       └── user-response.dto.ts
+        │
+        ├── groups/
+        │   ├── groups.module.ts
+        │   ├── groups.service.ts
+        │   ├── groups.controller.ts
+        │   └── dto/
+        │       ├── create-group.dto.ts
+        │       ├── update-group.dto.ts
+        │       ├── assign-manager.dto.ts
+        │       └── group-response.dto.ts
+        │
+        ├── families/
+        │   ├── families.module.ts
+        │   ├── families.service.ts
+        │   ├── families.controller.ts
+        │   └── dto/
+        │       ├── create-family.dto.ts
+        │       ├── update-family.dto.ts
+        │       └── family-response.dto.ts
+        │
+        ├── weekly-orders/
+        │   ├── weekly-orders.module.ts
+        │   ├── weekly-orders.service.ts
+        │   ├── weekly-orders.controller.ts
+        │   └── dto/
+        │       ├── create-weekly-order.dto.ts
+        │       ├── update-weekly-order.dto.ts
+        │       └── weekly-order-response.dto.ts
+        │
+        ├── weekly-distributors/
+        │   ├── weekly-distributors.module.ts
+        │   ├── weekly-distributors.service.ts
+        │   ├── weekly-distributors.controller.ts
+        │   └── dto/
+        │       ├── assign-distributor.dto.ts
+        │       └── distributor-response.dto.ts
+        │
+        ├── payments/
+        │   ├── payments.module.ts
+        │   ├── payments.service.ts
+        │   ├── payments.controller.ts
+        │   └── dto/
+        │       ├── payment-webhook.dto.ts
+        │       └── payment-response.dto.ts
+        │
+        ├── reminders/
+        │   ├── reminders.module.ts
+        │   └── reminders.service.ts
+        │
+        ├── notifications/
+        │   ├── notifications.module.ts
+        │   ├── notifications.service.ts
+        │   ├── notifications.controller.ts
+        │   └── dto/
+        │       ├── create-notification.dto.ts
+        │       └── notification-response.dto.ts
+        │
+        ├── csv-import/
+        │   ├── csv-import.module.ts
+        │   ├── csv-import.service.ts
+        │   ├── csv-import.controller.ts
+        │   └── dto/
+        │       └── import-csv.dto.ts
+        │
+        └── dashboard/
+            ├── dashboard.module.ts
+            ├── dashboard.service.ts
+            └── dashboard.controller.ts
+
+TOTAL FILES: 65+ TypeScript source files + configuration files
+
+KEY FEATURES:
+✓ Multi-tenant architecture with organizationId scoping
+✓ JWT-based authentication with OTP flow
+✓ Role-based access control (admin, manager, user, distributor)
+✓ Soft delete support on all entities
+✓ Standardized response envelope and error handling
+✓ Swagger/OpenAPI documentation
+✓ Class-validator DTOs on all endpoints
+✓ Comprehensive logging throughout
+✓ TypeScript strict mode
+✓ Rate limiting (100 req/60s)
+✓ Cron jobs for reminders
+✓ CSV import with dry-run mode
+✓ Role-specific dashboards
+✓ Payment webhook processing (idempotent)
+✓ Push notification management

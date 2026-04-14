@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm install:*)",
+      "Bash(pnpm view:*)",
+      "Bash(docker compose:*)",
+      "Bash(pnpm prisma:generate)",
+      "Bash(npx prisma:*)",
+      "Bash(./node_modules/.bin/prisma generate:*)",
+      "Bash(node_modules/.pnpm/node_modules/.bin/prisma generate:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm prisma:*)",
+      "Bash(docker exec:*)",
+      "Bash(PGPASSWORD=amutot_dev_password_change_in_production psql -h localhost -U amutot -d amutot -c \"SELECT 1\")",
+      "Bash(mdfind -name psql)",
+      "Bash(/opt/homebrew/Cellar/postgresql@16/16.11_1/bin/psql -U Nir.Saban -d postgres -c \"CREATE DATABASE amutot;\")",
+      "Bash(/opt/homebrew/Cellar/postgresql@16/16.11_1/bin/psql -U Nir.Saban -d postgres -c \"CREATE USER amutot WITH PASSWORD 'amutot_dev_password_change_in_production';\")",
+      "Bash(/opt/homebrew/Cellar/postgresql@16/16.11_1/bin/psql -U Nir.Saban -d postgres -c \"GRANT ALL PRIVILEGES ON DATABASE amutot TO amutot;\")",
+      "Bash(/opt/homebrew/Cellar/postgresql@16/16.11_1/bin/psql -U Nir.Saban -d amutot -c \"GRANT ALL ON SCHEMA public TO amutot;\")",
+      "Bash(/opt/homebrew/Cellar/postgresql@16/16.11_1/bin/psql -U Nir.Saban -d postgres -c \"ALTER USER amutot CREATEDB;\")",
+      "Bash(pnpm dev:*)",
+      "Bash(curl -s http://localhost:3001/api/v1/health)",
+      "Bash(pnpm --filter api typecheck)",
+      "Bash(curl -s http://localhost:3001/api/v1)",
+      "Bash(curl -s http://localhost:3000)",
+      "Bash(pnpm install)",
+      "Bash(pnpm prisma:generate:*)",
+      "Bash(pnpm prisma:seed:*)",
+      "Bash(pnpm prisma migrate:*)",
+      "Bash(pnpm typecheck:*)",
+      "Bash(ls:*)",
+      "Bash(pnpm --filter @amutot/api typecheck:*)",
+      "Bash(pnpm --filter @amutot/web typecheck:*)"
+    ]
+  }
+}
