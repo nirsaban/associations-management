@@ -1,95 +1,98 @@
 /**
- * Chesed Harmony Design System - Design Tokens
- * Based on Material Design 3 color system
- * Primary: #004650, Secondary: #456646, Tertiary: #563900
+ * Amutot Design Tokens — sourced from Stitch reference designs
+ * (stitch_nachalat_david_platform/*/code.html). The Stitch tailwind.config
+ * block is the single source of truth. Tokens here mirror the values used
+ * by apps/web so the shared UI package is consistent with the web app.
  */
 
 :root {
-  /* Primary Colors */
+  /* Primary (deep teal) */
   --color-primary: #004650;
-  --color-primary-hover: #003840;
-  --color-primary-focus: #005060;
-  --color-primary-disabled: #b3d9de;
-  --color-on-primary: #ffffff;
-
-  /* Primary Container */
   --color-primary-container: #135f6b;
-  --color-on-primary-container: #c1e8f0;
+  --color-primary-fixed: #acedfb;
+  --color-primary-fixed-dim: #90d1df;
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #95d6e4;
+  --color-on-primary-fixed: #001f25;
+  --color-on-primary-fixed-variant: #004e59;
+  --color-inverse-primary: #90d1df;
 
-  /* Secondary Colors */
+  /* Secondary (grounding sage) */
   --color-secondary: #456646;
-  --color-secondary-hover: #364d38;
-  --color-secondary-focus: #4e7456;
-  --color-secondary-disabled: #ccdcc9;
-  --color-on-secondary: #ffffff;
-
-  /* Secondary Container */
   --color-secondary-container: #c6edc3;
-  --color-on-secondary-container: #0f372a;
+  --color-secondary-fixed: #c6edc3;
+  --color-secondary-fixed-dim: #abd0a8;
+  --color-on-secondary: #ffffff;
+  --color-on-secondary-container: #4b6c4b;
+  --color-on-secondary-fixed: #012108;
+  --color-on-secondary-fixed-variant: #2d4e30;
 
-  /* Tertiary Colors */
+  /* Tertiary (warm amber) */
   --color-tertiary: #563900;
-  --color-tertiary-hover: #4a2f00;
-  --color-tertiary-focus: #664200;
-  --color-tertiary-disabled: #e5d4c0;
+  --color-tertiary-container: #754e00;
+  --color-tertiary-fixed: #ffddaf;
+  --color-tertiary-fixed-dim: #ffba44;
   --color-on-tertiary: #ffffff;
+  --color-on-tertiary-container: #ffc05b;
+  --color-on-tertiary-fixed: #281800;
+  --color-on-tertiary-fixed-variant: #614000;
 
-  /* Tertiary Container */
-  --color-tertiary-container: #ffdbb5;
-  --color-on-tertiary-container: #1d0f00;
-
-  /* Surface Colors */
-  --color-surface: #f8fafa;
-  --color-surface-dim: #d8dadb;
-  --color-surface-bright: #f5f7f8;
-  --color-surface-container-lowest: #f2f4f4;
-  --color-surface-container-low: #f2f4f4;
-  --color-surface-container: #edeef0;
-  --color-surface-container-high: #e7e9eb;
-  --color-surface-container-highest: #e1e3e5;
-  --color-on-surface: #191c1d;
-  --color-on-surface-variant: #3f4849;
-
-  /* Error Colors */
+  /* Error */
   --color-error: #ba1a1a;
-  --color-error-container: #f9dedc;
+  --color-error-container: #ffdad6;
   --color-on-error: #ffffff;
-  --color-on-error-container: #410e0b;
+  --color-on-error-container: #93000a;
 
-  /* Outline & Border */
+  /* Surfaces */
+  --color-background: #f8fafa;
+  --color-surface: #f8fafa;
+  --color-surface-bright: #f8fafa;
+  --color-surface-dim: #d8dada;
+  --color-surface-tint: #206773;
+  --color-surface-variant: #e1e3e3;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f2f4f4;
+  --color-surface-container: #eceeee;
+  --color-surface-container-high: #e6e8e8;
+  --color-surface-container-highest: #e1e3e3;
+  --color-inverse-surface: #2e3131;
+  --color-inverse-on-surface: #eff1f1;
+  --color-on-background: #191c1d;
+  --color-on-surface: #191c1d;
+  --color-on-surface-variant: #3f4949;
+
+  /* Outline */
   --color-outline: #6f7979;
   --color-outline-variant: #bec8c9;
-  --color-border: #bec8c9;
-  --color-border-light: #edeef0;
 
-  /* Text Colors */
+  /* Text aliases */
   --color-text-primary: #191c1d;
-  --color-text-secondary: #3f4849;
+  --color-text-secondary: #3f4949;
   --color-text-tertiary: #6f7979;
-  --color-text-disabled: #c2c7c7;
-  --color-text-inverse: #f1f5f5;
+  --color-text-inverse: #eff1f1;
 
-  /* Background Colors */
-  --color-background: #f8fafa;
-  --color-background-inverse: #0f1213;
+  /* Status */
+  --color-success: var(--color-secondary);
+  --color-success-container: var(--color-secondary-container);
+  --color-on-success: var(--color-on-secondary);
+  --color-on-success-container: var(--color-on-secondary-container);
 
-  /* Success Colors */
-  --color-success: #228b22;
-  --color-success-container: #d4ead4;
-  --color-on-success: #ffffff;
-  --color-on-success-container: #0a2e0a;
+  --color-warning: var(--color-tertiary);
+  --color-warning-container: var(--color-tertiary-fixed);
+  --color-on-warning: var(--color-on-tertiary);
+  --color-on-warning-container: var(--color-on-tertiary-fixed);
 
-  /* Warning Colors */
-  --color-warning: #f57c00;
-  --color-warning-container: #ffe0b2;
-  --color-on-warning: #ffffff;
-  --color-on-warning-container: #4d2600;
+  /* Border aliases (prefer tonal layering; use outline-variant @ 15-40%) */
+  --color-border: rgba(190, 200, 201, 0.4);
+  --color-border-light: rgba(190, 200, 201, 0.15);
 
-  /* Info Colors */
-  --color-info: #0288d1;
-  --color-info-container: #b3e5fc;
-  --color-on-info: #ffffff;
-  --color-on-info-container: #001f3f;
+  /* Radius */
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 9999px;
 
   /* Spacing */
   --spacing-xs: 4px;
@@ -100,50 +103,49 @@
   --spacing-2xl: 32px;
   --spacing-3xl: 48px;
 
-  /* Border Radius */
-  --radius-xs: 4px;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 20px;
-  --radius-full: 9999px;
-
-  /* Shadows */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04);
+  /* Ambient shadows (tinted on-surface, never pure black) */
+  --shadow-xs: 0 2px 6px rgba(25, 28, 29, 0.03);
+  --shadow-sm: 0 4px 12px rgba(25, 28, 29, 0.04);
+  --shadow-md: 0 8px 24px rgba(25, 28, 29, 0.06);
+  --shadow-lg: 0 12px 32px rgba(25, 28, 29, 0.08);
+  --shadow-xl: 0 20px 48px rgba(25, 28, 29, 0.10);
 
   /* Typography */
-  --font-family-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
-    "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
-    "Helvetica Neue", sans-serif;
-  --font-family-mono: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono",
-    Consolas, "Courier New", monospace;
+  --font-family-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Roboto, sans-serif;
+  --font-family-display: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Roboto, sans-serif;
+  --font-family-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono',
+    Consolas, monospace;
+  --font-headline: var(--font-family-display);
+  --font-body: var(--font-family-sans);
+  --font-label: var(--font-family-sans);
 
-  /* Font Sizes */
-  --font-size-xs: 0.75rem; /* 12px */
-  --font-size-sm: 0.875rem; /* 14px */
-  --font-size-base: 1rem; /* 16px */
-  --font-size-lg: 1.125rem; /* 18px */
-  --font-size-xl: 1.25rem; /* 20px */
-  --font-size-2xl: 1.5rem; /* 24px */
-  --font-size-3xl: 1.875rem; /* 30px */
-  --font-size-4xl: 2.25rem; /* 36px */
+  /* Font sizes */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.75rem;
+  --font-size-4xl: 2rem;
+  --font-size-5xl: 2.5rem;
+  --font-size-6xl: 3.5rem;
 
-  /* Font Weights */
+  /* Weights — Stitch uses 400/500/600/700/800/900 */
   --font-weight-regular: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  --font-weight-black: 900;
 
-  /* Line Heights */
   --line-height-tight: 1.25;
-  --line-height-normal: 1.5;
+  --line-height-normal: 1.6;
   --line-height-relaxed: 1.75;
 
-  /* Z-Index Scale */
+  /* Z-index */
   --z-dropdown: 1000;
   --z-sticky: 1100;
   --z-fixed: 1200;
@@ -153,26 +155,15 @@
   --z-tooltip: 1600;
 
   /* Transitions */
-  --transition-fast: 150ms ease-in-out;
-  --transition-base: 200ms ease-in-out;
-  --transition-slow: 300ms ease-in-out;
-}
+  --transition-fast: 150ms ease-out;
+  --transition-base: 200ms ease-out;
+  --transition-slow: 300ms ease-out;
 
-/* Light mode opacity adjustments */
-:root {
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #004650 0%, #135f6b 100%);
+
+  /* Interaction opacity */
   --opacity-hover: 0.08;
   --opacity-focus: 0.12;
   --opacity-activated: 0.12;
-}
-
-/* Dark mode (optional future extension) */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-surface: #0f1213;
-    --color-on-surface: #f1f5f5;
-    --color-on-surface-variant: #bec8c9;
-    --color-outline: #8b9294;
-    --color-outline-variant: #3f4849;
-    --color-background: #0f1213;
-  }
 }

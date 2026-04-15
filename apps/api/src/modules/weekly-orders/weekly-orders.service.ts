@@ -35,9 +35,9 @@ export class WeeklyOrdersService {
         organizationId,
         groupId: createWeeklyOrderDto.groupId,
         familyId: createWeeklyOrderDto.familyId,
-        weekStart: new Date(createWeeklyOrderDto.weekStart),
-        items: (createWeeklyOrderDto.items ?? []) as Prisma.InputJsonValue,
-        status: (createWeeklyOrderDto.status || 'PENDING') as OrderStatus,
+        weekKey: createWeeklyOrderDto.weekKey,
+        shoppingListJson: (createWeeklyOrderDto.items ?? []) as Prisma.InputJsonValue,
+        status: (createWeeklyOrderDto.status || 'DRAFT') as OrderStatus,
         notes: createWeeklyOrderDto.notes || null,
       },
     });
@@ -47,21 +47,17 @@ export class WeeklyOrdersService {
 
   async findAll(
     organizationId: string,
-    weekStart?: string,
+    weekKey?: string,
     page: number = 1,
     limit: number = 10,
   ): Promise<{ data: WeeklyOrderResponseDto[]; meta: { total: number; page: number; limit: number } }> {
     this.logger.log(`Finding weekly orders for organization ${organizationId}`);
 
     const skip = (page - 1) * limit;
-    const where: Record<string, unknown> = {
+    const where: Prisma.WeeklyOrderWhereInput = {
       organizationId,
-      deletedAt: null,
+      ...(weekKey && { weekKey }),
     };
-
-    if (weekStart) {
-      where.weekStart = weekStart;
-    }
 
     const [orders, total] = await Promise.all([
       this.prisma.weeklyOrder.findMany({
@@ -69,7 +65,7 @@ export class WeeklyOrdersService {
         skip,
         take: limit,
         orderBy: {
-          weekStart: 'desc',
+          weekKey: 'desc',
         },
       }),
       this.prisma.weeklyOrder.count({
@@ -94,7 +90,6 @@ export class WeeklyOrdersService {
       where: {
         id,
         organizationId,
-        deletedAt: null,
       },
     });
 
@@ -116,7 +111,6 @@ export class WeeklyOrdersService {
       where: {
         id,
         organizationId,
-        deletedAt: null,
       },
     });
 
@@ -127,7 +121,7 @@ export class WeeklyOrdersService {
     const updated = await this.prisma.weeklyOrder.update({
       where: { id },
       data: {
-        ...(updateWeeklyOrderDto.items !== undefined && { items: updateWeeklyOrderDto.items as Prisma.InputJsonValue }),
+        ...(updateWeeklyOrderDto.items !== undefined && { shoppingListJson: updateWeeklyOrderDto.items as Prisma.InputJsonValue }),
         ...(updateWeeklyOrderDto.notes !== undefined && { notes: updateWeeklyOrderDto.notes }),
         ...(updateWeeklyOrderDto.status !== undefined && { status: updateWeeklyOrderDto.status as OrderStatus }),
       },
@@ -143,7 +137,6 @@ export class WeeklyOrdersService {
       where: {
         id,
         organizationId,
-        deletedAt: null,
       },
     });
 
@@ -162,13 +155,12 @@ export class WeeklyOrdersService {
   }
 
   async remove(organizationId: string, id: string): Promise<void> {
-    this.logger.log(`Soft deleting weekly order ${id}`);
+    this.logger.log(`Deleting weekly order ${id}`);
 
     const order = await this.prisma.weeklyOrder.findFirst({
       where: {
         id,
         organizationId,
-        deletedAt: null,
       },
     });
 
@@ -176,11 +168,8 @@ export class WeeklyOrdersService {
       throw new NotFoundException('Weekly order not found');
     }
 
-    await this.prisma.weeklyOrder.update({
+    await this.prisma.weeklyOrder.delete({
       where: { id },
-      data: {
-        deletedAt: new Date(),
-      },
     });
   }
 
@@ -190,8 +179,8 @@ export class WeeklyOrdersService {
       organizationId: order.organizationId as string,
       groupId: order.groupId as string,
       familyId: order.familyId as string,
-      weekStart: order.weekStart as Date,
-      items: order.items,
+      weekKey: order.weekKey as string,
+      items: order.shoppingListJson,
       status: order.status as string,
       notes: order.notes as string | undefined,
       createdAt: order.createdAt as Date,

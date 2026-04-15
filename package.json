@@ -48,5 +48,8 @@
   },
   "dependencies": {
     "@prisma/client": "5.22.0"
+  },
+  "prisma": {
+    "seed": "apps/api/node_modules/.bin/tsx prisma/seed.ts"
   }
 }

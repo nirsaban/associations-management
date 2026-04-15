@@ -18,10 +18,6 @@ import { WeeklyDistributorsService } from './weekly-distributors.service';
 import { AssignDistributorDto } from './dto/assign-distributor.dto';
 import { DistributorResponseDto } from './dto/distributor-response.dto';
 
-export class AssignToGroupDto extends AssignDistributorDto {
-  groupId!: string;
-}
-
 @ApiTags('Weekly Distributors')
 @ApiBearerAuth('access-token')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -41,7 +37,7 @@ export class WeeklyDistributorsController {
     @Body() assignDistributorDto: AssignDistributorDto,
   ): Promise<{ data: DistributorResponseDto }> {
     const distributor = await this.weeklyDistributorsService.assignDistributor(
-      user.organizationId,
+      user.organizationId!,
       groupId,
       assignDistributorDto,
     );
@@ -59,9 +55,9 @@ export class WeeklyDistributorsController {
     @Query('week') week?: string,
   ): Promise<{ data: DistributorResponseDto | null }> {
     const distributor = await this.weeklyDistributorsService.getCurrentDistributor(
-      user.organizationId,
+      user.organizationId!,
       groupId,
-      week ? new Date(week) : undefined,
+      week,
     );
     return { data: distributor };
   }
@@ -78,8 +74,8 @@ export class WeeklyDistributorsController {
     @Query('limit') limit: number = 10,
   ): Promise<object> {
     return this.weeklyDistributorsService.getDistributorsForWeek(
-      user.organizationId,
-      new Date(week),
+      user.organizationId!,
+      week,
       page,
       limit,
     );
@@ -97,6 +93,6 @@ export class WeeklyDistributorsController {
     @Param('groupId') groupId: string,
     @Param('weekKey') weekKey: string,
   ): Promise<void> {
-    await this.weeklyDistributorsService.removeDistributor(user.organizationId, groupId, new Date(weekKey));
+    await this.weeklyDistributorsService.removeDistributor(user.organizationId!, groupId, weekKey);
   }
 }

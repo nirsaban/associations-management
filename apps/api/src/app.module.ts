@@ -20,7 +20,10 @@ import { NotificationsModule } from '@modules/notifications/notifications.module
 import { CsvImportModule } from '@modules/csv-import/csv-import.module';
 import { DashboardModule } from '@modules/dashboard/dashboard.module';
 import { PlatformModule } from '@modules/platform/platform.module';
-import { AssociationsModule } from '@modules/associations/associations.module';
+import { OrganizationModule } from '@modules/organization/organization.module';
+import { HomepageModule } from '@modules/homepage/homepage.module';
+import { ManagerModule } from '@modules/manager/manager.module';
+import { AdminModule } from '@modules/admin/admin.module';
 
 @Module({
   imports: [
@@ -48,7 +51,10 @@ import { AssociationsModule } from '@modules/associations/associations.module';
     CsvImportModule,
     DashboardModule,
     PlatformModule,
-    AssociationsModule,
+    OrganizationModule,
+    HomepageModule,
+    ManagerModule,
+    AdminModule,
   ],
   providers: [
     {

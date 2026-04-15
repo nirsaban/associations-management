@@ -1,9 +1,9 @@
-import { IsString, IsNotEmpty, MinLength } from 'class-validator';
+import { IsString, IsNotEmpty, MinLength, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateGroupDto {
   @ApiProperty({
-    description: 'Group name',
+    description: 'שם הקבוצה',
     example: 'קבוצת צפון',
   })
   @IsString()
@@ -12,9 +12,10 @@ export class CreateGroupDto {
   name!: string;
 
   @ApiProperty({
-    description: 'Manager user ID',
+    description: 'מזהה מנהל הקבוצה (חייב להיות משתמש בעמותה)',
+    required: false,
   })
   @IsString()
-  @IsNotEmpty()
-  managerId!: string;
+  @IsOptional()
+  managerId?: string;
 }

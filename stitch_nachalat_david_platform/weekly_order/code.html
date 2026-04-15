@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+
+<html class="light" dir="rtl" lang="he"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>טופס הזמנה שבועית - Digital Sanctuary</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;700;800&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed": "#acedfb",
+                        "surface-container-highest": "#e1e3e3",
+                        "secondary-fixed-dim": "#abd0a8",
+                        "error": "#ba1a1a",
+                        "outline": "#6f7979",
+                        "on-background": "#191c1d",
+                        "tertiary-container": "#754e00",
+                        "on-primary-container": "#95d6e4",
+                        "on-error-container": "#93000a",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-tint": "#206773",
+                        "on-tertiary-fixed-variant": "#614000",
+                        "on-secondary-fixed": "#012108",
+                        "on-surface-variant": "#3f4949",
+                        "on-primary": "#ffffff",
+                        "surface-container-low": "#f2f4f4",
+                        "tertiary": "#563900",
+                        "on-error": "#ffffff",
+                        "on-primary-fixed-variant": "#004e59",
+                        "primary-fixed-dim": "#90d1df",
+                        "surface-container-high": "#e6e8e8",
+                        "on-surface": "#191c1d",
+                        "secondary": "#456646",
+                        "secondary-container": "#c6edc3",
+                        "inverse-on-surface": "#eff1f1",
+                        "error-container": "#ffdad6",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed": "#001f25",
+                        "outline-variant": "#bec8c9",
+                        "primary": "#004650",
+                        "on-secondary-fixed-variant": "#2d4e30",
+                        "on-tertiary": "#ffffff",
+                        "surface-variant": "#e1e3e3",
+                        "on-secondary-container": "#4b6c4b",
+                        "surface-dim": "#d8dada",
+                        "inverse-surface": "#2e3131",
+                        "secondary-fixed": "#c6edc3",
+                        "background": "#f8fafa",
+                        "surface-container": "#eceeee",
+                        "tertiary-fixed": "#ffddaf",
+                        "on-tertiary-fixed": "#281800",
+                        "inverse-primary": "#90d1df",
+                        "primary-container": "#135f6b",
+                        "surface": "#f8fafa",
+                        "surface-bright": "#f8fafa",
+                        "on-tertiary-container": "#ffc05b",
+                        "tertiary-fixed-dim": "#ffba44"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Be Vietnam Pro"],
+                        "body": ["Plus Jakarta Sans"],
+                        "label": ["Plus Jakarta Sans"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .active-tab-dot::after { content: ''; width: 4px; height: 4px; background-color: #ffddaf; border-radius: 50%; margin-top: 4px; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface antialiased min-h-screen">
+<!-- TopNavBar - Fixed Navigation -->
+<header class="bg-cyan-950/80 dark:bg-cyan-950/80 backdrop-blur-md text-cyan-50 font-['Be_Vietnam_Pro'] font-bold tracking-tight docked full-width top-0 z-50 sticky shadow-sm dark:shadow-none flex flex-row-reverse justify-between items-center w-full px-6 py-3">
+<div class="flex items-center gap-4">
+<button class="hover:bg-cyan-900/50 transition-colors scale-95 active:scale-90 transition-transform p-2 rounded-full">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="hover:bg-cyan-900/50 transition-colors scale-95 active:scale-90 transition-transform p-2 rounded-full">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+<div class="text-xl font-bold text-cyan-50">Digital Sanctuary</div>
+</header>
+<main class="max-w-4xl mx-auto px-6 py-8 md:py-12 mb-24">
+<!-- Family Identity Section -->
+<section class="mb-12">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div>
+<h1 class="text-3xl md:text-5xl font-['Be_Vietnam_Pro'] font-extrabold text-primary tracking-tight mb-2">משפחת כהן-אברהם</h1>
+<div class="flex items-center text-on-surface-variant gap-2 text-lg">
+<span class="material-symbols-outlined text-primary">location_on</span>
+<span>רחוב השקד 14, דירה 5, קריית אונו</span>
+</div>
+</div>
+<div class="bg-secondary-container text-on-secondary-container px-6 py-3 rounded-xl inline-flex items-center gap-3">
+<span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: 'FILL' 1;">calendar_today</span>
+<span class="font-bold">משלוח שבועי: 24 באוקטובר</span>
+</div>
+</div>
+</section>
+<!-- Asymmetric Bento Grid for Content -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- Items Checklist (Main Content) -->
+<div class="md:col-span-8 space-y-6">
+<div class="bg-surface-container-lowest rounded-xl p-6 shadow-sm">
+<div class="flex items-center justify-between mb-8">
+<h2 class="text-2xl font-bold font-['Be_Vietnam_Pro']">רשימת מצרכים</h2>
+<span class="text-sm font-medium text-outline">בחר את הפריטים הדרושים</span>
+</div>
+<div class="grid grid-cols-1 gap-3">
+<!-- Checklist Item -->
+<label class="flex items-center gap-4 p-5 rounded-xl border-b-2 border-surface-container-low hover:bg-surface-container-low transition-colors cursor-pointer group">
+<input class="w-7 h-7 rounded-md border-outline text-primary focus:ring-primary/20 transition-all" type="checkbox"/>
+<div class="flex flex-col">
+<span class="text-lg font-bold group-hover:text-primary transition-colors">סל ירקות בסיסי</span>
+<span class="text-sm text-on-surface-variant">עגבניות, מלפפונים, תפו"א, בצל וגזר</span>
+</div>
+<span class="material-symbols-outlined mr-auto text-outline-variant">eco</span>
+</label>
+<label class="flex items-center gap-4 p-5 rounded-xl border-b-2 border-surface-container-low hover:bg-surface-container-low transition-colors cursor-pointer group">
+<input class="w-7 h-7 rounded-md border-outline text-primary focus:ring-primary/20 transition-all" type="checkbox"/>
+<div class="flex flex-col">
+<span class="text-lg font-bold group-hover:text-primary transition-colors">מוצרי חלב וביצים</span>
+<span class="text-sm text-on-surface-variant">חלב 3%, גבינה לבנה, תבנית ביצים L</span>
+</div>
+<span class="material-symbols-outlined mr-auto text-outline-variant">egg</span>
+</label>
+<label class="flex items-center gap-4 p-5 rounded-xl border-b-2 border-surface-container-low hover:bg-surface-container-low transition-colors cursor-pointer group">
+<input class="w-7 h-7 rounded-md border-outline text-primary focus:ring-primary/20 transition-all" type="checkbox"/>
+<div class="flex flex-col">
+<span class="text-lg font-bold group-hover:text-primary transition-colors">מוצרים יבשים</span>
+<span class="text-sm text-on-surface-variant">אורז, פסטה, שמן קנולה, סוכר</span>
+</div>
+<span class="material-symbols-outlined mr-auto text-outline-variant">inventory_2</span>
+</label>
+<label class="flex items-center gap-4 p-5 rounded-xl border-b-2 border-surface-container-low hover:bg-surface-container-low transition-colors cursor-pointer group">
+<input class="w-7 h-7 rounded-md border-outline text-primary focus:ring-primary/20 transition-all" type="checkbox"/>
+<div class="flex flex-col">
+<span class="text-lg font-bold group-hover:text-primary transition-colors">ערכת הגיינה</span>
+<span class="text-sm text-on-surface-variant">נייר טואלט, סבון כלים, שמפו</span>
+</div>
+<span class="material-symbols-outlined mr-auto text-outline-variant">sanitizer</span>
+</label>
+<label class="flex items-center gap-4 p-5 rounded-xl border-b-2 border-surface-container-low hover:bg-surface-container-low transition-colors cursor-pointer group">
+<input class="w-7 h-7 rounded-md border-outline text-primary focus:ring-primary/20 transition-all" type="checkbox"/>
+<div class="flex flex-col">
+<span class="text-lg font-bold group-hover:text-primary transition-colors">לחם ומאפים</span>
+<span class="text-sm text-on-surface-variant">2 לחם פרוס, חלה לשבת</span>
+</div>
+<span class="material-symbols-outlined mr-auto text-outline-variant">bakery_dining</span>
+</label>
+</div>
+</div>
+</div>
+<!-- Sidebar Info & Notes -->
+<div class="md:col-span-4 space-y-6">
+<!-- Map Decoration -->
+<div class="bg-surface-container-low rounded-xl overflow-hidden aspect-square md:aspect-video relative">
+<img class="w-full h-full object-cover grayscale opacity-50" data-alt="stylized architectural map showing a neighborhood in central Israel with clean lines and soft professional colors" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCR7tZV7giTGl5qzvOAQFOP2alXQhj5ovqF3dxHUIvM04BhTfS2XEgRUOZm1wbibLkT9n3HyKm_WOZOMy_3c1ZLRMEUstjADJ4TQiD31fOWHr51kaug2k5RnVONke3uhCsTn1sbqvciQqghd_6-zDyjXjjtHrEafGkLWlVmpWt-w8ozBTMZ4OKlzVHWU7jyADu-oH_V52pHLcxmQgNv2OK7x4x-StibSWOBC09nnREYVANs3aVcQhRNK1seGg369Jrqc9UyuKegZcU"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-low to-transparent"></div>
+<div class="absolute bottom-4 right-4 bg-surface-container-lowest p-3 rounded-lg shadow-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">my_location</span>
+<span class="text-xs font-bold">מיקום המשפחה</span>
+</div>
+</div>
+<!-- Notes Section -->
+<div class="bg-surface-container-lowest rounded-xl p-6 shadow-sm">
+<h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary">edit_note</span>
+                        הערות מיוחדות
+                    </h3>
+<textarea class="w-full bg-surface-container-low border-0 border-b-2 border-outline-variant focus:border-primary focus:ring-0 rounded-t-lg transition-colors text-on-surface placeholder:text-outline/50 resize-none" placeholder="האם יש בקשות מיוחדות או שינויים השבוע?" rows="6"></textarea>
+<p class="mt-3 text-xs text-on-surface-variant leading-relaxed">
+                        הערות אלו יועברו ישירות לצוות האריזה וההפצה.
+                    </p>
+</div>
+</div>
+</div>
+<!-- Sticky Actions (for mobile reachability) -->
+<div class="fixed bottom-0 left-0 w-full md:relative md:mt-12 bg-white/80 md:bg-transparent backdrop-blur-xl md:backdrop-blur-none p-4 md:p-0 z-40">
+<div class="max-w-4xl mx-auto flex flex-col sm:flex-row-reverse gap-4">
+<button class="flex-1 bg-gradient-to-br from-primary to-primary-container text-on-primary h-14 md:h-16 rounded-xl font-bold text-lg shadow-lg hover:shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-3">
+<span class="material-symbols-outlined">send</span>
+                    סיום ושליחת הזמנה
+                </button>
+<button class="flex-1 bg-surface-container-high text-on-surface h-14 md:h-16 rounded-xl font-bold text-lg hover:bg-surface-container-highest transition-all active:scale-95 flex items-center justify-center gap-3">
+<span class="material-symbols-outlined">save</span>
+                    שמירה כטיוטה
+                </button>
+</div>
+</div>
+</main>
+<!-- BottomNavBar - Mobile Only -->
+<nav class="md:hidden bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl text-cyan-900 dark:text-cyan-100 font-['Plus_Jakarta_Sans'] text-xs font-semibold docked full-width bottom-0 z-50 fixed rounded-t-2xl shadow-[0px_-4px_12px_rgba(0,0,0,0.05)] fixed bottom-0 left-0 w-full flex flex-row-reverse justify-around items-center pt-3 pb-safe px-4">
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-cyan-700 transition-colors tap-highlight-transparent active:scale-95" href="#">
+<span class="material-symbols-outlined">home</span>
+<span>Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-cyan-900 dark:text-amber-100 after:content-[''] after:w-1 after:h-1 after:bg-amber-400 after:rounded-full after:mt-1 tap-highlight-transparent active:scale-95" href="#">
+<span class="material-symbols-outlined">assignment</span>
+<span>Tasks</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-cyan-700 transition-colors tap-highlight-transparent active:scale-95" href="#">
+<span class="material-symbols-outlined">group</span>
+<span>Families</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-cyan-700 transition-colors tap-highlight-transparent active:scale-95" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span>Reports</span>
+</a>
+</nav>
+<!-- SideNavBar - Desktop Only (Hidden on mobile) -->
+<nav class="hidden md:flex flex-col h-full py-8 pr-4 pl-0 rtl bg-slate-50 dark:bg-slate-950 text-cyan-900 dark:text-cyan-100 font-['Plus_Jakarta_Sans'] text-sm font-medium h-screen w-72 fixed right-0 top-0 border-l border-slate-100 dark:border-slate-800">
+<div class="text-2xl font-black text-cyan-900 dark:text-cyan-100 mb-8 px-8">Admin Console</div>
+<div class="flex-1 space-y-1">
+<a class="flex items-center gap-4 px-8 py-4 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 hover:translate-x-[-4px] transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                Dashboard
+            </a>
+<a class="flex items-center gap-4 px-8 py-4 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 hover:translate-x-[-4px] transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">family_restroom</span>
+                Family Registry
+            </a>
+<a class="flex items-center gap-4 px-8 py-4 bg-cyan-100/50 dark:bg-cyan-900/30 text-cyan-900 dark:text-cyan-100 rounded-r-none rounded-l-full font-bold" href="#">
+<span class="material-symbols-outlined">local_shipping</span>
+                Distribution
+            </a>
+<a class="flex items-center gap-4 px-8 py-4 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 hover:translate-x-[-4px] transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">payments</span>
+                Financials
+            </a>
+<a class="flex items-center gap-4 px-8 py-4 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 hover:translate-x-[-4px] transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">group_add</span>
+                Team Management
+            </a>
+<a class="flex items-center gap-4 px-8 py-4 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 hover:translate-x-[-4px] transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+                Settings
+            </a>
+</div>
+<div class="px-6 mb-8">
+<button class="w-full bg-primary text-on-primary py-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-md">
+<span class="material-symbols-outlined">add</span>
+                New Distribution
+            </button>
+</div>
+<div class="px-8 border-t border-slate-100 dark:border-slate-800 pt-6 flex items-center gap-4">
+<img class="w-10 h-10 rounded-full object-cover" data-alt="professional headshot of a friendly logistics coordinator with a warm smile and professional attire" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCNOGwIBYSsyflegkhC2845wGluwjya7tNhoejMeF23TQM1xU_4o3IBKrFfUK8Tnum6LyKyzSbEzA0K9cLxjDhh76lf9WSNFtopxYiVUTjkosOT-Oqn1tHTDpV8VKpNdMDx8kdRfDUKMXokcIWOc3NfNQ0Tvc6SG3PjlUL2uuolmcTdNQhWjTNb5oLYbFes43WHKVHv-PoCPoP6x5_5VchpWIH8dihZz1bbDMroRtmuFggRyt7abI7SkqqkkoL80nJ5Oui7LAFFWT8"/>
+<div>
+<div class="text-sm font-bold">Community Sanctuary</div>
+<div class="text-xs text-slate-400">User Profile</div>
+</div>
+</div>
+</nav>
+</body></html>

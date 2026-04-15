@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class NotificationResponseDto {
   @ApiProperty()
@@ -19,13 +19,10 @@ export class NotificationResponseDto {
   @ApiProperty()
   type!: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'True if status is READ' })
   isRead!: boolean;
 
-  @ApiProperty()
-  readAt?: Date;
-
-  @ApiProperty()
+  @ApiPropertyOptional()
   metadata?: unknown;
 
   @ApiProperty()

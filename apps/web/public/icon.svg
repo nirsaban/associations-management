@@ -1,0 +1,29 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" fill="#004650" rx="128"/>
+
+  <!-- Hebrew letter 'Ayin' (ע) stylized -->
+  <g fill="#ffffff">
+    <!-- Main body -->
+    <path d="M256 128C197.7 128 150 175.7 150 234v44c0 24.3 19.7 44 44 44h124c24.3 0 44-19.7 44-44v-44c0-58.3-47.7-106-106-106z" opacity="0.9"/>
+
+    <!-- Inner curve -->
+    <circle cx="256" cy="280" r="36" fill="#004650"/>
+
+    <!-- Bottom extension -->
+    <rect x="238" y="300" width="36" height="84" rx="18" opacity="0.9"/>
+
+    <!-- Side accents -->
+    <rect x="180" y="240" width="28" height="80" rx="14" opacity="0.7"/>
+    <rect x="304" y="240" width="28" height="80" rx="14" opacity="0.7"/>
+  </g>
+
+  <!-- Subtle gradient overlay -->
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#006876;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#004650;stop-opacity:0" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#grad)" rx="128"/>
+</svg>

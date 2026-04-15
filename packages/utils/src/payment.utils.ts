@@ -1,8 +1,4 @@
-import {
-  getCurrentMonthKey,
-  getMonthStart,
-  getPreviousMonthKey,
-} from "./date.utils";
+import { getMonthStart } from "./date.utils";
 
 /**
  * Generate a unique month key in YYYY-MM format
@@ -19,7 +15,6 @@ export function generateMonthKey(date: Date = new Date()): string {
  */
 export function isPaymentDue(monthKey: string): boolean {
   const now = new Date();
-  const monthStart = getMonthStart(monthKey);
 
   // Check if monthKey is current or past
   const currentKey = generateMonthKey();

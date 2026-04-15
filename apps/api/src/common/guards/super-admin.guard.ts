@@ -4,10 +4,15 @@ import { Reflector } from '@nestjs/core';
 /**
  * Guard that restricts access to SUPER_ADMIN users only
  *
+ * Per CLAUDE.md:
+ * - SUPER_ADMIN has NO organizationId
+ * - SUPER_ADMIN only accesses platform routes
+ * - Check platformRole === 'SUPER_ADMIN'
+ *
  * Usage:
  * @UseGuards(JwtAuthGuard, SuperAdminGuard)
  * @SuperAdminOnly()
- * async someEndpoint() { ... }
+ * async platformOnlyEndpoint() { ... }
  */
 @Injectable()
 export class SuperAdminGuard implements CanActivate {
@@ -30,8 +35,14 @@ export class SuperAdminGuard implements CanActivate {
       throw new ForbiddenException('Authentication required');
     }
 
-    if (user.systemRole !== 'SUPER_ADMIN') {
+    // SUPER_ADMIN must have platformRole = SUPER_ADMIN and NO organizationId
+    if (user.platformRole !== 'SUPER_ADMIN') {
       throw new ForbiddenException('This action requires platform administrator privileges');
+    }
+
+    // Verify SUPER_ADMIN has no organizationId (tenant isolation)
+    if (user.organizationId) {
+      throw new ForbiddenException('Invalid SUPER_ADMIN token: should not have organizationId');
     }
 
     return true;

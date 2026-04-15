@@ -6,6 +6,11 @@ export const API_ROUTES = {
     REFRESH: '/auth/refresh',
     LOGOUT: '/auth/logout',
   },
+  ORGANIZATION: {
+    ME: '/organization/me',
+    SETUP: '/organization/me/setup',
+    LOGO: '/organization/me/logo',
+  },
   USERS: {
     LIST: '/users',
     GET: (id: string) => `/users/${id}`,

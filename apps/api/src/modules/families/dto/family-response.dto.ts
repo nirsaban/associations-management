@@ -1,27 +1,33 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class FamilyResponseDto {
-  @ApiProperty()
+  @ApiProperty({ description: 'מזהה משפחה' })
   id!: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'מזהה עמותה' })
   organizationId!: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'שם המשפחה' })
   familyName!: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'מזהה קבוצה', required: false })
+  groupId?: string;
+
+  @ApiProperty({ description: 'שם איש קשר', required: false })
+  contactName?: string;
+
+  @ApiProperty({ description: 'טלפון איש קשר', required: false })
   contactPhone?: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'כתובת', required: false })
   address?: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'הערות', required: false })
   notes?: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'תאריך יצירה' })
   createdAt!: Date;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'תאריך עדכון' })
   updatedAt!: Date;
 }

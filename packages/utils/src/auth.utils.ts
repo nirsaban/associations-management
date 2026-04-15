@@ -71,7 +71,7 @@ export function canManageGroup(
 export function canCreateInGroup(
   userSystemRole: SystemRole | undefined,
   userGroupId: string | undefined,
-  userGroupRole: GroupRole | undefined,
+  _userGroupRole: GroupRole | undefined,
   targetGroupId: string
 ): boolean {
   // Admins can create in any group

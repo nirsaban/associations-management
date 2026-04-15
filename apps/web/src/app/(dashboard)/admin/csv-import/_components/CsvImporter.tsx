@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { Upload, AlertCircle, CheckCircle, Loader } from 'lucide-react';
 import Papa from 'papaparse';
@@ -101,9 +101,13 @@ export function CsvImporter() {
     e.preventDefault();
     e.currentTarget.classList.remove('bg-primary/10');
     const droppedFile = e.dataTransfer.files?.[0];
-    if (droppedFile) {
+    if (droppedFile && fileInputRef.current) {
+      // Create a DataTransfer to set the file
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(droppedFile);
+      fileInputRef.current.files = dataTransfer.files;
       handleFileChange({
-        target: { files: { 0: droppedFile, length: 1 } as FileList },
+        target: { files: dataTransfer.files },
       } as React.ChangeEvent<HTMLInputElement>);
     }
   };

@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '@/hooks/useAuth';
+import { useAuthStore } from '@/store/auth.store';
 import { useRouter } from 'next/navigation';
 
 const otpSchema = z.object({
@@ -60,8 +61,21 @@ export function OtpVerification({
     setError(null);
     try {
       await verifyOtp(phone, data.otp, sessionId, organizationId);
-      // Use replace to avoid adding to history stack
-      router.replace('/');
+
+      // Determine landing page based on role
+      const { user } = useAuthStore.getState();
+
+      if (user?.platformRole === 'SUPER_ADMIN') {
+        console.log('[OTP] SUPER_ADMIN logged in, going to platform');
+        router.replace('/platform-secret/admins');
+      } else if (user?.systemRole === 'ADMIN') {
+        console.log('[OTP] ADMIN logged in, checking setup status...');
+        // Will be handled by dashboard layout
+        router.replace('/');
+      } else {
+        console.log('[OTP] USER logged in, going to dashboard');
+        router.replace('/');
+      }
     } catch (err) {
       setError('קוד OTP שגוי. אנא נסה שוב.');
     }

@@ -180,9 +180,10 @@ export class AuthService {
 
     // Generate tokens
     const payload = {
-      id: user.id,
-      email: user.email,
-      organizationId: user.organizationId,
+      sub: user.id,
+      phone: user.phone,
+      organizationId: user.organizationId ?? undefined,
+      platformRole: user.platformRole ?? undefined,
       systemRole: user.systemRole,
     };
 
@@ -232,9 +233,10 @@ export class AuthService {
       }
 
       const payload = {
-        id: user.id,
-        email: user.email,
-        organizationId: (decoded as Record<string, unknown>).organizationId as string,
+        sub: user.id,
+        phone: user.phone,
+        organizationId: ((decoded as Record<string, unknown>).organizationId as string | undefined) ?? undefined,
+        platformRole: user.platformRole ?? undefined,
         systemRole: user.systemRole,
       };
 
@@ -267,6 +269,45 @@ export class AuthService {
       this.logger.error('Token refresh failed', (error as Error).message);
       throw new UnauthorizedException('Invalid refresh token');
     }
+  }
+
+  /**
+   * Get current authenticated user with organization info.
+   * Returns setupCompleted from the user's organization.
+   */
+  async getMe(userId: string): Promise<Record<string, unknown>> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        organization: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            logoUrl: true,
+            setupCompleted: true,
+            isActive: true,
+          },
+        },
+      },
+    });
+
+    if (!user || user.deletedAt || !user.isActive) {
+      throw new UnauthorizedException('User not found or inactive');
+    }
+
+    return {
+      id: user.id,
+      phone: user.phone,
+      fullName: user.fullName,
+      email: user.email,
+      systemRole: user.systemRole,
+      platformRole: user.platformRole,
+      organizationId: user.organizationId,
+      organization: user.organization,
+      registrationCompleted: user.registrationCompleted,
+      createdAt: user.createdAt,
+    };
   }
 
   private maskPhoneNumber(phone: string): string {

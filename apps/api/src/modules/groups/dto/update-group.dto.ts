@@ -3,7 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateGroupDto {
   @ApiProperty({
-    description: 'Group name',
+    description: 'שם הקבוצה',
     required: false,
   })
   @IsString()
@@ -12,10 +12,10 @@ export class UpdateGroupDto {
   name?: string;
 
   @ApiProperty({
-    description: 'Group description',
+    description: 'מזהה מנהל הקבוצה',
     required: false,
   })
   @IsString()
   @IsOptional()
-  description?: string;
+  managerId?: string;
 }

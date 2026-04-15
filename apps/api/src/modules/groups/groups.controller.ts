@@ -9,8 +9,15 @@ import {
   Query,
   UseGuards,
   HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiQuery,
+  ApiParam,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { RolesGuard } from '@common/guards/roles.guard';
 import { Roles } from '@common/decorators/roles.decorator';
@@ -19,20 +26,21 @@ import { GroupsService } from './groups.service';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
 import { AssignManagerDto } from './dto/assign-manager.dto';
+import { AddMemberDto } from './dto/add-member.dto';
 import { GroupResponseDto } from './dto/group-response.dto';
 
-@ApiTags('Groups')
+@ApiTags('Admin - Groups')
 @ApiBearerAuth('access-token')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Controller('groups')
+@Roles('ADMIN')
+@Controller('admin/groups')
 export class GroupsController {
   constructor(private readonly groupsService: GroupsService) {}
 
   @Post()
-  @Roles('admin', 'manager')
   @ApiOperation({
-    summary: 'Create group',
-    description: 'Create a new group in the organization',
+    summary: 'יצירת קבוצה',
+    description: 'יצירת קבוצת חלוקה חדשה בעמותה',
   })
   async create(
     @CurrentUser() user: ICurrentUser,
@@ -44,22 +52,25 @@ export class GroupsController {
 
   @Get()
   @ApiOperation({
-    summary: 'List groups',
-    description: 'List all groups in the organization',
+    summary: 'רשימת קבוצות',
+    description: 'קבלת כל הקבוצות בעמותה כולל מספר חברים ומשפחות',
   })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
   async findAll(
     @CurrentUser() user: ICurrentUser,
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
-  ): Promise<object> {
+  ): Promise<{ data: GroupResponseDto[]; meta: { total: number; page: number; limit: number } }> {
     return this.groupsService.findAll(user.organizationId, page, limit);
   }
 
   @Get(':id')
   @ApiOperation({
-    summary: 'Get group',
-    description: 'Get a specific group',
+    summary: 'פרטי קבוצה',
+    description: 'קבלת פרטי קבוצה כולל חברים',
   })
+  @ApiParam({ name: 'id', description: 'מזהה הקבוצה' })
   async findOne(
     @CurrentUser() user: ICurrentUser,
     @Param('id') id: string,
@@ -69,11 +80,11 @@ export class GroupsController {
   }
 
   @Patch(':id')
-  @Roles('admin', 'manager')
   @ApiOperation({
-    summary: 'Update group',
-    description: 'Update group information',
+    summary: 'עדכון קבוצה',
+    description: 'עדכון שם קבוצה או מנהל',
   })
+  @ApiParam({ name: 'id', description: 'מזהה הקבוצה' })
   async update(
     @CurrentUser() user: ICurrentUser,
     @Param('id') id: string,
@@ -84,22 +95,22 @@ export class GroupsController {
   }
 
   @Delete(':id')
-  @Roles('admin')
-  @HttpCode(204)
+  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
-    summary: 'Delete group',
-    description: 'Soft delete a group',
+    summary: 'מחיקת קבוצה',
+    description: 'מחיקה רכה של קבוצה (deletedAt)',
   })
+  @ApiParam({ name: 'id', description: 'מזהה הקבוצה' })
   async remove(@CurrentUser() user: ICurrentUser, @Param('id') id: string): Promise<void> {
     await this.groupsService.remove(user.organizationId, id);
   }
 
   @Post(':id/assign-manager')
-  @Roles('admin', 'manager')
   @ApiOperation({
-    summary: 'Assign manager to group',
-    description: 'Assign a user as manager for the group',
+    summary: 'הקצאת מנהל לקבוצה',
+    description: 'הקצאת משתמש כמנהל הקבוצה — חייב להיות חבר בעמותה',
   })
+  @ApiParam({ name: 'id', description: 'מזהה הקבוצה' })
   async assignManager(
     @CurrentUser() user: ICurrentUser,
     @Param('id') id: string,
@@ -113,27 +124,33 @@ export class GroupsController {
     return { data: group };
   }
 
-  @Post(':id/members/:userId')
-  @Roles('admin', 'manager')
+  @Post(':id/members')
   @ApiOperation({
-    summary: 'Add member to group',
-    description: 'Add a user as a member of the group',
+    summary: 'הוספת חבר לקבוצה',
+    description: 'הוספת משתמש כחבר בקבוצה',
   })
+  @ApiParam({ name: 'id', description: 'מזהה הקבוצה' })
   async addMember(
     @CurrentUser() user: ICurrentUser,
     @Param('id') id: string,
-    @Param('userId') userId: string,
-  ): Promise<{ message: string }> {
-    return this.groupsService.addMember(user.organizationId, id, userId);
+    @Body() addMemberDto: AddMemberDto,
+  ): Promise<{ data: { message: string } }> {
+    const result = await this.groupsService.addMember(
+      user.organizationId,
+      id,
+      addMemberDto.userId,
+    );
+    return { data: result };
   }
 
   @Delete(':id/members/:userId')
-  @Roles('admin', 'manager')
-  @HttpCode(204)
+  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
-    summary: 'Remove member from group',
-    description: 'Remove a user from the group',
+    summary: 'הסרת חבר מקבוצה',
+    description: 'הסרת משתמש מהקבוצה (מסמן כ-INACTIVE)',
   })
+  @ApiParam({ name: 'id', description: 'מזהה הקבוצה' })
+  @ApiParam({ name: 'userId', description: 'מזהה המשתמש' })
   async removeMember(
     @CurrentUser() user: ICurrentUser,
     @Param('id') id: string,
@@ -144,9 +161,10 @@ export class GroupsController {
 
   @Get(':id/members')
   @ApiOperation({
-    summary: 'Get group members',
-    description: 'List all members of the group',
+    summary: 'חברי קבוצה',
+    description: 'קבלת רשימת חברים בקבוצה',
   })
+  @ApiParam({ name: 'id', description: 'מזהה הקבוצה' })
   async getMembers(
     @CurrentUser() user: ICurrentUser,
     @Param('id') id: string,

@@ -1,25 +1,39 @@
 'use client';
 
-import React, { ReactNode, useEffect } from 'react';
+import React, { ReactNode, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth.store';
 
 export default function SetupLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { user, isAuthenticated } = useAuthStore();
+  const hasCheckedRef = useRef(false);
 
   useEffect(() => {
+    console.log('[Setup Layout] Auth check:', { isAuthenticated, role: user?.systemRole, hasChecked: hasCheckedRef.current });
+
+    if (hasCheckedRef.current) {
+      return;
+    }
+
     // Redirect if not authenticated
     if (!isAuthenticated) {
+      console.log('[Setup Layout] Not authenticated, redirecting to login');
+      hasCheckedRef.current = true;
       router.replace('/login');
       return;
     }
 
     // Only ADMIN users can access setup routes
     if (user?.systemRole !== 'ADMIN') {
+      console.log('[Setup Layout] Not ADMIN, redirecting to dashboard');
+      hasCheckedRef.current = true;
       router.replace('/');
       return;
     }
+
+    console.log('[Setup Layout] ADMIN confirmed, showing setup wizard');
+    hasCheckedRef.current = true;
   }, [isAuthenticated, user]);
 
   // Show loading while checking auth

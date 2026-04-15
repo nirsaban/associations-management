@@ -3,7 +3,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 
-type Association = {
+type Organization = {
   id: string;
   name: string;
   slug: string;
@@ -17,7 +17,7 @@ type Association = {
   } | null;
 };
 
-type CreateAssociationDto = {
+type CreateOrganizationDto = {
   name: string;
   slug: string;
   contactEmail?: string;
@@ -25,7 +25,7 @@ type CreateAssociationDto = {
 };
 
 type CreateFirstAdminDto = {
-  associationId: string;
+  organizationId: string;
   phone: string;
   fullName: string;
   email?: string;
@@ -36,7 +36,7 @@ type ToggleStatusDto = {
   isActive: boolean;
 };
 
-type GetAssociationsParams = {
+type GetOrganizationsParams = {
   page?: number;
   limit?: number;
   search?: string;
@@ -44,29 +44,29 @@ type GetAssociationsParams = {
 };
 
 export function usePlatform() {
-  // Create association
-  const createAssociation = useMutation({
-    mutationFn: async (data: CreateAssociationDto) => {
-      const response = await api.post('/platform/associations', data);
+  // Create organization
+  const createOrganization = useMutation({
+    mutationFn: async (data: CreateOrganizationDto) => {
+      const response = await api.post('/platform/organizations', data);
       return response.data;
     },
   });
 
   // Create first admin
   const createFirstAdmin = useMutation({
-    mutationFn: async ({ associationId, ...data }: CreateFirstAdminDto) => {
+    mutationFn: async ({ organizationId, ...data }: CreateFirstAdminDto) => {
       const response = await api.post(
-        `/platform/associations/${associationId}/first-admin`,
+        `/platform/organizations/${organizationId}/first-admin`,
         data
       );
       return response.data;
     },
   });
 
-  // Get all associations
-  const getAssociations = (params: GetAssociationsParams = {}) => {
+  // Get all organizations
+  const getOrganizations = (params: GetOrganizationsParams = {}) => {
     return useQuery({
-      queryKey: ['platform', 'associations', params],
+      queryKey: ['platform', 'organizations', params],
       queryFn: async () => {
         const searchParams = new URLSearchParams();
         if (params.page) searchParams.set('page', params.page.toString());
@@ -74,30 +74,30 @@ export function usePlatform() {
         if (params.search) searchParams.set('search', params.search);
         if (params.status) searchParams.set('status', params.status);
 
-        const response = await api.get<{ data: Association[] }>(
-          `/platform/associations?${searchParams.toString()}`
+        const response = await api.get<{ data: Organization[] }>(
+          `/platform/organizations?${searchParams.toString()}`
         );
         return response.data;
       },
     });
   };
 
-  // Get single association
-  const getAssociation = (id: string) => {
+  // Get single organization
+  const getOrganization = (id: string) => {
     return useQuery({
-      queryKey: ['platform', 'associations', id],
+      queryKey: ['platform', 'organizations', id],
       queryFn: async () => {
-        const response = await api.get(`/platform/associations/${id}`);
+        const response = await api.get(`/platform/organizations/${id}`);
         return response.data;
       },
       enabled: !!id,
     });
   };
 
-  // Toggle association status
-  const toggleAssociationStatus = useMutation({
+  // Toggle organization status
+  const toggleOrganizationStatus = useMutation({
     mutationFn: async ({ id, isActive }: ToggleStatusDto) => {
-      const response = await api.patch(`/platform/associations/${id}/status`, {
+      const response = await api.patch(`/platform/organizations/${id}/status`, {
         isActive,
       });
       return response.data;
@@ -105,10 +105,10 @@ export function usePlatform() {
   });
 
   return {
-    createAssociation,
+    createOrganization,
     createFirstAdmin,
-    getAssociations,
-    getAssociation,
-    toggleAssociationStatus,
+    getOrganizations,
+    getOrganization,
+    toggleOrganizationStatus,
   };
 }

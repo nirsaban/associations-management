@@ -14,8 +14,10 @@ export class WeeklyDistributorsService {
     groupId: string,
     assignDistributorDto: AssignDistributorDto,
   ): Promise<DistributorResponseDto> {
+    const weekKey = assignDistributorDto.weekKey || this.getCurrentWeekKey();
+
     this.logger.log(
-      `Assigning distributor ${assignDistributorDto.userId} to group ${groupId} for week ${assignDistributorDto.weekStart}`,
+      `Assigning distributor ${assignDistributorDto.userId} to group ${groupId} for week ${weekKey}`,
     );
 
     // Verify group exists
@@ -48,7 +50,6 @@ export class WeeklyDistributorsService {
       where: {
         groupId,
         userId: assignDistributorDto.userId,
-        deletedAt: null,
       },
     });
 
@@ -57,21 +58,21 @@ export class WeeklyDistributorsService {
     }
 
     // Create or update distributor assignment
-    const distributor = await this.prisma.weeklyDistributor.upsert({
+    const distributor = await this.prisma.weeklyDistributorAssignment.upsert({
       where: {
-        groupId_weekStart: {
+        groupId_weekKey: {
           groupId,
-          weekStart: assignDistributorDto.weekStart,
+          weekKey,
         },
       },
       update: {
-        userId: assignDistributorDto.userId,
+        assignedUserId: assignDistributorDto.userId,
       },
       create: {
         organizationId,
         groupId,
-        userId: assignDistributorDto.userId,
-        weekStart: assignDistributorDto.weekStart,
+        assignedUserId: assignDistributorDto.userId,
+        weekKey,
       },
     });
 
@@ -81,19 +82,16 @@ export class WeeklyDistributorsService {
   async getCurrentDistributor(
     organizationId: string,
     groupId: string,
-    weekStart?: Date,
+    weekKey?: string,
   ): Promise<DistributorResponseDto | null> {
-    this.logger.log(`Getting current distributor for group ${groupId}, week ${weekStart}`);
+    const week = weekKey || this.getCurrentWeekKey();
+    this.logger.log(`Getting current distributor for group ${groupId}, week ${week}`);
 
-    // If no week specified, use current week
-    const week = weekStart || this.getCurrentWeekDate();
-
-    const distributor = await this.prisma.weeklyDistributor.findFirst({
+    const distributor = await this.prisma.weeklyDistributorAssignment.findFirst({
       where: {
         organizationId,
         groupId,
-        weekStart: week,
-        deletedAt: null,
+        weekKey: week,
       },
     });
 
@@ -102,29 +100,27 @@ export class WeeklyDistributorsService {
 
   async getDistributorsForWeek(
     organizationId: string,
-    weekStart: Date,
+    weekKey: string,
     page: number = 1,
     limit: number = 10,
   ): Promise<{ data: DistributorResponseDto[]; meta: { total: number; page: number; limit: number } }> {
-    this.logger.log(`Getting distributors for week ${weekStart}`);
+    this.logger.log(`Getting distributors for week ${weekKey}`);
 
     const skip = (page - 1) * limit;
 
     const [distributors, total] = await Promise.all([
-      this.prisma.weeklyDistributor.findMany({
+      this.prisma.weeklyDistributorAssignment.findMany({
         where: {
           organizationId,
-          weekStart,
-          deletedAt: null,
+          weekKey,
         },
         skip,
         take: limit,
       }),
-      this.prisma.weeklyDistributor.count({
+      this.prisma.weeklyDistributorAssignment.count({
         where: {
           organizationId,
-          weekStart,
-          deletedAt: null,
+          weekKey,
         },
       }),
     ]);
@@ -139,15 +135,14 @@ export class WeeklyDistributorsService {
     };
   }
 
-  async removeDistributor(organizationId: string, groupId: string, weekStart: Date): Promise<void> {
-    this.logger.log(`Removing distributor from group ${groupId} for week ${weekStart}`);
+  async removeDistributor(organizationId: string, groupId: string, weekKey: string): Promise<void> {
+    this.logger.log(`Removing distributor from group ${groupId} for week ${weekKey}`);
 
-    const distributor = await this.prisma.weeklyDistributor.findFirst({
+    const distributor = await this.prisma.weeklyDistributorAssignment.findFirst({
       where: {
         organizationId,
         groupId,
-        weekStart,
-        deletedAt: null,
+        weekKey,
       },
     });
 
@@ -155,21 +150,18 @@ export class WeeklyDistributorsService {
       throw new NotFoundException('Distributor assignment not found');
     }
 
-    await this.prisma.weeklyDistributor.update({
+    await this.prisma.weeklyDistributorAssignment.delete({
       where: { id: distributor.id },
-      data: {
-        deletedAt: new Date(),
-      },
     });
   }
 
-  private getCurrentWeekDate(): Date {
+  private getCurrentWeekKey(): string {
     const now = new Date();
-    const day = now.getDay();
-    const diff = now.getDate() - day + (day === 0 ? -6 : 1); // Monday
-    const monday = new Date(now.getFullYear(), now.getMonth(), diff);
-    monday.setHours(0, 0, 0, 0);
-    return monday;
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const weekNum = Math.ceil(
+      ((now.getTime() - startOfYear.getTime()) / 86400000 + startOfYear.getDay() + 1) / 7
+    );
+    return `${now.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
   }
 
   private mapToDto(distributor: Record<string, unknown>): DistributorResponseDto {
@@ -177,8 +169,8 @@ export class WeeklyDistributorsService {
       id: distributor.id as string,
       organizationId: distributor.organizationId as string,
       groupId: distributor.groupId as string,
-      userId: distributor.userId as string,
-      weekStart: distributor.weekStart as Date,
+      userId: (distributor.assignedUserId as string),
+      weekKey: distributor.weekKey as string,
       createdAt: distributor.createdAt as Date,
       updatedAt: distributor.updatedAt as Date,
     };

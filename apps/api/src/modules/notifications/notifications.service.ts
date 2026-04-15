@@ -20,8 +20,9 @@ export class NotificationsService {
         title: createNotificationDto.title,
         body: createNotificationDto.body,
         type: createNotificationDto.type as NotificationType,
-        metadata: (createNotificationDto.metadata ?? undefined) as Prisma.InputJsonValue | undefined,
-        isRead: false,
+        metadataJson: (createNotificationDto.metadata ?? undefined) as Prisma.InputJsonValue | undefined,
+        status: 'PENDING',
+        sentAt: new Date(),
       },
     });
 
@@ -43,7 +44,6 @@ export class NotificationsService {
         where: {
           organizationId,
           userId,
-          deletedAt: null,
         },
         skip,
         take: limit,
@@ -55,7 +55,6 @@ export class NotificationsService {
         where: {
           organizationId,
           userId,
-          deletedAt: null,
         },
       }),
     ]);
@@ -78,7 +77,6 @@ export class NotificationsService {
         id,
         organizationId,
         userId,
-        deletedAt: null,
       },
     });
 
@@ -89,8 +87,7 @@ export class NotificationsService {
     const updated = await this.prisma.notification.update({
       where: { id },
       data: {
-        isRead: true,
-        readAt: new Date(),
+        status: 'READ',
       },
     });
 
@@ -104,12 +101,10 @@ export class NotificationsService {
       where: {
         organizationId,
         userId,
-        isRead: false,
-        deletedAt: null,
+        status: { not: 'READ' },
       },
       data: {
-        isRead: true,
-        readAt: new Date(),
+        status: 'READ',
       },
     });
 
@@ -121,8 +116,7 @@ export class NotificationsService {
       where: {
         organizationId,
         userId,
-        isRead: false,
-        deletedAt: null,
+        status: { not: 'READ' },
       },
     });
 
@@ -137,9 +131,8 @@ export class NotificationsService {
       title: notification.title as string,
       body: notification.body as string,
       type: notification.type as string,
-      isRead: notification.isRead as boolean,
-      readAt: notification.readAt as Date | undefined,
-      metadata: notification.metadata,
+      isRead: notification.status === 'READ',
+      metadata: notification.metadataJson,
       createdAt: notification.createdAt as Date,
     };
   }

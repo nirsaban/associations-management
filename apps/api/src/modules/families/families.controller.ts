@@ -9,8 +9,15 @@ import {
   Query,
   UseGuards,
   HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiQuery,
+  ApiParam,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { RolesGuard } from '@common/guards/roles.guard';
 import { Roles } from '@common/decorators/roles.decorator';
@@ -18,20 +25,21 @@ import { CurrentUser, type CurrentUser as ICurrentUser } from '@common/decorator
 import { FamiliesService } from './families.service';
 import { CreateFamilyDto } from './dto/create-family.dto';
 import { UpdateFamilyDto } from './dto/update-family.dto';
+import { AssignGroupDto } from './dto/assign-group.dto';
 import { FamilyResponseDto } from './dto/family-response.dto';
 
-@ApiTags('Families')
+@ApiTags('Admin - Families')
 @ApiBearerAuth('access-token')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Controller('families')
+@Roles('ADMIN')
+@Controller('admin/families')
 export class FamiliesController {
   constructor(private readonly familiesService: FamiliesService) {}
 
   @Post()
-  @Roles('admin', 'manager')
   @ApiOperation({
-    summary: 'Create family',
-    description: 'Create a new family record',
+    summary: 'יצירת משפחה',
+    description: 'יצירת רשומת משפחה חדשה בעמותה',
   })
   async create(
     @CurrentUser() user: ICurrentUser,
@@ -43,22 +51,27 @@ export class FamiliesController {
 
   @Get()
   @ApiOperation({
-    summary: 'List families',
-    description: 'List all families in the organization',
+    summary: 'רשימת משפחות',
+    description: 'קבלת רשימה ממוספרת של משפחות בעמותה',
   })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'groupId', required: false, type: String, description: 'סינון לפי קבוצה' })
   async findAll(
     @CurrentUser() user: ICurrentUser,
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
-  ): Promise<object> {
-    return this.familiesService.findAll(user.organizationId, page, limit);
+    @Query('groupId') groupId?: string,
+  ): Promise<{ data: FamilyResponseDto[]; meta: { total: number; page: number; limit: number } }> {
+    return this.familiesService.findAll(user.organizationId, page, limit, groupId);
   }
 
   @Get(':id')
   @ApiOperation({
-    summary: 'Get family',
-    description: 'Get a specific family record',
+    summary: 'פרטי משפחה',
+    description: 'קבלת פרטי משפחה לפי מזהה, מוגבל לעמותה',
   })
+  @ApiParam({ name: 'id', description: 'מזהה המשפחה' })
   async findOne(
     @CurrentUser() user: ICurrentUser,
     @Param('id') id: string,
@@ -68,11 +81,11 @@ export class FamiliesController {
   }
 
   @Patch(':id')
-  @Roles('admin', 'manager')
   @ApiOperation({
-    summary: 'Update family',
-    description: 'Update family information',
+    summary: 'עדכון משפחה',
+    description: 'עדכון פרטי משפחה בעמותה',
   })
+  @ApiParam({ name: 'id', description: 'מזהה המשפחה' })
   async update(
     @CurrentUser() user: ICurrentUser,
     @Param('id') id: string,
@@ -83,43 +96,32 @@ export class FamiliesController {
   }
 
   @Delete(':id')
-  @Roles('admin')
-  @HttpCode(204)
+  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
-    summary: 'Delete family',
-    description: 'Soft delete a family record',
+    summary: 'מחיקת משפחה',
+    description: 'מחיקה רכה של רשומת משפחה (deletedAt)',
   })
+  @ApiParam({ name: 'id', description: 'מזהה המשפחה' })
   async remove(@CurrentUser() user: ICurrentUser, @Param('id') id: string): Promise<void> {
     await this.familiesService.remove(user.organizationId, id);
   }
 
-  @Post(':id/groups/:groupId')
-  @Roles('admin', 'manager')
+  @Post(':id/assign-group')
   @ApiOperation({
-    summary: 'Link family to group',
-    description: 'Associate a family with a group',
+    summary: 'שיוך משפחה לקבוצה',
+    description: 'שיוך משפחה לקבוצת חלוקה',
   })
-  async linkToGroup(
+  @ApiParam({ name: 'id', description: 'מזהה המשפחה' })
+  async assignGroup(
     @CurrentUser() user: ICurrentUser,
     @Param('id') id: string,
-    @Param('groupId') groupId: string,
+    @Body() assignGroupDto: AssignGroupDto,
   ): Promise<{ data: FamilyResponseDto }> {
-    const family = await this.familiesService.linkToGroup(user.organizationId, id, groupId);
-    return { data: family };
-  }
-
-  @Delete(':id/groups/:groupId')
-  @Roles('admin', 'manager')
-  @ApiOperation({
-    summary: 'Unlink family from group',
-    description: 'Remove association between family and group',
-  })
-  async unlinkFromGroup(
-    @CurrentUser() user: ICurrentUser,
-    @Param('id') id: string,
-    @Param('groupId') groupId: string,
-  ): Promise<{ data: FamilyResponseDto }> {
-    const family = await this.familiesService.unlinkFromGroup(user.organizationId, id, groupId);
+    const family = await this.familiesService.linkToGroup(
+      user.organizationId,
+      id,
+      assignGroupDto.groupId,
+    );
     return { data: family };
   }
 }

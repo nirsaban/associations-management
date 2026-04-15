@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
-import { useAuthStore } from '@/store/auth.store';
 import { AlertCircle, Calendar, ChevronLeft, ChevronRight, CheckCircle } from 'lucide-react';
 import { DAY_NAMES } from '@/lib/constants';
 import { addDays, startOfWeek } from 'date-fns';
@@ -21,7 +20,6 @@ interface WeeklyTask {
 }
 
 export default function WeeklyPage() {
-  const { user } = useAuthStore();
   const [weekOffset, setWeekOffset] = useState(0);
 
   const { data: weeklyData, isLoading, error } = useQuery({

@@ -1,27 +1,143 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+/**
+ * Auth Architecture Notes:
+ *
+ * The auth store (Zustand + persist) stores tokens in localStorage under key "auth-store".
+ * localStorage is not accessible in Edge middleware.
+ *
+ * To enable server-side routing decisions, the login flow sets a cookie "auth_token"
+ * with the JWT access token immediately after successful OTP verification.
+ * This cookie is read-only by the middleware for routing (not for cryptographic verification).
+ *
+ * The JWT payload contains: sub, phone, organizationId, platformRole, systemRole.
+ * Note: setupCompleted is NOT in the JWT — that check is done client-side in the
+ * dashboard layout by calling GET /organization/me.
+ *
+ * Security note: Middleware only does routing redirects.
+ * All actual authorization is enforced by the backend on every API call.
+ */
+
+// Routes that never require authentication
+const PUBLIC_ROUTES = ['/login'];
+
+// Route prefixes only accessible to SUPER_ADMIN
+const PLATFORM_ROUTE_PREFIX = '/platform-secret';
+
+// Route prefixes for the org setup wizard (ADMIN only)
+const SETUP_ROUTE_PREFIX = '/setup';
+
+// Paths that bypass middleware entirely
+const BYPASS_PREFIXES = [
+  '/_next',
+  '/api',
+  '/icons',
+  '/sw.js',
+  '/manifest.json',
+  '/offline.html',
+  '/favicon.ico',
+];
+
+function shouldBypass(pathname: string): boolean {
+  return BYPASS_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+}
+
+function isPublicRoute(pathname: string): boolean {
+  return PUBLIC_ROUTES.some(
+    (route) => pathname === route || pathname.startsWith(route + '/'),
+  );
+}
+
+/**
+ * Decode a JWT payload (base64url) without verifying the signature.
+ * Used only for routing decisions — never for authorization.
+ */
+function decodeJwtPayload(token: string): Record<string, unknown> | null {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64.padEnd(
+      base64.length + ((4 - (base64.length % 4)) % 4),
+      '=',
+    );
+    const decoded = atob(padded);
+    return JSON.parse(decoded) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Platform routes protection
-  if (pathname.startsWith('/platform-secret')) {
-    const authCookie = request.cookies.get('auth-token');
+  // Let Next.js internals, static assets, and API proxy pass through
+  if (shouldBypass(pathname)) {
+    return NextResponse.next();
+  }
 
-    if (!authCookie) {
-      // Not authenticated - redirect to login
-      return NextResponse.redirect(new URL('/login', request.url));
+  const rawToken = request.cookies.get('auth_token')?.value ?? null;
+  const payload = rawToken ? decodeJwtPayload(rawToken) : null;
+  const isAuthenticated = payload !== null;
+  const isSuperAdmin = payload?.platformRole === 'SUPER_ADMIN';
+
+  // ── Public routes ──────────────────────────────────────────────────────────
+  if (isPublicRoute(pathname)) {
+    // Redirect already-authenticated users away from /login
+    if (isAuthenticated) {
+      const dest = isSuperAdmin ? '/platform-secret/admins' : '/';
+      return NextResponse.redirect(new URL(dest, request.url));
     }
+    return NextResponse.next();
+  }
 
-    // Note: We can't decode JWT here without the secret, so we rely on
-    // the layout component to do the SUPER_ADMIN check client-side.
-    // For production, consider using middleware-safe JWT verification
-    // or a separate auth service.
+  // ── Unauthenticated ────────────────────────────────────────────────────────
+  if (!isAuthenticated) {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+
+  // ── SUPER_ADMIN routing ────────────────────────────────────────────────────
+  // SUPER_ADMIN must stay in /platform-secret; everywhere else redirects them back.
+  if (isSuperAdmin) {
+    if (!pathname.startsWith(PLATFORM_ROUTE_PREFIX)) {
+      return NextResponse.redirect(
+        new URL('/platform-secret/admins', request.url),
+      );
+    }
+    return NextResponse.next();
+  }
+
+  // ── Regular users / admins ─────────────────────────────────────────────────
+  // They must NOT reach /platform-secret
+  if (pathname.startsWith(PLATFORM_ROUTE_PREFIX)) {
+    return NextResponse.redirect(new URL('/', request.url));
+  }
+
+  // Setup wizard access: only ADMIN users need it.
+  // The fine-grained redirect to /setup/organization when setupCompleted=false
+  // is handled by the dashboard layout (which fetches /organization/me from the API).
+  // Middleware cannot know setupCompleted without an extra API call, so we leave
+  // that decision to the client layout.
+
+  // Prevent non-ADMIN from accessing the setup wizard
+  if (
+    pathname.startsWith(SETUP_ROUTE_PREFIX) &&
+    payload?.systemRole !== 'ADMIN'
+  ) {
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/platform-secret/:path*'],
+  matcher: [
+    /*
+     * Match all paths except Next.js internals and static files.
+     * This regex excludes paths starting with _next/static, _next/image,
+     * and files with extensions (images, fonts, etc.).
+     */
+    '/((?!_next/static|_next/image|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?|ttf|otf|css|js)$).*)',
+  ],
 };

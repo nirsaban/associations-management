@@ -47,11 +47,20 @@ api.interceptors.response.use(
 
           useAuthStore.getState().setTokens(newAccessToken, newRefreshToken);
 
+          // Keep the middleware cookie in sync with the refreshed token
+          if (typeof document !== 'undefined') {
+            const secure = window.location.protocol === 'https:';
+            document.cookie = `auth_token=${newAccessToken}; path=/; max-age=3600; SameSite=Strict${secure ? '; Secure' : ''}`;
+          }
+
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
           return api(originalRequest);
         }
       } catch (refreshError) {
         useAuthStore.getState().logout();
+        if (typeof document !== 'undefined') {
+          document.cookie = 'auth_token=; path=/; max-age=0; SameSite=Strict';
+        }
         window.location.href = '/login';
         return Promise.reject(refreshError);
       }

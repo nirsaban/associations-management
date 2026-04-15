@@ -2,65 +2,79 @@
 @tailwind components;
 @tailwind utilities;
 
-/* =====================
-   DESIGN TOKENS (CSS Variables)
-   ===================== */
+/* ============================================================
+   DESIGN TOKENS — sourced from Stitch (Material Design 3 mapping)
+   All values mirror tailwind.config.ts. Change tokens here and
+   Tailwind utilities together.
+   ============================================================ */
 
 :root {
-  /* Primary Colors - Chesed Harmony */
+  /* Primary */
   --color-primary: #004650;
   --color-primary-container: #135f6b;
+  --color-primary-fixed: #acedfb;
+  --color-primary-fixed-dim: #90d1df;
   --color-on-primary: #ffffff;
-  --color-on-primary-container: #e0f7fa;
-  --color-primary-hover: #003a42;
-
-  /* Surface */
-  --color-surface: #f8fafa;
-  --color-surface-container-low: #f2f4f4;
-  --color-surface-container: #eceef0;
-  --color-surface-container-high: #e6e8ea;
-  --color-on-surface: #191c1d;
-  --color-on-surface-variant: #3f484a;
+  --color-on-primary-container: #95d6e4;
+  --color-on-primary-fixed: #001f25;
+  --color-on-primary-fixed-variant: #004e59;
+  --color-inverse-primary: #90d1df;
 
   /* Secondary */
   --color-secondary: #456646;
+  --color-secondary-container: #c6edc3;
+  --color-secondary-fixed: #c6edc3;
+  --color-secondary-fixed-dim: #abd0a8;
   --color-on-secondary: #ffffff;
-  --color-secondary-container: #5a7c5a;
-  --color-on-secondary-container: #e8f5e8;
+  --color-on-secondary-container: #4b6c4b;
+  --color-on-secondary-fixed: #012108;
+  --color-on-secondary-fixed-variant: #2d4e30;
 
-  /* Tertiary */
+  /* Tertiary (warm amber accent) */
   --color-tertiary: #563900;
+  --color-tertiary-container: #754e00;
+  --color-tertiary-fixed: #ffddaf;
+  --color-tertiary-fixed-dim: #ffba44;
   --color-on-tertiary: #ffffff;
-  --color-tertiary-container: #8b5900;
-  --color-on-tertiary-container: #ffe8c6;
+  --color-on-tertiary-container: #ffc05b;
+  --color-on-tertiary-fixed: #281800;
+  --color-on-tertiary-fixed-variant: #614000;
 
-  /* Semantic Colors */
+  /* Error */
   --color-error: #ba1a1a;
-  --color-on-error: #ffffff;
   --color-error-container: #ffdad6;
-  --color-on-error-container: #410002;
+  --color-on-error: #ffffff;
+  --color-on-error-container: #93000a;
 
-  --color-success: #2e7d32;
-  --color-on-success: #ffffff;
-  --color-success-container: #c8e6c9;
-  --color-on-success-container: #1b5e20;
+  /* Surfaces (tonal layering stack) */
+  --color-background: #f8fafa;
+  --color-surface: #f8fafa;
+  --color-surface-bright: #f8fafa;
+  --color-surface-dim: #d8dada;
+  --color-surface-tint: #206773;
+  --color-surface-variant: #e1e3e3;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f2f4f4;
+  --color-surface-container: #eceeee;
+  --color-surface-container-high: #e6e8e8;
+  --color-surface-container-highest: #e1e3e3;
+  --color-inverse-surface: #2e3131;
+  --color-inverse-on-surface: #eff1f1;
+  --color-on-background: #191c1d;
+  --color-on-surface: #191c1d;
+  --color-on-surface-variant: #3f4949;
 
-  --color-warning: #f57c00;
-  --color-on-warning: #ffffff;
-  --color-warning-container: #ffe0b2;
-  --color-on-warning-container: #e65100;
+  /* Outlines (prefer tonal layering; use at opacity per DESIGN.md) */
+  --color-outline: #6f7979;
+  --color-outline-variant: #bec8c9;
 
-  /* Border */
-  --color-border: #e0e3e5;
-  --color-border-light: #f0f2f4;
-
-  /* Border Radius */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
+  /* Radius */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
   --radius-full: 9999px;
 
-  /* Spacing */
+  /* Spacing scale */
   --space-xs: 4px;
   --space-sm: 8px;
   --space-md: 16px;
@@ -68,62 +82,91 @@
   --space-xl: 32px;
   --space-2xl: 48px;
 
-  /* Typography - Font Stack */
+  /* Ambient shadows (never pure black; tinted on-surface) */
+  --shadow-ambient-sm: 0 4px 12px rgba(25, 28, 29, 0.04);
+  --shadow-ambient-md: 0 8px 24px rgba(25, 28, 29, 0.06);
+  --shadow-ambient-lg: 0 12px 32px rgba(25, 28, 29, 0.08);
+
+  /* Typography */
   --font-headline: 'Be Vietnam Pro', system-ui, sans-serif;
   --font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
   --font-label: 'Plus Jakarta Sans', system-ui, sans-serif;
+
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #004650 0%, #135f6b 100%);
 }
 
-/* =====================
-   GLOBAL BASE STYLES
-   ===================== */
+/* ============================================================
+   BASE
+   ============================================================ */
 
 html {
   direction: rtl;
-  lang: he;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  @apply bg-surface text-on-surface font-body;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  @apply bg-background text-on-surface font-body antialiased;
+  line-height: 1.6;
 }
 
 * {
-  @apply box-border;
+  box-sizing: border-box;
 }
 
-/* =====================
+::selection {
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ============================================================
    TYPOGRAPHY
-   ===================== */
+   ============================================================ */
 
 h1, h2, h3, h4, h5, h6 {
-  @apply font-headline font-normal;
+  @apply font-headline;
+  color: var(--color-on-surface);
 }
 
-h1 {
-  @apply text-headline-lg;
+h1 { @apply text-headline-lg; }
+h2 { @apply text-headline-md; }
+h3 { @apply text-headline-sm; }
+h4 { @apply text-title-lg; }
+h5 { @apply text-title-md; }
+h6 { @apply text-title-sm; }
+p  { @apply text-body-md; }
+
+/* Material Symbols Outlined — shared config from every Stitch screen */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 
-h2 {
-  @apply text-headline-md;
+.material-symbols-outlined.filled {
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 
-h3 {
-  @apply text-headline-sm;
-}
-
-h4, h5, h6 {
-  @apply text-title-lg;
-}
-
-p {
-  @apply text-body-md;
-}
-
-/* =====================
-   FORM ELEMENTS
-   ===================== */
+/* ============================================================
+   FORMS — "editorial underline" look per DESIGN.md
+   ============================================================ */
 
 input,
 textarea,
@@ -136,158 +179,200 @@ input[type='email'],
 input[type='password'],
 input[type='tel'],
 input[type='number'],
+input[type='search'],
 textarea,
 select {
-  @apply w-full rounded-md border border-border bg-surface-container-low px-4 py-3 text-on-surface placeholder-on-surface-variant focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-20;
+  width: 100%;
+  background-color: var(--color-surface-container-low);
+  color: var(--color-on-surface);
+  border: none;
+  border-bottom: 2px solid var(--color-outline-variant);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  padding: 0.875rem 1rem;
+  transition: border-color 160ms ease, background-color 160ms ease;
 }
 
-input::placeholder {
-  @apply text-on-surface-variant;
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-on-surface-variant);
 }
 
-/* =====================
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-bottom-color: var(--color-primary);
+  background-color: var(--color-surface-container-lowest);
+}
+
+input[aria-invalid='true'],
+textarea[aria-invalid='true'] {
+  background-color: var(--color-error-container);
+  border-bottom-color: var(--color-error);
+  color: var(--color-on-error-container);
+}
+
+/* ============================================================
    BUTTONS
-   ===================== */
+   ============================================================ */
 
 button {
-  @apply relative inline-flex items-center justify-center gap-2 rounded-md font-label text-label-md font-medium transition-all duration-200;
+  @apply inline-flex items-center justify-center gap-2 font-label font-semibold transition-all;
+  border-radius: var(--radius-lg);
 }
 
-/* Primary Button */
 .btn-primary {
-  @apply bg-gradient-to-b from-primary to-primary-container text-on-primary hover:shadow-lg hover:from-primary-hover hover:to-primary active:shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none;
+  background-image: var(--gradient-primary);
+  color: var(--color-on-primary);
+  min-height: 48px;
+  padding: 0 1.5rem;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-ambient-sm);
 }
+.btn-primary:hover { box-shadow: var(--shadow-ambient-md); }
+.btn-primary:active { transform: scale(0.97); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
 
-/* Secondary Button */
 .btn-secondary {
-  @apply bg-secondary text-on-secondary hover:shadow-lg hover:bg-secondary active:shadow-md disabled:opacity-50 disabled:cursor-not-allowed;
+  background-color: var(--color-secondary-container);
+  color: var(--color-on-secondary-container);
+  min-height: 48px;
+  padding: 0 1.5rem;
+  border-radius: var(--radius-lg);
 }
+.btn-secondary:hover { background-color: var(--color-secondary-fixed-dim); }
 
-/* Tertiary Button */
 .btn-tertiary {
-  @apply bg-tertiary text-on-tertiary hover:shadow-lg hover:bg-tertiary active:shadow-md disabled:opacity-50 disabled:cursor-not-allowed;
+  background-color: var(--color-tertiary-fixed);
+  color: var(--color-on-tertiary-fixed);
+  min-height: 48px;
+  padding: 0 1.5rem;
+  border-radius: var(--radius-lg);
 }
 
-/* Outline Button */
 .btn-outline {
-  @apply border border-primary bg-surface text-primary hover:bg-surface-container-low active:bg-surface-container disabled:opacity-50 disabled:cursor-not-allowed;
+  background-color: transparent;
+  color: var(--color-primary);
+  min-height: 48px;
+  padding: 0 1.5rem;
+  border: 1px solid rgba(190, 200, 201, 0.4); /* outline-variant @ 40% — "ghost border" */
+  border-radius: var(--radius-lg);
 }
+.btn-outline:hover { background-color: var(--color-surface-container-low); }
 
-/* Ghost Button */
 .btn-ghost {
-  @apply bg-transparent text-primary hover:bg-primary hover:bg-opacity-10 active:bg-opacity-20 disabled:opacity-50 disabled:cursor-not-allowed;
+  background-color: transparent;
+  color: var(--color-on-surface);
+  min-height: 40px;
+  padding: 0 1rem;
+  border-radius: var(--radius-lg);
 }
+.btn-ghost:hover { background-color: rgba(25, 28, 29, 0.05); }
 
-/* =====================
-   CARDS & CONTAINERS
-   ===================== */
+/* ============================================================
+   CARDS — no borders; rely on tonal layering
+   ============================================================ */
 
 .card {
-  @apply rounded-lg bg-surface-container-low p-6 shadow-sm transition-shadow hover:shadow-md;
+  background-color: var(--color-surface-container-lowest);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-ambient-sm);
 }
 
 .card-elevated {
-  @apply rounded-lg bg-surface p-6 shadow-md transition-shadow hover:shadow-lg;
+  background-color: var(--color-surface-container-lowest);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-ambient-md);
 }
 
-/* =====================
-   UTILITIES
-   ===================== */
-
-.text-label-sm {
-  @apply text-xs font-medium;
+.card-muted {
+  background-color: var(--color-surface-container-low);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem;
 }
 
-.text-label-md {
-  @apply text-sm font-medium;
+/* Glassmorphic floating elements (mobile bottom nav, desktop tooltips) */
+.glass {
+  background-color: rgba(248, 250, 250, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
-.text-body-sm {
-  @apply text-sm;
+.glass-dark {
+  background-color: rgba(46, 49, 49, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--color-inverse-on-surface);
 }
 
-.text-body-md {
-  @apply text-base;
+/* ============================================================
+   TABLES — alternating tonal rows, no dividers
+   ============================================================ */
+
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
-.text-body-lg {
-  @apply text-lg;
+thead th {
+  background-color: transparent;
+  color: var(--color-on-surface-variant);
+  font-family: var(--font-label);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-align: start;
+  padding: 0.75rem 1rem;
 }
 
-.text-title-sm {
-  @apply text-sm font-medium;
+tbody tr {
+  background-color: var(--color-surface);
+}
+tbody tr:nth-child(even) {
+  background-color: var(--color-surface-container-low);
+}
+tbody tr:hover {
+  background-color: var(--color-surface-container);
 }
 
-.text-title-md {
-  @apply text-base font-medium;
+tbody td {
+  padding: 1rem;
+  color: var(--color-on-surface);
+  border: none;
 }
 
-.text-title-lg {
-  @apply text-lg font-medium;
-}
-
-/* =====================
-   SCROLLBAR STYLING
-   ===================== */
+/* ============================================================
+   SCROLLBARS
+   ============================================================ */
 
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
-
 ::-webkit-scrollbar-track {
-  background: var(--color-surface);
+  background: transparent;
 }
-
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border);
-  border-radius: var(--radius-md);
+  background: var(--color-outline-variant);
+  border-radius: var(--radius-full);
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-on-surface-variant);
+  background: var(--color-outline);
 }
 
-/* =====================
-   ANIMATION
-   ===================== */
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(10px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.animate-fade-in {
-  animation: fadeIn 300ms ease-in-out;
-}
-
-.animate-slide-up {
-  animation: slideUp 300ms ease-in-out;
-}
-
-/* =====================
-   RTL OVERRIDES
-   ===================== */
-
-html[dir='rtl'] {
-  direction: rtl;
-}
+/* ============================================================
+   RTL HELPERS
+   ============================================================ */
 
 html[dir='rtl'] input[type='search'] {
   direction: rtl;
+}
+
+/* Flip directional icons inside RTL context when needed */
+html[dir='rtl'] .icon-flip-rtl {
+  transform: scaleX(-1);
 }

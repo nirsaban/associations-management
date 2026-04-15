@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+
+<html class="light" dir="rtl" lang="he"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700;800&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed": "#acedfb",
+                        "surface-container-highest": "#e1e3e3",
+                        "secondary-fixed-dim": "#abd0a8",
+                        "error": "#ba1a1a",
+                        "outline": "#6f7979",
+                        "on-background": "#191c1d",
+                        "tertiary-container": "#754e00",
+                        "on-primary-container": "#95d6e4",
+                        "on-error-container": "#93000a",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-tint": "#206773",
+                        "on-tertiary-fixed-variant": "#614000",
+                        "on-secondary-fixed": "#012108",
+                        "on-surface-variant": "#3f4949",
+                        "on-primary": "#ffffff",
+                        "surface-container-low": "#f2f4f4",
+                        "tertiary": "#563900",
+                        "on-error": "#ffffff",
+                        "on-primary-fixed-variant": "#004e59",
+                        "primary-fixed-dim": "#90d1df",
+                        "surface-container-high": "#e6e8e8",
+                        "on-surface": "#191c1d",
+                        "secondary": "#456646",
+                        "secondary-container": "#c6edc3",
+                        "inverse-on-surface": "#eff1f1",
+                        "error-container": "#ffdad6",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed": "#001f25",
+                        "outline-variant": "#bec8c9",
+                        "primary": "#004650",
+                        "on-secondary-fixed-variant": "#2d4e30",
+                        "on-tertiary": "#ffffff",
+                        "surface-variant": "#e1e3e3",
+                        "on-secondary-container": "#4b6c4b",
+                        "surface-dim": "#d8dada",
+                        "inverse-surface": "#2e3131",
+                        "secondary-fixed": "#c6edc3",
+                        "background": "#f8fafa",
+                        "surface-container": "#eceeee",
+                        "tertiary-fixed": "#ffddaf",
+                        "on-tertiary-fixed": "#281800",
+                        "inverse-primary": "#90d1df",
+                        "primary-container": "#135f6b",
+                        "surface": "#f8fafa",
+                        "surface-bright": "#f8fafa",
+                        "on-tertiary-container": "#ffc05b",
+                        "tertiary-fixed-dim": "#ffba44"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Be Vietnam Pro"],
+                        "body": ["Plus Jakarta Sans"],
+                        "label": ["Plus Jakarta Sans"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        h1, h2, .font-headline { font-family: 'Be Vietnam Pro', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .tap-highlight-transparent { -webkit-tap-highlight-color: transparent; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen pb-24 overflow-x-hidden">
+<!-- Top Navigation Bar -->
+<header class="bg-cyan-950/80 dark:bg-cyan-950/80 backdrop-blur-md text-cyan-50 font-['Be_Vietnam_Pro'] font-bold tracking-tight docked full-width top-0 z-50 sticky shadow-sm dark:shadow-none flex flex-row-reverse justify-between items-center w-full px-6 py-3">
+<div class="flex items-center gap-4">
+<div class="flex items-center justify-center w-10 h-10 rounded-full bg-cyan-900/50 hover:bg-cyan-900 transition-colors cursor-pointer active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</div>
+<div class="flex items-center justify-center w-10 h-10 rounded-full bg-cyan-900/50 hover:bg-cyan-900 transition-colors cursor-pointer active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</div>
+</div>
+<div class="text-xl font-bold text-cyan-50">Digital Sanctuary</div>
+<div class="hidden md:flex gap-6">
+<!-- Web Navigation handled by TopNavBar if expanded, but focusing on Mobile Task -->
+</div>
+</header>
+<main class="px-5 pt-6 space-y-8 max-w-lg mx-auto">
+<!-- Hero Welcome -->
+<section class="space-y-1">
+<p class="text-on-surface-variant font-label text-sm">שלום, מנהל קבוצה</p>
+<h1 class="text-3xl font-headline font-extrabold text-primary tracking-tight">מרכז הבקרה שלך</h1>
+</section>
+<!-- Bento Grid: Stats Overview -->
+<section class="grid grid-cols-2 gap-4">
+<!-- Weekly Progress Card (Asymmetric Layout) -->
+<div class="col-span-2 bg-surface-container-lowest p-6 rounded-xl shadow-[0px_12px_32px_rgba(25,28,29,0.04)] flex flex-col justify-between overflow-hidden relative group">
+<div class="relative z-10">
+<div class="flex justify-between items-start mb-4">
+<h2 class="text-lg font-headline font-bold text-on-surface">התקדמות שבועית</h2>
+<span class="bg-secondary-container text-on-secondary-container text-xs font-bold px-2 py-1 rounded-full">75%</span>
+</div>
+<div class="flex items-end gap-2">
+<span class="text-4xl font-headline font-extrabold text-primary">15</span>
+<span class="text-on-surface-variant pb-1 font-label">מתוך 20 משימות הושלמו</span>
+</div>
+<div class="mt-6 w-full bg-surface-container-low h-2.5 rounded-full overflow-hidden">
+<div class="bg-gradient-to-r from-primary to-primary-container h-full w-3/4 rounded-full"></div>
+</div>
+</div>
+<!-- Subtle texture -->
+<div class="absolute -bottom-8 -left-8 w-32 h-32 bg-secondary/5 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-500"></div>
+</div>
+<!-- Orders Completion -->
+<div class="bg-surface-container-lowest p-5 rounded-xl flex flex-col justify-between">
+<div class="w-10 h-10 rounded-lg bg-tertiary-fixed flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-on-tertiary-fixed" data-icon="assignment">assignment</span>
+</div>
+<h3 class="text-sm font-label font-bold text-on-surface-variant">הזמנות</h3>
+<div class="mt-1">
+<span class="text-2xl font-headline font-bold text-on-surface">15/20</span>
+<p class="text-[10px] text-on-surface-variant leading-tight">משפחות שסיימו להזמין</p>
+</div>
+</div>
+<!-- Distributor Assignment -->
+<div class="bg-surface-container-lowest p-5 rounded-xl flex flex-col justify-between">
+<div class="w-10 h-10 rounded-lg bg-secondary-container flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-on-secondary-container" data-icon="local_shipping">local_shipping</span>
+</div>
+<h3 class="text-sm font-label font-bold text-on-surface-variant">מפיצים</h3>
+<div class="mt-1">
+<span class="text-2xl font-headline font-bold text-secondary">8/8</span>
+<p class="text-[10px] text-on-surface-variant leading-tight">שובצו לכל המסלולים</p>
+</div>
+</div>
+</section>
+<!-- Shortcut to Dashboard -->
+<button class="w-full bg-gradient-to-br from-primary to-primary-container text-white p-4 rounded-xl flex items-center justify-between shadow-lg active:scale-[0.98] transition-transform">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-bold font-label">מעבר לדשבורד קבוצה מלא</span>
+</div>
+<span class="material-symbols-outlined" data-icon="chevron_left">chevron_left</span>
+</button>
+<!-- Families List Section -->
+<section class="space-y-4">
+<div class="flex justify-between items-center">
+<h2 class="text-xl font-headline font-bold text-on-surface">רשימת משפחות</h2>
+<button class="text-primary font-label text-sm font-semibold hover:bg-primary/5 px-3 py-1 rounded-full transition-colors">הצג הכל</button>
+</div>
+<!-- Families Scrollable/List Area -->
+<div class="space-y-3">
+<!-- Family Card 1 -->
+<div class="bg-surface-container-lowest p-4 rounded-xl flex items-center justify-between group">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-surface-container-low">
+<img class="w-full h-full object-cover" data-alt="portrait of a kind older israeli man with glasses warm natural indoor lighting professional photography" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8vzRScWAZ7rZ3dYsGjA0V_lSjaOupTyrDZzYwxZ60nMSFgDfbCXH_ltJxJLxHP0dhv2y6A44dlEu3AlPXMzo1KVKqg15X4fIKV3lv8I2FcuqJrjjS586_AlKWecPLP1kaqyWy8ALGBjvt1B63dy30FHAR9HArpZlKur0MOpUn2HH9CiWe1XeGL7O9oZUJ71eILo3clhMLndRkNeXT__ntjxt4jrTlfdv1dmvWY7Fd389V0HcwIcAQp_uFsmO8Z8lNLWmA3_ziXnc"/>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">משפחת כהן</h4>
+<p class="text-xs text-on-surface-variant">רחוב הזית 12, קומה 2</p>
+</div>
+</div>
+<!-- Status Toggle -->
+<div class="flex flex-col items-end gap-1">
+<label class="relative inline-flex items-center cursor-pointer tap-highlight-transparent">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+<span class="text-[10px] font-bold text-primary font-label">הזמנה בוצעה</span>
+</div>
+</div>
+<!-- Family Card 2 -->
+<div class="bg-surface-container-lowest p-4 rounded-xl flex items-center justify-between group">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-surface-container-low">
+<img class="w-full h-full object-cover" data-alt="portrait of a smiling middle aged woman in a domestic setting soft daylight editorial style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCzxvFVf9K4dkRRZFF9EGUlfB8-vQiYW7-25tDFkbsNWnAj2gD3mm_7VGqu1BJAG9719NPVZ5b1U2I_SV5bDerkFkPcwAnspgDLsUR2xYtVApgUxDZdpq_YfWyK_TgSKZdh7B4XjBmUBb2A9laHOetYfNsC-vlMOqg45389PeQcOUaN4fBb2S4CrxZBXvZvKqYtpaw9bhv9PorBdekBCTEpZbubqLE0KzvDeSOrD0Idw7gVtRN7JToozTpTiz0zTmE450B5E3ovEFc"/>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">משפחת לוי</h4>
+<p class="text-xs text-on-surface-variant">שדרות הלבנים 4</p>
+</div>
+</div>
+<!-- Status Toggle -->
+<div class="flex flex-col items-end gap-1">
+<label class="relative inline-flex items-center cursor-pointer tap-highlight-transparent">
+<input class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+<span class="text-[10px] font-bold text-on-surface-variant font-label">ממתין להזמנה</span>
+</div>
+</div>
+<!-- Family Card 3 -->
+<div class="bg-surface-container-lowest p-4 rounded-xl flex items-center justify-between group">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-surface-container-low">
+<img class="w-full h-full object-cover" data-alt="young modern father holding a child indoors soft morning light clean composition" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-dOtgtEf9BXewMmqAJcAwcOAtYqBdjCWY8sT6ykco4EaAaPYPSc51Sz3OA_eJ38TjJLuAQuPKchLBHQXCIR-GlvNDLchCprTdVeSX6eDvos6ViVfVuOMNWtib97g54RcIK46UAsHpAVQF71JcPFiOONUvPgkKIkE1c2j4pw3ibORCRIS07HJs_2PEYGJk1XoKaF-AXgeu6-OOHmVieYpdvWe3OXKggGPGferdeAAW_VBIMv5ZedWUNfBgY59kFfukilkrvhboYbk"/>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">משפחת אברהם</h4>
+<p class="text-xs text-on-surface-variant">הנרקיס 45</p>
+</div>
+</div>
+<!-- Status Toggle -->
+<div class="flex flex-col items-end gap-1">
+<label class="relative inline-flex items-center cursor-pointer tap-highlight-transparent">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+<span class="text-[10px] font-bold text-primary font-label">הזמנה בוצעה</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar (Mobile Focused) -->
+<nav class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl text-cyan-900 dark:text-cyan-100 font-['Plus_Jakarta_Sans'] text-xs font-semibold docked full-width bottom-0 z-50 fixed rounded-t-2xl shadow-[0px_-4px_12px_rgba(0,0,0,0.05)] fixed bottom-0 left-0 w-full flex flex-row-reverse justify-around items-center pt-3 pb-6 px-4">
+<!-- Home (Active) -->
+<a class="flex flex-col items-center justify-center text-cyan-900 dark:text-amber-100 after:content-[''] after:w-1 after:h-1 after:bg-amber-400 after:rounded-full after:mt-1 tap-highlight-transparent active:scale-95 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="home" style="font-variation-settings: 'FILL' 1;">home</span>
+<span>Home</span>
+</a>
+<!-- Tasks -->
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-cyan-700 transition-colors tap-highlight-transparent active:scale-95" href="#">
+<span class="material-symbols-outlined" data-icon="assignment">assignment</span>
+<span>Tasks</span>
+</a>
+<!-- Families -->
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-cyan-700 transition-colors tap-highlight-transparent active:scale-95" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span>Families</span>
+</a>
+<!-- Reports -->
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-cyan-700 transition-colors tap-highlight-transparent active:scale-95" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span>Reports</span>
+</a>
+</nav>
+</body></html>

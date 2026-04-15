@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class WeeklyOrderResponseDto {
   @ApiProperty()
@@ -13,8 +13,8 @@ export class WeeklyOrderResponseDto {
   @ApiProperty()
   familyId!: string;
 
-  @ApiProperty()
-  weekStart!: Date;
+  @ApiProperty({ description: 'Week key format: 2026-W16', example: '2026-W16' })
+  weekKey!: string;
 
   @ApiProperty()
   items!: unknown;
@@ -22,14 +22,8 @@ export class WeeklyOrderResponseDto {
   @ApiProperty()
   status!: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   notes?: string;
-
-  @ApiProperty()
-  completedBy?: string;
-
-  @ApiProperty()
-  completedAt?: Date;
 
   @ApiProperty()
   createdAt!: Date;

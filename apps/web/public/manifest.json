@@ -1,6 +1,6 @@
 {
   "name": "ניהול עמותות",
-  "short_name": "ניהול עמותות",
+  "short_name": "עמותות",
   "description": "מערכת ניהול לעמותות ישראליות",
   "start_url": "/",
   "display": "standalone",
@@ -8,6 +8,8 @@
   "theme_color": "#004650",
   "background_color": "#f8fafa",
   "orientation": "portrait-primary",
+  "dir": "rtl",
+  "lang": "he",
   "icons": [
     {
       "src": "/icon-192.png",

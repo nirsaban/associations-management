@@ -3,7 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateFamilyDto {
   @ApiProperty({
-    description: 'Family name',
+    description: 'שם המשפחה',
     example: 'משפחת כהן',
   })
   @IsString()
@@ -12,7 +12,16 @@ export class CreateFamilyDto {
   familyName!: string;
 
   @ApiProperty({
-    description: 'Contact phone number',
+    description: 'שם איש קשר',
+    example: 'יוסי כהן',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  contactName?: string;
+
+  @ApiProperty({
+    description: 'טלפון איש קשר',
     example: '+972501234567',
     required: false,
   })
@@ -21,7 +30,7 @@ export class CreateFamilyDto {
   contactPhone?: string;
 
   @ApiProperty({
-    description: 'Address',
+    description: 'כתובת',
     example: 'רחוב הראשי 10, תל אביב',
     required: false,
   })
@@ -30,10 +39,18 @@ export class CreateFamilyDto {
   address?: string;
 
   @ApiProperty({
-    description: 'Notes about the family',
+    description: 'הערות',
     required: false,
   })
   @IsString()
   @IsOptional()
   notes?: string;
+
+  @ApiProperty({
+    description: 'מזהה קבוצה (אופציונלי)',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  groupId?: string;
 }

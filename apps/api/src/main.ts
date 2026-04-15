@@ -46,7 +46,7 @@ async function bootstrap(): Promise<void> {
     )
     .addTag('Auth', 'Authentication endpoints')
     .addTag('Platform', 'Platform management (SUPER_ADMIN only)')
-    .addTag('Associations', 'Organization setup and management (ADMIN only)')
+    .addTag('Organization', 'Organization setup and management (ADMIN only)')
     .addTag('Users', 'User management endpoints')
     .addTag('Groups', 'Group management endpoints')
     .addTag('Families', 'Family management endpoints')
@@ -57,6 +57,9 @@ async function bootstrap(): Promise<void> {
     .addTag('Notifications', 'User notifications')
     .addTag('CSV Import', 'CSV import utilities')
     .addTag('Dashboard', 'Dashboard data')
+    .addTag('Homepage', 'Homepage context engine')
+    .addTag('Manager', 'Group manager operations')
+    .addTag('Admin', 'Admin dashboard and analytics')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

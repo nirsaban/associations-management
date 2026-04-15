@@ -18,12 +18,12 @@ const adminSchema = z.object({
 type AdminFormData = z.infer<typeof adminSchema>;
 
 type CreateAdminModalProps = {
-  associationId: string;
+  organizationId: string;
   onClose: () => void;
   onSuccess: () => void;
 };
 
-export function CreateAdminModal({ associationId, onClose, onSuccess }: CreateAdminModalProps) {
+export function CreateAdminModal({ organizationId, onClose, onSuccess }: CreateAdminModalProps) {
   const { createFirstAdmin } = usePlatform();
   const [error, setError] = useState<string | null>(null);
   const [createdAdmin, setCreatedAdmin] = useState<{ phone: string; fullName: string } | null>(null);
@@ -40,7 +40,7 @@ export function CreateAdminModal({ associationId, onClose, onSuccess }: CreateAd
     setError(null);
     try {
       await createFirstAdmin.mutateAsync({
-        associationId,
+        organizationId,
         phone: data.phone,
         fullName: data.fullName,
         email: data.email || undefined,

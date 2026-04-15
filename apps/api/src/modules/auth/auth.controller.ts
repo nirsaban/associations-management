@@ -1,5 +1,7 @@
-import { Controller, Post, Body, HttpCode } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Controller, Post, Get, Body, HttpCode, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
+import { CurrentUser, type CurrentUser as ICurrentUser } from '@common/decorators/current-user.decorator';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { LoginResponseDto } from './dto/login-response.dto';
@@ -11,11 +13,26 @@ import { TokenResponseDto } from './dto/token-response.dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Post('start-login')
+  @HttpCode(200)
+  @ApiOperation({
+    summary: 'התחלת התחברות עם מספר טלפון',
+    description: 'שליחת OTP למספר טלפון. מחזיר sessionId לשלב האימות.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'OTP נשלח',
+    type: LoginResponseDto,
+  })
+  async startLogin(@Body() loginDto: LoginDto): Promise<LoginResponseDto> {
+    return this.authService.login(loginDto);
+  }
+
   @Post('login')
   @HttpCode(200)
   @ApiOperation({
     summary: 'Login with phone number',
-    description: 'Initiates login by sending OTP to phone number. Returns organizations if phone exists in multiple.',
+    description: 'Initiates login by sending OTP to phone number (alias for start-login).',
   })
   @ApiResponse({
     status: 200,
@@ -29,8 +46,8 @@ export class AuthController {
   @Post('verify-otp')
   @HttpCode(200)
   @ApiOperation({
-    summary: 'Verify OTP and get tokens',
-    description: 'Verifies the OTP sent to phone and returns access/refresh tokens',
+    summary: 'אימות קוד OTP',
+    description: 'מאמת את קוד ה-OTP ומחזיר access/refresh tokens',
   })
   @ApiResponse({
     status: 200,
@@ -41,11 +58,27 @@ export class AuthController {
     return this.authService.verifyOtp(verifyOtpDto);
   }
 
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({
+    summary: 'פרטי משתמש מחובר',
+    description: 'מחזיר פרטי המשתמש המחובר כולל פרטי הארגון וסטטוס ה-setup',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'User details including organization and setupCompleted',
+  })
+  async getMe(@CurrentUser() user: ICurrentUser): Promise<{ data: Record<string, unknown> }> {
+    const me = await this.authService.getMe(user.sub);
+    return { data: me };
+  }
+
   @Post('refresh')
   @HttpCode(200)
   @ApiOperation({
-    summary: 'Refresh access token',
-    description: 'Uses refresh token to generate new access token',
+    summary: 'רענון access token',
+    description: 'שימוש ב-refresh token ליצירת access token חדש',
   })
   @ApiResponse({
     status: 200,
@@ -54,5 +87,18 @@ export class AuthController {
   })
   async refresh(@Body() body: { refreshToken: string }): Promise<TokenResponseDto> {
     return this.authService.refreshToken(body.refreshToken);
+  }
+
+  @Post('logout')
+  @HttpCode(200)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({
+    summary: 'התנתקות',
+    description: 'התנתקות מהמערכת',
+  })
+  @ApiResponse({ status: 200, description: 'Logged out successfully' })
+  async logout(): Promise<{ data: { success: boolean } }> {
+    return { data: { success: true } };
   }
 }

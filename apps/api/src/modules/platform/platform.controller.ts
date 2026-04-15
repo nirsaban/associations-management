@@ -14,9 +14,9 @@ import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { SuperAdminGuard } from '@common/guards/super-admin.guard';
 import { SuperAdminOnly } from '@common/decorators/super-admin-only.decorator';
 import { PlatformService } from './platform.service';
-import { CreateAssociationDto } from './dto/create-association.dto';
+import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { CreateFirstAdminDto } from './dto/create-first-admin.dto';
-import { AssociationResponseDto, AssociationWithAdminDto } from './dto/association-response.dto';
+import { OrganizationResponseDto, OrganizationWithAdminDto } from './dto/organization-response.dto';
 
 @ApiTags('Platform')
 @ApiBearerAuth('access-token')
@@ -25,40 +25,40 @@ import { AssociationResponseDto, AssociationWithAdminDto } from './dto/associati
 export class PlatformController {
   constructor(private readonly platformService: PlatformService) {}
 
-  @Post('associations')
+  @Post('organizations')
   @SuperAdminOnly()
   @ApiOperation({
-    summary: 'Create association',
-    description: 'Create a new organization (SUPER_ADMIN only)',
+    summary: 'יצירת ארגון חדש',
+    description: 'יצירת ארגון חדש במערכת (SUPER_ADMIN only)',
   })
-  @ApiResponse({ status: 201, type: AssociationResponseDto })
-  async createAssociation(
-    @Body() createAssociationDto: CreateAssociationDto,
-  ): Promise<{ data: AssociationResponseDto }> {
-    const association = await this.platformService.createAssociation(createAssociationDto);
-    return { data: association };
+  @ApiResponse({ status: 201, type: OrganizationResponseDto })
+  async createOrganization(
+    @Body() createOrganizationDto: CreateOrganizationDto,
+  ): Promise<{ data: OrganizationResponseDto }> {
+    const organization = await this.platformService.createOrganization(createOrganizationDto);
+    return { data: organization };
   }
 
-  @Post('associations/:id/first-admin')
+  @Post('organizations/:id/first-admin')
   @SuperAdminOnly()
   @ApiOperation({
-    summary: 'Create first admin',
-    description: 'Create the first admin user for an association (SUPER_ADMIN only)',
+    summary: 'יצירת מנהל ראשון לארגון',
+    description: 'יצירת משתמש מנהל ראשון לארגון לפי מספר טלפון (SUPER_ADMIN only)',
   })
   @ApiResponse({ status: 201 })
   async createFirstAdmin(
     @Param('id') id: string,
     @Body() createFirstAdminDto: CreateFirstAdminDto,
-  ): Promise<{ data: { admin: Record<string, unknown>; association: AssociationResponseDto } }> {
+  ): Promise<{ data: { admin: Record<string, unknown>; organization: OrganizationResponseDto } }> {
     const result = await this.platformService.createFirstAdmin(id, createFirstAdminDto);
     return { data: result };
   }
 
-  @Get('associations')
+  @Get('organizations')
   @SuperAdminOnly()
   @ApiOperation({
-    summary: 'List associations',
-    description: 'Get all associations with pagination and search (SUPER_ADMIN only)',
+    summary: 'List organizations',
+    description: 'Get all organizations with pagination and search (SUPER_ADMIN only)',
   })
   @ApiQuery({ name: 'page', required: false, example: 1 })
   @ApiQuery({ name: 'limit', required: false, example: 10 })
@@ -75,35 +75,51 @@ export class PlatformController {
     @Query('limit') limit?: number,
     @Query('search') search?: string,
     @Query('status') status?: 'active' | 'inactive' | 'all',
-  ): Promise<{ data: AssociationResponseDto[]; meta: { total: number; page: number; limit: number } }> {
+  ): Promise<{ data: OrganizationResponseDto[]; meta: { total: number; page: number; limit: number } }> {
     return this.platformService.findAll(page, limit, search, status);
   }
 
-  @Get('associations/:id')
+  @Get('organizations/:id')
   @SuperAdminOnly()
   @ApiOperation({
-    summary: 'Get association',
-    description: 'Get association details with first admin info (SUPER_ADMIN only)',
+    summary: 'פרטי ארגון',
+    description: 'קבלת פרטי ארגון כולל פרטי מנהל ראשון (SUPER_ADMIN only)',
   })
-  @ApiResponse({ status: 200, type: AssociationWithAdminDto })
-  async findOne(@Param('id') id: string): Promise<{ data: AssociationWithAdminDto }> {
-    const association = await this.platformService.findOne(id);
-    return { data: association };
+  @ApiResponse({ status: 200, type: OrganizationWithAdminDto })
+  async findOne(@Param('id') id: string): Promise<{ data: OrganizationWithAdminDto }> {
+    const organization = await this.platformService.findOne(id);
+    return { data: organization };
   }
 
-  @Patch('associations/:id/status')
+  @Patch('organizations/:id')
   @SuperAdminOnly()
   @HttpCode(200)
   @ApiOperation({
-    summary: 'Toggle association status',
-    description: 'Enable or disable an association (SUPER_ADMIN only)',
+    summary: 'עדכון ארגון',
+    description: 'עדכון פרטי ארגון (SUPER_ADMIN only)',
   })
-  @ApiResponse({ status: 200, type: AssociationResponseDto })
+  @ApiResponse({ status: 200, type: OrganizationResponseDto })
+  async updateOrganization(
+    @Param('id') id: string,
+    @Body() updateDto: Partial<CreateOrganizationDto>,
+  ): Promise<{ data: OrganizationResponseDto }> {
+    const organization = await this.platformService.updateOrganization(id, updateDto);
+    return { data: organization };
+  }
+
+  @Patch('organizations/:id/status')
+  @SuperAdminOnly()
+  @HttpCode(200)
+  @ApiOperation({
+    summary: 'שינוי סטטוס ארגון',
+    description: 'הפעלה או השבתה של ארגון (SUPER_ADMIN only)',
+  })
+  @ApiResponse({ status: 200, type: OrganizationResponseDto })
   async toggleStatus(
     @Param('id') id: string,
     @Body('isActive') isActive: boolean,
-  ): Promise<{ data: AssociationResponseDto }> {
-    const association = await this.platformService.toggleStatus(id, isActive);
-    return { data: association };
+  ): Promise<{ data: OrganizationResponseDto }> {
+    const organization = await this.platformService.toggleStatus(id, isActive);
+    return { data: organization };
   }
 }

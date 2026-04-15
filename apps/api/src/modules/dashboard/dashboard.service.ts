@@ -39,7 +39,7 @@ export class DashboardService {
         where: { organizationId, deletedAt: null },
       }),
       this.prisma.payment.aggregate({
-        where: { organizationId, status: 'COMPLETED', deletedAt: null },
+        where: { organizationId, status: 'COMPLETED' },
         _sum: { amount: true },
       }),
     ]);
@@ -51,7 +51,6 @@ export class DashboardService {
         organizationId,
         monthKey: currentMonth,
         status: 'COMPLETED',
-        deletedAt: null,
       },
     });
 
@@ -60,7 +59,7 @@ export class DashboardService {
       userCount,
       familyCount,
       groupCount,
-      totalPayments: totalPayments._sum.amount ?? 0,
+      totalPayments: totalPayments._sum?.amount ?? 0,
       paidUsersThisMonth: paidUsers,
       unpaidUsersThisMonth: userCount - paidUsers,
     };
@@ -71,7 +70,7 @@ export class DashboardService {
     const groups = await this.prisma.group.findMany({
       where: {
         organizationId,
-        managerId: userId,
+        managerUserId: userId,
         deletedAt: null,
       },
       select: { id: true },
@@ -80,7 +79,7 @@ export class DashboardService {
     const groupIds = groups.map((g) => g.id);
 
     const [familyCount, memberCount, orderCount] = await Promise.all([
-      this.prisma.groupFamily.count({
+      this.prisma.family.count({
         where: {
           organizationId,
           groupId: { in: groupIds },
@@ -91,13 +90,11 @@ export class DashboardService {
         where: {
           organizationId,
           groupId: { in: groupIds },
-          deletedAt: null,
         },
       }),
       this.prisma.weeklyOrder.count({
         where: {
           organizationId,
-          deletedAt: null,
         },
       }),
     ]);
@@ -112,16 +109,14 @@ export class DashboardService {
   }
 
   private async getDistributorDashboard(organizationId: string, userId: string): Promise<DashboardData> {
-    const currentWeek = this.getCurrentWeek();
-    const currentWeekDate = this.getCurrentWeekDate();
+    const currentWeekKey = this.getCurrentWeekKey();
 
     // Get current distributor assignment
-    const distributorAssignment = await this.prisma.weeklyDistributor.findFirst({
+    const distributorAssignment = await this.prisma.weeklyDistributorAssignment.findFirst({
       where: {
         organizationId,
-        userId,
-        weekStart: currentWeekDate,
-        deletedAt: null,
+        assignedUserId: userId,
+        weekKey: currentWeekKey,
       },
       include: {
         group: {
@@ -133,7 +128,7 @@ export class DashboardService {
     if (!distributorAssignment) {
       return {
         role: 'distributor',
-        currentWeek,
+        currentWeek: currentWeekKey,
         assignedGroup: null,
         deliveriesCount: 0,
       };
@@ -142,25 +137,23 @@ export class DashboardService {
     const deliveries = await this.prisma.weeklyOrder.count({
       where: {
         organizationId,
-        weekStart: currentWeekDate,
+        weekKey: currentWeekKey,
         groupId: distributorAssignment.groupId,
         status: 'COMPLETED',
-        deletedAt: null,
       },
     });
 
     const totalOrders = await this.prisma.weeklyOrder.count({
       where: {
         organizationId,
-        weekStart: currentWeekDate,
+        weekKey: currentWeekKey,
         groupId: distributorAssignment.groupId,
-        deletedAt: null,
       },
     });
 
     return {
       role: 'distributor',
-      currentWeek,
+      currentWeek: currentWeekKey,
       assignedGroup: distributorAssignment.group.name,
       completedDeliveries: deliveries,
       totalDeliveries: totalOrders,
@@ -176,7 +169,6 @@ export class DashboardService {
         userId,
         monthKey: currentMonth,
         status: 'COMPLETED',
-        deletedAt: null,
       },
     });
 
@@ -185,7 +177,6 @@ export class DashboardService {
         organizationId,
         userId,
         status: 'COMPLETED',
-        deletedAt: null,
       },
       orderBy: {
         createdAt: 'desc',
@@ -195,8 +186,7 @@ export class DashboardService {
     const unreadNotifications = await this.prisma.notification.count({
       where: {
         userId,
-        isRead: false,
-        deletedAt: null,
+        status: { not: 'READ' },
       },
     });
 
@@ -209,27 +199,12 @@ export class DashboardService {
     };
   }
 
-  private getCurrentWeekDate(): Date {
+  private getCurrentWeekKey(): string {
     const now = new Date();
-    const day = now.getDay();
-    const diff = now.getDate() - day + (day === 0 ? -6 : 1); // Monday
-    const monday = new Date(now.getFullYear(), now.getMonth(), diff);
-    monday.setHours(0, 0, 0, 0);
-    return monday;
-  }
-
-  private getCurrentWeek(): string {
-    const now = new Date();
-    const weekNum = this.getWeekNumber(now);
-    const year = now.getFullYear();
-    return `${year}-W${String(weekNum).padStart(2, '0')}`;
-  }
-
-  private getWeekNumber(date: Date): number {
-    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-    const dayNum = d.getUTCDay() || 7;
-    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const weekNum = Math.ceil(
+      ((now.getTime() - startOfYear.getTime()) / 86400000 + startOfYear.getDay() + 1) / 7
+    );
+    return `${now.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
   }
 }

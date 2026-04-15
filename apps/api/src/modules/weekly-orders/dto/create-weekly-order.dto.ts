@@ -17,12 +17,12 @@ export class CreateWeeklyOrderDto {
   familyId!: string;
 
   @ApiProperty({
-    description: 'Week start date (ISO string)',
-    example: '2024-03-04',
+    description: 'Week key (ISO week format: 2026-W16)',
+    example: '2026-W16',
   })
   @IsString()
   @IsNotEmpty()
-  weekStart!: string;
+  weekKey!: string;
 
   @ApiProperty({
     description: 'Order items (JSON)',
@@ -35,8 +35,8 @@ export class CreateWeeklyOrderDto {
 
   @ApiProperty({
     description: 'Order status',
-    enum: ['PENDING', 'APPROVED', 'COMPLETED'],
-    example: 'PENDING',
+    enum: ['DRAFT', 'COMPLETED'],
+    example: 'DRAFT',
     required: false,
   })
   @IsString()

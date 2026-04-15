@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class PaymentResponseDto {
   @ApiProperty()
@@ -25,12 +25,9 @@ export class PaymentResponseDto {
   @ApiProperty()
   method!: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   paidAt?: Date;
 
   @ApiProperty()
   createdAt!: Date;
-
-  @ApiProperty()
-  updatedAt!: Date;
 }

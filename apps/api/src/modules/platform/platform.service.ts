@@ -5,9 +5,9 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '@common/prisma/prisma.service';
-import { CreateAssociationDto } from './dto/create-association.dto';
+import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { CreateFirstAdminDto } from './dto/create-first-admin.dto';
-import { AssociationResponseDto, AssociationWithAdminDto } from './dto/association-response.dto';
+import { OrganizationResponseDto, OrganizationWithAdminDto } from './dto/organization-response.dto';
 
 @Injectable()
 export class PlatformService {
@@ -16,14 +16,14 @@ export class PlatformService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * Create a new association (organization)
+   * Create a new organization
    * Only SUPER_ADMIN can call this
    */
-  async createAssociation(createAssociationDto: CreateAssociationDto): Promise<AssociationResponseDto> {
-    this.logger.log(`Creating new association: ${createAssociationDto.name}`);
+  async createOrganization(createOrganizationDto: CreateOrganizationDto): Promise<OrganizationResponseDto> {
+    this.logger.log(`Creating new organization: ${createOrganizationDto.name}`);
 
     // Generate slug from name if not provided
-    const slug = createAssociationDto.slug || this.generateSlug(createAssociationDto.name);
+    const slug = createOrganizationDto.slug || this.generateSlug(createOrganizationDto.name);
 
     // Check if slug already exists
     const existing = await this.prisma.organization.findUnique({
@@ -36,10 +36,10 @@ export class PlatformService {
 
     const organization = await this.prisma.organization.create({
       data: {
-        name: createAssociationDto.name,
+        name: createOrganizationDto.name,
         slug,
-        email: createAssociationDto.contactEmail,
-        phone: createAssociationDto.contactPhone,
+        contactEmail: createOrganizationDto.contactEmail,
+        contactPhone: createOrganizationDto.contactPhone,
         isActive: true,
         setupCompleted: false, // First admin hasn't completed wizard yet
       },
@@ -49,44 +49,46 @@ export class PlatformService {
   }
 
   /**
-   * Create the first admin user for an association
-   * Sets systemRole to ADMIN, registrationCompleted to false (needs to log in first time)
+   * Create the first admin user for an organization.
+   * Sets systemRole to ADMIN, registrationCompleted to false (needs to log in first time).
+   * Phone is normalized from Israeli local format (05XXXXXXXX) before saving.
    */
   async createFirstAdmin(
-    associationId: string,
+    organizationId: string,
     createFirstAdminDto: CreateFirstAdminDto,
-  ): Promise<{ admin: Record<string, unknown>; association: AssociationResponseDto }> {
-    this.logger.log(`Creating first admin for association ${associationId}`);
+  ): Promise<{ admin: Record<string, unknown>; organization: OrganizationResponseDto }> {
+    this.logger.log(`Creating first admin for organization ${organizationId}`);
 
-    // Verify association exists
+    const normalizedPhone = this.normalizePhone(createFirstAdminDto.phone);
+
+    // Verify organization exists
     const organization = await this.prisma.organization.findUnique({
-      where: { id: associationId },
+      where: { id: organizationId },
     });
 
     if (!organization) {
-      throw new NotFoundException('Association not found');
+      throw new NotFoundException('Organization not found');
     }
 
-    // Check if phone already exists in this organization
+    // Check if phone already exists globally (phone is globally unique)
     const existingUser = await this.prisma.user.findFirst({
       where: {
-        organizationId: associationId,
-        phone: createFirstAdminDto.phone,
+        phone: normalizedPhone,
         deletedAt: null,
       },
     });
 
     if (existingUser) {
       throw new ConflictException(
-        'A user with this phone number already exists in this organization',
+        'A user with this phone number already exists',
       );
     }
 
     // Create admin user
     const admin = await this.prisma.user.create({
       data: {
-        organizationId: associationId,
-        phone: createFirstAdminDto.phone,
+        organizationId: organizationId,
+        phone: normalizedPhone,
         fullName: createFirstAdminDto.fullName,
         email: createFirstAdminDto.email,
         systemRole: 'ADMIN',
@@ -97,20 +99,20 @@ export class PlatformService {
 
     return {
       admin,
-      association: this.mapToDto(organization),
+      organization: this.mapToDto(organization),
     };
   }
 
   /**
-   * Get all associations with pagination and search
+   * Get all organizations with pagination and search
    */
   async findAll(
     page: number = 1,
     limit: number = 10,
     search?: string,
     status?: 'active' | 'inactive' | 'all',
-  ): Promise<{ data: AssociationResponseDto[]; meta: { total: number; page: number; limit: number } }> {
-    this.logger.log(`Finding all associations (page ${page}, limit ${limit})`);
+  ): Promise<{ data: OrganizationResponseDto[]; meta: { total: number; page: number; limit: number } }> {
+    this.logger.log(`Finding all organizations (page ${page}, limit ${limit})`);
 
     const skip = (page - 1) * limit;
 
@@ -156,10 +158,10 @@ export class PlatformService {
   }
 
   /**
-   * Get a single association with first admin details
+   * Get a single organization with first admin details
    */
-  async findOne(id: string): Promise<AssociationWithAdminDto> {
-    this.logger.log(`Finding association ${id}`);
+  async findOne(id: string): Promise<OrganizationWithAdminDto> {
+    this.logger.log(`Finding organization ${id}`);
 
     const organization = await this.prisma.organization.findFirst({
       where: {
@@ -181,10 +183,10 @@ export class PlatformService {
     });
 
     if (!organization) {
-      throw new NotFoundException('Association not found');
+      throw new NotFoundException('Organization not found');
     }
 
-    const dto = this.mapToDto(organization) as AssociationWithAdminDto;
+    const dto = this.mapToDto(organization) as OrganizationWithAdminDto;
 
     // Add first admin if exists
     if (organization.users && organization.users.length > 0) {
@@ -202,10 +204,10 @@ export class PlatformService {
   }
 
   /**
-   * Toggle association active status
+   * Toggle organization active status
    */
-  async toggleStatus(id: string, isActive: boolean): Promise<AssociationResponseDto> {
-    this.logger.log(`Setting association ${id} isActive=${isActive}`);
+  async toggleStatus(id: string, isActive: boolean): Promise<OrganizationResponseDto> {
+    this.logger.log(`Setting organization ${id} isActive=${isActive}`);
 
     const organization = await this.prisma.organization.findFirst({
       where: {
@@ -215,7 +217,7 @@ export class PlatformService {
     });
 
     if (!organization) {
-      throw new NotFoundException('Association not found');
+      throw new NotFoundException('Organization not found');
     }
 
     const updated = await this.prisma.organization.update({
@@ -224,6 +226,61 @@ export class PlatformService {
     });
 
     return this.mapToDto(updated);
+  }
+
+  /**
+   * Update an organization's details (SUPER_ADMIN only)
+   */
+  async updateOrganization(
+    id: string,
+    updateDto: Partial<CreateOrganizationDto>,
+  ): Promise<OrganizationResponseDto> {
+    this.logger.log(`Updating organization ${id}`);
+
+    const organization = await this.prisma.organization.findFirst({
+      where: { id, deletedAt: null },
+    });
+
+    if (!organization) {
+      throw new NotFoundException('Organization not found');
+    }
+
+    // Check slug uniqueness if changed
+    if (updateDto.slug && updateDto.slug !== organization.slug) {
+      const existingSlug = await this.prisma.organization.findUnique({
+        where: { slug: updateDto.slug },
+      });
+      if (existingSlug) {
+        throw new ConflictException(`Slug "${updateDto.slug}" is already taken`);
+      }
+    }
+
+    const updated = await this.prisma.organization.update({
+      where: { id },
+      data: {
+        ...(updateDto.name !== undefined && { name: updateDto.name }),
+        ...(updateDto.slug !== undefined && { slug: updateDto.slug }),
+        ...(updateDto.contactEmail !== undefined && { contactEmail: updateDto.contactEmail }),
+        ...(updateDto.contactPhone !== undefined && { contactPhone: updateDto.contactPhone }),
+      },
+    });
+
+    return this.mapToDto(updated);
+  }
+
+  /**
+   * Normalize Israeli phone number to +972 format.
+   * Input: "0501234567" → Output: "+9720501234567" stored as-is,
+   * but we store the normalized local form for lookup consistency.
+   * Strips spaces and ensures leading 0 is preserved.
+   */
+  private normalizePhone(phone: string): string {
+    const stripped = phone.replace(/\s+/g, '').replace(/-/g, '');
+    // Convert +972XXXXXXXXX → 0XXXXXXXXX
+    if (stripped.startsWith('+972')) {
+      return '0' + stripped.slice(4);
+    }
+    return stripped;
   }
 
   /**
@@ -256,13 +313,13 @@ export class PlatformService {
     return slug;
   }
 
-  private mapToDto(organization: Record<string, unknown>): AssociationResponseDto {
+  private mapToDto(organization: Record<string, unknown>): OrganizationResponseDto {
     return {
       id: organization.id as string,
       name: organization.name as string,
       slug: organization.slug as string,
-      email: (organization.email as string) || undefined,
-      phone: (organization.phone as string) || undefined,
+      email: (organization.contactEmail as string) || undefined,
+      phone: (organization.contactPhone as string) || undefined,
       address: (organization.address as string) || undefined,
       logoUrl: (organization.logoUrl as string) || undefined,
       isActive: organization.isActive as boolean,

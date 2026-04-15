@@ -13,13 +13,24 @@ export class FamiliesService {
   async create(organizationId: string, createFamilyDto: CreateFamilyDto): Promise<FamilyResponseDto> {
     this.logger.log(`Creating family for organization ${organizationId}`);
 
+    // Validate groupId belongs to org if provided
+    if (createFamilyDto.groupId) {
+      const group = await this.prisma.group.findFirst({
+        where: { id: createFamilyDto.groupId, organizationId, deletedAt: null },
+      });
+      if (!group) {
+        throw new BadRequestException('הקבוצה לא נמצאה בעמותה');
+      }
+    }
+
     const family = await this.prisma.family.create({
       data: {
         organizationId,
         familyName: createFamilyDto.familyName,
-        contactPhone: createFamilyDto.contactPhone,
-        address: createFamilyDto.address || null,
-        notes: createFamilyDto.notes || null,
+        contactPhone: createFamilyDto.contactPhone ?? null,
+        address: createFamilyDto.address ?? null,
+        notes: createFamilyDto.notes ?? null,
+        groupId: createFamilyDto.groupId ?? null,
       },
     });
 
@@ -30,38 +41,31 @@ export class FamiliesService {
     organizationId: string,
     page: number = 1,
     limit: number = 10,
+    groupId?: string,
   ): Promise<{ data: FamilyResponseDto[]; meta: { total: number; page: number; limit: number } }> {
     this.logger.log(`Finding families for organization ${organizationId}, page ${page}`);
 
     const skip = (page - 1) * limit;
 
+    const where = {
+      organizationId,
+      deletedAt: null,
+      ...(groupId ? { groupId } : {}),
+    };
+
     const [families, total] = await Promise.all([
       this.prisma.family.findMany({
-        where: {
-          organizationId,
-          deletedAt: null,
-        },
+        where,
         skip,
-        take: limit,
-        orderBy: {
-          createdAt: 'desc',
-        },
+        take: Number(limit),
+        orderBy: { createdAt: 'desc' },
       }),
-      this.prisma.family.count({
-        where: {
-          organizationId,
-          deletedAt: null,
-        },
-      }),
+      this.prisma.family.count({ where }),
     ]);
 
     return {
       data: families.map((family) => this.mapToDto(family)),
-      meta: {
-        total,
-        page,
-        limit,
-      },
+      meta: { total, page: Number(page), limit: Number(limit) },
     };
   }
 
@@ -69,15 +73,11 @@ export class FamiliesService {
     this.logger.log(`Finding family ${id} in organization ${organizationId}`);
 
     const family = await this.prisma.family.findFirst({
-      where: {
-        id,
-        organizationId,
-        deletedAt: null,
-      },
+      where: { id, organizationId, deletedAt: null },
     });
 
     if (!family) {
-      throw new NotFoundException('Family not found');
+      throw new NotFoundException('משפחה לא נמצאה');
     }
 
     return this.mapToDto(family);
@@ -91,20 +91,21 @@ export class FamiliesService {
     this.logger.log(`Updating family ${id} in organization ${organizationId}`);
 
     const family = await this.prisma.family.findFirst({
-      where: {
-        id,
-        organizationId,
-        deletedAt: null,
-      },
+      where: { id, organizationId, deletedAt: null },
     });
 
     if (!family) {
-      throw new NotFoundException('Family not found');
+      throw new NotFoundException('משפחה לא נמצאה');
     }
 
     const updated = await this.prisma.family.update({
       where: { id },
-      data: updateFamilyDto,
+      data: {
+        ...(updateFamilyDto.familyName !== undefined && { familyName: updateFamilyDto.familyName }),
+        ...(updateFamilyDto.contactPhone !== undefined && { contactPhone: updateFamilyDto.contactPhone }),
+        ...(updateFamilyDto.address !== undefined && { address: updateFamilyDto.address }),
+        ...(updateFamilyDto.notes !== undefined && { notes: updateFamilyDto.notes }),
+      },
     });
 
     return this.mapToDto(updated);
@@ -114,22 +115,16 @@ export class FamiliesService {
     this.logger.log(`Soft deleting family ${id} in organization ${organizationId}`);
 
     const family = await this.prisma.family.findFirst({
-      where: {
-        id,
-        organizationId,
-        deletedAt: null,
-      },
+      where: { id, organizationId, deletedAt: null },
     });
 
     if (!family) {
-      throw new NotFoundException('Family not found');
+      throw new NotFoundException('משפחה לא נמצאה');
     }
 
     await this.prisma.family.update({
       where: { id },
-      data: {
-        deletedAt: new Date(),
-      },
+      data: { deletedAt: new Date() },
     });
   }
 
@@ -137,76 +132,27 @@ export class FamiliesService {
     this.logger.log(`Linking family ${familyId} to group ${groupId}`);
 
     const family = await this.prisma.family.findFirst({
-      where: {
-        id: familyId,
-        organizationId,
-        deletedAt: null,
-      },
+      where: { id: familyId, organizationId, deletedAt: null },
     });
 
     if (!family) {
-      throw new NotFoundException('Family not found');
+      throw new NotFoundException('משפחה לא נמצאה');
     }
 
     const group = await this.prisma.group.findFirst({
-      where: {
-        id: groupId,
-        organizationId,
-        deletedAt: null,
-      },
+      where: { id: groupId, organizationId, deletedAt: null },
     });
 
     if (!group) {
-      throw new BadRequestException('Group not found');
+      throw new BadRequestException('הקבוצה לא נמצאה בעמותה');
     }
 
-    await this.prisma.groupFamily.upsert({
-      where: {
-        groupId_familyId: {
-          groupId,
-          familyId,
-        },
-      },
-      update: {
-        deletedAt: null,
-      },
-      create: {
-        organizationId,
-        groupId,
-        familyId,
-      },
+    const updated = await this.prisma.family.update({
+      where: { id: familyId },
+      data: { groupId },
     });
 
-    return this.mapToDto(family);
-  }
-
-  async unlinkFromGroup(organizationId: string, familyId: string, groupId: string): Promise<FamilyResponseDto> {
-    this.logger.log(`Unlinking family ${familyId} from group ${groupId}`);
-
-    const family = await this.prisma.family.findFirst({
-      where: {
-        id: familyId,
-        organizationId,
-        deletedAt: null,
-      },
-    });
-
-    if (!family) {
-      throw new NotFoundException('Family not found');
-    }
-
-    await this.prisma.groupFamily.updateMany({
-      where: {
-        groupId,
-        familyId,
-        deletedAt: null,
-      },
-      data: {
-        deletedAt: new Date(),
-      },
-    });
-
-    return this.mapToDto(family);
+    return this.mapToDto(updated);
   }
 
   private mapToDto(family: Record<string, unknown>): FamilyResponseDto {
@@ -214,9 +160,11 @@ export class FamiliesService {
       id: family.id as string,
       organizationId: family.organizationId as string,
       familyName: family.familyName as string,
-      contactPhone: family.contactPhone as string,
-      address: family.address as string | undefined,
-      notes: family.notes as string | undefined,
+      groupId: (family.groupId as string) || undefined,
+      contactName: (family.contactName as string) || undefined,
+      contactPhone: (family.contactPhone as string) || undefined,
+      address: (family.address as string) || undefined,
+      notes: (family.notes as string) || undefined,
       createdAt: family.createdAt as Date,
       updatedAt: family.updatedAt as Date,
     };

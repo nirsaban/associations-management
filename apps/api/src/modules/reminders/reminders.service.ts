@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '@common/prisma/prisma.service';
+import { ReminderChannel } from '@prisma/client';
 
 @Injectable()
 export class RemindersService {
@@ -24,7 +25,6 @@ export class RemindersService {
           none: {
             monthKey,
             status: 'COMPLETED',
-            deletedAt: null,
           },
         },
       },
@@ -43,13 +43,12 @@ export class RemindersService {
         where: {
           userId: user.id,
           monthKey,
-          deletedAt: null,
         },
       });
 
       // Only send if less than 3 reminders this month
       if (reminderCount < 3) {
-        await this.sendReminder(user.organizationId, user.id, monthKey, reminderCount + 1, 'SMS');
+        await this.sendReminder(user.organizationId, user.id, monthKey, reminderCount + 1, ReminderChannel.SMS);
         this.logger.log(`Reminder sent to user ${user.id} (reminder ${reminderCount + 1}/3)`);
       } else {
         this.logger.log(`User ${user.id} has reached max reminders for month ${monthKey}`);
@@ -57,7 +56,7 @@ export class RemindersService {
     }
   }
 
-  private async sendReminder(organizationId: string, userId: string, monthKey: string, reminderNumber: number, channel: 'SMS' | 'PUSH' | 'WHATSAPP'): Promise<void> {
+  private async sendReminder(organizationId: string, userId: string, monthKey: string, reminderNumber: number, channel: ReminderChannel): Promise<void> {
     // Create reminder record
     await this.prisma.paymentReminder.create({
       data: {

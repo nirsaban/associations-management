@@ -10,49 +10,67 @@ import { RolesGuard } from '@common/guards/roles.guard';
 import { Roles } from '@common/decorators/roles.decorator';
 import { CurrentUser, type CurrentUser as ICurrentUser } from '@common/decorators/current-user.decorator';
 import { CsvImportService } from './csv-import.service';
-import { ImportCsvDto } from './dto/import-csv.dto';
+import { ImportUsersDto } from './dto/import-users.dto';
+import { ImportFamiliesDto } from './dto/import-families.dto';
+import { ImportResultDto } from './dto/import-result.dto';
 
-@ApiTags('CSV Import')
+@ApiTags('Admin - CSV Import')
 @ApiBearerAuth('access-token')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('admin', 'manager')
-@Controller('csv-import')
+@Roles('ADMIN')
+@Controller('admin/import')
 export class CsvImportController {
   constructor(private readonly csvImportService: CsvImportService) {}
 
-  @Post('users')
+  @Post('users/preview')
   @ApiOperation({
-    summary: 'Import users from CSV',
-    description: 'Import users from CSV file (with optional dry-run)',
+    summary: 'תצוגה מקדימה לייבוא משתמשים',
+    description: 'אימות שורות CSV לפני הייבוא — אין יצירת נתונים',
   })
-  async importUsers(
+  async previewUsers(
     @CurrentUser() user: ICurrentUser,
-    @Body() importCsvDto: ImportCsvDto,
-  ): Promise<object> {
-    return this.csvImportService.importUsers(user.organizationId, importCsvDto);
+    @Body() dto: ImportUsersDto,
+  ): Promise<{ data: ImportResultDto }> {
+    const result = await this.csvImportService.importUsers(user.organizationId, dto.csvContent, true);
+    return { data: result };
   }
 
-  @Post('families')
+  @Post('users/commit')
   @ApiOperation({
-    summary: 'Import families from CSV',
-    description: 'Import families from CSV file (with optional dry-run)',
+    summary: 'ייבוא משתמשים',
+    description: 'יצירת משתמשים תקינים מקובץ CSV לאחר אימות',
   })
-  async importFamilies(
+  async commitUsers(
     @CurrentUser() user: ICurrentUser,
-    @Body() importCsvDto: ImportCsvDto,
-  ): Promise<object> {
-    return this.csvImportService.importFamilies(user.organizationId, importCsvDto);
+    @Body() dto: ImportUsersDto,
+  ): Promise<{ data: ImportResultDto }> {
+    const result = await this.csvImportService.importUsers(user.organizationId, dto.csvContent, false);
+    return { data: result };
   }
 
-  @Post('groups')
+  @Post('families/preview')
   @ApiOperation({
-    summary: 'Import groups from CSV',
-    description: 'Import groups from CSV file (with optional dry-run)',
+    summary: 'תצוגה מקדימה לייבוא משפחות',
+    description: 'אימות שורות CSV לפני הייבוא — אין יצירת נתונים',
   })
-  async importGroups(
+  async previewFamilies(
     @CurrentUser() user: ICurrentUser,
-    @Body() importCsvDto: ImportCsvDto,
-  ): Promise<object> {
-    return this.csvImportService.importGroups(user.organizationId, importCsvDto);
+    @Body() dto: ImportFamiliesDto,
+  ): Promise<{ data: ImportResultDto }> {
+    const result = await this.csvImportService.importFamilies(user.organizationId, dto.csvContent, true);
+    return { data: result };
+  }
+
+  @Post('families/commit')
+  @ApiOperation({
+    summary: 'ייבוא משפחות',
+    description: 'יצירת משפחות תקינות מקובץ CSV לאחר אימות',
+  })
+  async commitFamilies(
+    @CurrentUser() user: ICurrentUser,
+    @Body() dto: ImportFamiliesDto,
+  ): Promise<{ data: ImportResultDto }> {
+    const result = await this.csvImportService.importFamilies(user.organizationId, dto.csvContent, false);
+    return { data: result };
   }
 }

@@ -1,5 +1,5 @@
-import { IsString, IsNotEmpty } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class AssignDistributorDto {
   @ApiProperty({
@@ -9,11 +9,11 @@ export class AssignDistributorDto {
   @IsNotEmpty()
   userId!: string;
 
-  @ApiProperty({
-    description: 'Week start date (ISO string)',
-    example: '2024-03-04',
+  @ApiPropertyOptional({
+    description: 'Week key format: 2026-W16 (defaults to current week if not provided)',
+    example: '2026-W16',
   })
   @IsString()
-  @IsNotEmpty()
-  weekStart!: string;
+  @IsOptional()
+  weekKey?: string;
 }

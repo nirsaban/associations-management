@@ -30,7 +30,20 @@
       "Bash(pnpm typecheck:*)",
       "Bash(ls:*)",
       "Bash(pnpm --filter @amutot/api typecheck:*)",
-      "Bash(pnpm --filter @amutot/web typecheck:*)"
+      "Bash(pnpm --filter @amutot/web typecheck:*)",
+      "Bash(pnpm build:*)",
+      "Bash(yes)",
+      "Bash(export TERM=xterm)",
+      "Bash(export PRISMA_HIDE_UPDATE_MESSAGE=1)",
+      "Bash(script -q /dev/null pnpm prisma migrate dev --name align_schema_with_spec)",
+      "Bash(grep -n \"SUPER_ADMIN\" /Users/Nir.Saban/Documents/Claude/Projects/amutot/apps/api/src/common/authz/*.ts)",
+      "Bash(sed -i '' 's/weekStart: new Date\\(createWeeklyOrderDto.weekStart\\)/weekKey: createWeeklyOrderDto.weekKey || createWeeklyOrderDto.weekStart/g' apps/api/src/modules/weekly-orders/weekly-orders.service.ts)",
+      "Bash(sed -i '' 's/items: \\(createWeeklyOrderDto.items/shoppingListJson: \\(createWeeklyOrderDto.items/g' apps/api/src/modules/weekly-orders/weekly-orders.service.ts)",
+      "Bash(sed -i '' \"s/status: \\(createWeeklyOrderDto.status || 'PENDING'\\) as OrderStatus/status: \\(createWeeklyOrderDto.status || 'DRAFT'\\) as OrderStatus/g\" apps/api/src/modules/weekly-orders/weekly-orders.service.ts)",
+      "Bash(sed -i '' 's/where.weekStart = weekStart/where.weekKey = weekKey/g' apps/api/src/modules/weekly-orders/weekly-orders.service.ts)",
+      "Bash(sed -i '' 's/weekStart?: string/weekKey?: string/g' apps/api/src/modules/weekly-orders/weekly-orders.service.ts)",
+      "Bash(wc *)",
+      "Bash(pnpm --filter web typecheck)"
     ]
   }
 }

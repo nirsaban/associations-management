@@ -1,26 +1,26 @@
-import { IsString, IsOptional, MinLength, IsNumber, Min } from 'class-validator';
+import { IsString, IsOptional, MinLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateFamilyDto {
   @ApiProperty({
-    description: 'Family name',
+    description: 'שם המשפחה',
     required: false,
   })
   @IsString()
   @IsOptional()
   @MinLength(2)
-  name?: string;
+  familyName?: string;
 
   @ApiProperty({
-    description: 'Contact person name',
+    description: 'שם איש קשר',
     required: false,
   })
   @IsString()
   @IsOptional()
-  contactPerson?: string;
+  contactName?: string;
 
   @ApiProperty({
-    description: 'Contact phone number',
+    description: 'טלפון איש קשר',
     required: false,
   })
   @IsString()
@@ -28,7 +28,7 @@ export class UpdateFamilyDto {
   contactPhone?: string;
 
   @ApiProperty({
-    description: 'Address',
+    description: 'כתובת',
     required: false,
   })
   @IsString()
@@ -36,25 +36,7 @@ export class UpdateFamilyDto {
   address?: string;
 
   @ApiProperty({
-    description: 'Number of family members',
-    required: false,
-  })
-  @IsNumber()
-  @Min(1)
-  @IsOptional()
-  memberCount?: number;
-
-  @ApiProperty({
-    description: 'Family status',
-    enum: ['active', 'inactive'],
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  status?: string;
-
-  @ApiProperty({
-    description: 'Notes about the family',
+    description: 'הערות',
     required: false,
   })
   @IsString()

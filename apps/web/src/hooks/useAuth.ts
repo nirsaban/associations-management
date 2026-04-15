@@ -90,6 +90,12 @@ export function useAuth() {
 
         setUser(userData);
         setTokens(accessToken, refreshToken);
+
+        // Set a cookie so the middleware can read the token for server-side routing.
+        // SameSite=Strict prevents CSRF; Secure is set in production via HTTPS.
+        // Max-Age matches the JWT access token TTL (1 hour = 3600 seconds).
+        const secure = window.location.protocol === 'https:';
+        document.cookie = `auth_token=${accessToken}; path=/; max-age=3600; SameSite=Strict${secure ? '; Secure' : ''}`;
       } finally {
         setLoading(false);
       }
@@ -102,6 +108,8 @@ export function useAuth() {
       await api.post(API_ROUTES.AUTH.LOGOUT);
     } finally {
       logout();
+      // Clear the auth_token cookie used by middleware
+      document.cookie = 'auth_token=; path=/; max-age=0; SameSite=Strict';
       window.location.href = '/login';
     }
   }, [logout]);

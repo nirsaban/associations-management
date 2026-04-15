@@ -13,8 +13,8 @@ export class DistributorResponseDto {
   @ApiProperty()
   userId!: string;
 
-  @ApiProperty()
-  weekStart!: Date;
+  @ApiProperty({ description: 'Week key format: 2026-W16', example: '2026-W16' })
+  weekKey!: string;
 
   @ApiProperty()
   createdAt!: Date;

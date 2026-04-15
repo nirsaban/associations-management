@@ -9,8 +9,15 @@ import {
   Query,
   UseGuards,
   HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiQuery,
+  ApiParam,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { RolesGuard } from '@common/guards/roles.guard';
 import { Roles } from '@common/decorators/roles.decorator';
@@ -20,18 +27,18 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 
-@ApiTags('Users')
+@ApiTags('Admin - Users')
 @ApiBearerAuth('access-token')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Controller('users')
+@Roles('ADMIN')
+@Controller('admin/users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  @Roles('admin', 'manager')
   @ApiOperation({
-    summary: 'Create user',
-    description: 'Create a new user in the organization',
+    summary: 'יצירת משתמש',
+    description: 'יצירת משתמש חדש בעמותה',
   })
   async create(
     @CurrentUser() user: ICurrentUser,
@@ -43,22 +50,27 @@ export class UsersController {
 
   @Get()
   @ApiOperation({
-    summary: 'List users',
-    description: 'List all users in the organization',
+    summary: 'רשימת משתמשים',
+    description: 'קבלת רשימה ממוספרת של משתמשים בעמותה עם אפשרות חיפוש',
   })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'search', required: false, type: String, description: 'חיפוש לפי שם או טלפון' })
   async findAll(
     @CurrentUser() user: ICurrentUser,
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
-  ): Promise<object> {
-    return this.usersService.findAll(user.organizationId, page, limit);
+    @Query('search') search?: string,
+  ): Promise<{ data: UserResponseDto[]; meta: { total: number; page: number; limit: number } }> {
+    return this.usersService.findAll(user.organizationId, page, limit, search);
   }
 
   @Get(':id')
   @ApiOperation({
-    summary: 'Get user',
-    description: 'Get a specific user',
+    summary: 'פרטי משתמש',
+    description: 'קבלת פרטי משתמש לפי מזהה, מוגבל לעמותה',
   })
+  @ApiParam({ name: 'id', description: 'מזהה המשתמש' })
   async findOne(
     @CurrentUser() user: ICurrentUser,
     @Param('id') id: string,
@@ -68,11 +80,11 @@ export class UsersController {
   }
 
   @Patch(':id')
-  @Roles('admin', 'manager')
   @ApiOperation({
-    summary: 'Update user',
-    description: 'Update user information',
+    summary: 'עדכון משתמש',
+    description: 'עדכון פרטי משתמש בעמותה',
   })
+  @ApiParam({ name: 'id', description: 'מזהה המשתמש' })
   async update(
     @CurrentUser() user: ICurrentUser,
     @Param('id') id: string,
@@ -87,12 +99,12 @@ export class UsersController {
   }
 
   @Delete(':id')
-  @Roles('admin')
-  @HttpCode(204)
+  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
-    summary: 'Delete user',
-    description: 'Soft delete a user',
+    summary: 'מחיקת משתמש',
+    description: 'מחיקה רכה של משתמש (deletedAt) — הנתונים נשמרים',
   })
+  @ApiParam({ name: 'id', description: 'מזהה המשתמש' })
   async remove(@CurrentUser() user: ICurrentUser, @Param('id') id: string): Promise<void> {
     await this.usersService.remove(user.organizationId, id);
   }

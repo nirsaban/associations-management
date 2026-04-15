@@ -1,13 +1,15 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type SystemRole = 'SUPER_ADMIN' | 'ADMIN' | 'USER';
+export type PlatformRole = 'SUPER_ADMIN';
+export type SystemRole = 'ADMIN' | 'USER';
 
 export interface User {
   id: string;
   phone: string;
   name?: string;
   email?: string;
+  platformRole?: PlatformRole;  // Only set for SUPER_ADMIN
   systemRole: SystemRole;
   organizationId: string | null;  // Null for SUPER_ADMIN
   createdAt: string;
@@ -55,7 +57,7 @@ export const useAuthStore = create<AuthStore>()(
           isAuthenticated: false,
         }),
 
-      isSuperAdmin: () => get().user?.systemRole === 'SUPER_ADMIN',
+      isSuperAdmin: () => get().user?.platformRole === 'SUPER_ADMIN',
       isAdmin: () => get().user?.systemRole === 'ADMIN',
       isUser: () => get().user?.systemRole === 'USER',
     }),

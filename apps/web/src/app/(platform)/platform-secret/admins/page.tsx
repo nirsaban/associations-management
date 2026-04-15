@@ -2,20 +2,20 @@
 
 import React, { useState } from 'react';
 import { usePlatform } from '@/hooks/usePlatform';
-import { AssociationsList } from './_components/AssociationsList';
-import { CreateAssociationModal } from './_components/CreateAssociationModal';
+import { OrganizationsList } from './_components/OrganizationsList';
+import { CreateOrganizationModal } from './_components/CreateOrganizationModal';
 import { Plus } from 'lucide-react';
 
 export default function PlatformAdminsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const { getAssociations } = usePlatform();
+  const { getOrganizations } = usePlatform();
 
-  const { data, isLoading, refetch } = getAssociations({
+  const { data, isLoading, refetch } = getOrganizations({
     page: 1,
     limit: 20,
   });
 
-  const handleAssociationCreated = () => {
+  const handleOrganizationCreated = () => {
     setIsCreateModalOpen(false);
     refetch();
   };
@@ -43,18 +43,18 @@ export default function PlatformAdminsPage() {
           </button>
         </div>
 
-        {/* Associations List */}
-        <AssociationsList
-          associations={data?.data || []}
+        {/* Organizations List */}
+        <OrganizationsList
+          organizations={data?.data || []}
           isLoading={isLoading}
           onRefresh={refetch}
         />
 
-        {/* Create Association Modal */}
+        {/* Create Organization Modal */}
         {isCreateModalOpen && (
-          <CreateAssociationModal
+          <CreateOrganizationModal
             onClose={() => setIsCreateModalOpen(false)}
-            onSuccess={handleAssociationCreated}
+            onSuccess={handleOrganizationCreated}
           />
         )}
       </div>

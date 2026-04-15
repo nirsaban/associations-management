@@ -1,24 +1,27 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class GroupResponseDto {
-  @ApiProperty()
+  @ApiProperty({ description: 'מזהה קבוצה' })
   id!: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'מזהה עמותה' })
   organizationId!: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'שם הקבוצה' })
   name!: string;
 
-  @ApiProperty()
-  description?: string;
-
-  @ApiProperty()
+  @ApiProperty({ description: 'מזהה מנהל הקבוצה', required: false })
   managerId?: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'מספר חברים', required: false })
+  memberCount?: number;
+
+  @ApiProperty({ description: 'מספר משפחות', required: false })
+  familyCount?: number;
+
+  @ApiProperty({ description: 'תאריך יצירה' })
   createdAt!: Date;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'תאריך עדכון' })
   updatedAt!: Date;
 }
