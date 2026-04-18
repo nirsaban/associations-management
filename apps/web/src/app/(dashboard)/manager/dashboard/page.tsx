@@ -76,9 +76,7 @@ export default function ManagerDashboardPage() {
       {/* Header */}
       <div>
         <h1 className="text-headline-lg font-headline mb-2">דשבורד מנהל קבוצה</h1>
-        <p className="text-body-md text-on-surface-variant">
-          ניהול קבוצת {data?.group?.name}
-        </p>
+        <p className="text-body-md text-on-surface-variant">ניהול קבוצת {data?.group?.name}</p>
       </div>
 
       {/* Summary Cards */}
@@ -124,16 +122,15 @@ export default function ManagerDashboardPage() {
           <div className="flex items-start justify-between mb-4">
             <div>
               <p className="text-label-md text-on-surface-variant mb-1">השלמת משימות</p>
-              <p className="text-headline-lg font-bold text-tertiary">
-                {completionRate}%
-              </p>
+              <p className="text-headline-lg font-bold text-tertiary">{completionRate}%</p>
             </div>
             <div className="p-3 rounded-full bg-tertiary/10">
               <CheckCircle className="h-8 w-8 text-tertiary" />
             </div>
           </div>
           <p className="text-body-sm text-on-surface-variant">
-            {data?.weeklyTasks?.completedOrders || 0} מתוך {data?.weeklyTasks?.totalFamilies || 0} הזמנות
+            {data?.weeklyTasks?.completedOrders || 0} מתוך {data?.weeklyTasks?.totalFamilies || 0}{' '}
+            הזמנות
           </p>
         </div>
       </div>
@@ -147,24 +144,23 @@ export default function ManagerDashboardPage() {
 
         <div className="space-y-4">
           {/* Distributor Status */}
-          <div className={`p-4 rounded-lg ${
-            data?.weeklyTasks?.distributorAssigned
-              ? 'bg-success-container text-on-success-container'
-              : 'bg-warning-container text-on-warning-container'
-          }`}>
+          <div
+            className={`p-4 rounded-lg ${
+              data?.weeklyTasks?.distributorAssigned
+                ? 'bg-success-container text-on-success-container'
+                : 'bg-warning-container text-on-warning-container'
+            }`}
+          >
             <div className="flex items-center gap-3 mb-2">
               <TruckIcon className="h-5 w-5" />
               <p className="font-medium">
                 {data?.weeklyTasks?.distributorAssigned
                   ? `מחלק שובץ: ${data.weeklyTasks.distributorName}`
-                  : 'טרם שובץ מחלק שבועי'
-                }
+                  : 'טרם שובץ מחלק שבועי'}
               </p>
             </div>
             {!data?.weeklyTasks?.distributorAssigned && (
-              <p className="text-body-sm mt-2">
-                יש לשבץ מחלק מחברי הקבוצה עבור השבוע הנוכחי
-              </p>
+              <p className="text-body-sm mt-2">יש לשבץ מחלק מחברי הקבוצה עבור השבוע הנוכחי</p>
             )}
           </div>
 
@@ -173,9 +169,7 @@ export default function ManagerDashboardPage() {
             <div className="p-4 rounded-lg bg-error-container text-on-error-container">
               <div className="flex items-center gap-3 mb-3">
                 <AlertCircle className="h-5 w-5" />
-                <p className="font-medium">
-                  {data.weeklyTasks.missingOrders.length} הזמנות חסרות
-                </p>
+                <p className="font-medium">{data.weeklyTasks.missingOrders.length} הזמנות חסרות</p>
               </div>
               <div className="space-y-1">
                 {data.weeklyTasks.missingOrders.map((family) => (
@@ -239,8 +233,8 @@ export default function ManagerDashboardPage() {
 
         <div className="mt-4 p-4 rounded-lg bg-surface-container">
           <p className="text-body-sm text-on-surface-variant">
-            <strong>שים לב:</strong> ניתן לראות רק סטטוס תשלום (שולם/לא שולם) ולא סכומים.
-            לפרטים מלאים יש לפנות למנהל המערכת.
+            <strong>שים לב:</strong> ניתן לראות רק סטטוס תשלום (שולם/לא שולם) ולא סכומים. לפרטים
+            מלאים יש לפנות למנהל המערכת.
           </p>
         </div>
 

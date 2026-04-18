@@ -22,50 +22,34 @@ export default function CsvImportPage() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-headline-md font-headline mb-2">ייבוא משתמשים</h1>
-        <p className="text-body-md text-on-surface-variant">
-          ייבא משתמשים וקבוצות מקובץ CSV
-        </p>
+        <p className="text-body-md text-on-surface-variant">ייבא משתמשים וקבוצות מקובץ CSV</p>
       </div>
 
       {/* Instructions */}
       <div className="card-elevated mb-8">
         <h2 className="text-title-lg font-medium mb-4">הוראות הייבוא</h2>
         <div className="space-y-3 text-body-sm text-on-surface-variant">
-          <p>
-            1. כדי להתחיל, הכן קובץ CSV עם העמודות הבאות:
-          </p>
+          <p>1. כדי להתחיל, הכן קובץ CSV עם העמודות הבאות:</p>
           <ul className="list-disc list-inside space-y-2 ms-4">
             <li>
-              <span className="font-mono bg-surface-container px-2 py-1 rounded">
-                phone
-              </span>{' '}
-              - מספר טלפון ישראלי (חובה)
+              <span className="font-mono bg-surface-container px-2 py-1 rounded">phone</span> - מספר
+              טלפון ישראלי (חובה)
             </li>
             <li>
-              <span className="font-mono bg-surface-container px-2 py-1 rounded">
-                role
-              </span>{' '}
-              - תפקיד (admin, manager, user, distributor) (חובה)
+              <span className="font-mono bg-surface-container px-2 py-1 rounded">role</span> - תפקיד
+              (admin, manager, user, distributor) (חובה)
             </li>
             <li>
-              <span className="font-mono bg-surface-container px-2 py-1 rounded">
-                name
-              </span>{' '}
-              - שם מלא (אופציונלי)
+              <span className="font-mono bg-surface-container px-2 py-1 rounded">name</span> - שם
+              מלא (אופציונלי)
             </li>
             <li>
-              <span className="font-mono bg-surface-container px-2 py-1 rounded">
-                email
-              </span>{' '}
-              - כתובת דוא"ל (אופציונלי)
+              <span className="font-mono bg-surface-container px-2 py-1 rounded">email</span> -
+              כתובת דוא"ל (אופציונלי)
             </li>
           </ul>
-          <p className="mt-4">
-            2. גרור את הקובץ לאזור הירוק או בחר קובץ CSV
-          </p>
-          <p>
-            3. בדוק את התצוגה המקדימה והקלק "ייבא משתמשים"
-          </p>
+          <p className="mt-4">2. גרור את הקובץ לאזור הירוק או בחר קובץ CSV</p>
+          <p>3. בדוק את התצוגה המקדימה והקלק "ייבא משתמשים"</p>
         </div>
       </div>
 

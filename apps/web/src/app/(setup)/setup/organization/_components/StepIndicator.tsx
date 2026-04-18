@@ -16,7 +16,7 @@ export function StepIndicator({ steps, currentStep }: StepIndicatorProps) {
           key={i}
           className={cn(
             'h-2 w-12 rounded-full transition-colors duration-300',
-            i + 1 <= currentStep ? 'bg-primary' : 'bg-border'
+            i + 1 <= currentStep ? 'bg-primary' : 'bg-border',
           )}
         />
       ))}

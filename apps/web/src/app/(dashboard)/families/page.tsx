@@ -16,7 +16,7 @@ export default function FamiliesPage() {
     (family) =>
       family.name.includes(searchTerm) ||
       family.contactPhone.includes(searchTerm) ||
-      family.contactName.includes(searchTerm)
+      family.contactName.includes(searchTerm),
   );
 
   if (isLoading) {
@@ -47,9 +47,7 @@ export default function FamiliesPage() {
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-headline-md font-headline mb-2">משפחות</h1>
-          <p className="text-body-md text-on-surface-variant">
-            ניהול משפחות המקבלות סיוע
-          </p>
+          <p className="text-body-md text-on-surface-variant">ניהול משפחות המקבלות סיוע</p>
         </div>
         {user?.systemRole === 'ADMIN' ? (
           <button className="btn-primary flex items-center gap-2">
@@ -76,9 +74,7 @@ export default function FamiliesPage() {
           <Home className="h-12 w-12 mx-auto text-on-surface-variant/30 mb-4" />
           <h3 className="text-title-md font-medium mb-2">אין משפחות</h3>
           <p className="text-body-sm text-on-surface-variant">
-            {searchTerm
-              ? 'לא נמצאו משפחות התאמות החיפוש'
-              : 'התחל ביצירת משפחה חדשה'}
+            {searchTerm ? 'לא נמצאו משפחות התאמות החיפוש' : 'התחל ביצירת משפחה חדשה'}
           </p>
         </div>
       ) : (
@@ -86,29 +82,24 @@ export default function FamiliesPage() {
           {filteredFamilies.map((family) => (
             <Link
               key={family.id}
-              href={`/dashboard/families/${family.id}`}
+              href={`/families/${family.id}`}
               className="card hover:shadow-lg transition-shadow cursor-pointer"
             >
               <h3 className="text-title-md font-medium mb-3">{family.name}</h3>
               <div className="space-y-2 mb-4 pb-4 border-b border-border">
                 <div>
-                  <p className="text-label-sm text-on-surface-variant">
-                    אנשי קשר
-                  </p>
+                  <p className="text-label-sm text-on-surface-variant">אנשי קשר</p>
                   <p className="text-body-sm font-medium">{family.contactName}</p>
-                  <p className="text-label-sm text-on-surface-variant">
-                    {family.contactPhone}
-                  </p>
+                  <p className="text-label-sm text-on-surface-variant">{family.contactPhone}</p>
                 </div>
               </div>
 
               {family.address && (
                 <div>
-                  <p className="text-label-sm text-on-surface-variant">
-                    כתובת
-                  </p>
+                  <p className="text-label-sm text-on-surface-variant">כתובת</p>
                   <p className="text-body-sm font-medium line-clamp-2">
-                    {family.address}{family.city ? `, ${family.city}` : ''}
+                    {family.address}
+                    {family.city ? `, ${family.city}` : ''}
                   </p>
                 </div>
               )}
@@ -117,22 +108,14 @@ export default function FamiliesPage() {
                 <div className="flex gap-4 mt-4 pt-4 border-t border-border">
                   {family.childrenCount !== undefined && (
                     <div>
-                      <p className="text-label-sm text-on-surface-variant">
-                        ילדים
-                      </p>
-                      <p className="text-title-md font-medium">
-                        {family.childrenCount}
-                      </p>
+                      <p className="text-label-sm text-on-surface-variant">ילדים</p>
+                      <p className="text-title-md font-medium">{family.childrenCount}</p>
                     </div>
                   )}
                   {family.adultCount !== undefined && (
                     <div>
-                      <p className="text-label-sm text-on-surface-variant">
-                        מבוגרים
-                      </p>
-                      <p className="text-title-md font-medium">
-                        {family.adultCount}
-                      </p>
+                      <p className="text-label-sm text-on-surface-variant">מבוגרים</p>
+                      <p className="text-title-md font-medium">{family.adultCount}</p>
                     </div>
                   )}
                 </div>

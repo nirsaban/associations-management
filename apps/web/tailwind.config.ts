@@ -1,10 +1,7 @@
 import type { Config } from 'tailwindcss';
 
 /**
- * Tailwind config — sourced verbatim from Stitch designs
- * (stitch_nachalat_david_platform/*/code.html). All 10 screens share the
- * identical token block; keeping it as the single source of truth ensures
- * pixel-parity with the reference mocks.
+ * Tailwind config — design tokens for the Amutot design system.
  */
 const config: Config = {
   darkMode: 'class',
@@ -48,7 +45,7 @@ const config: Config = {
         'error': '#ba1a1a',
         'error-container': '#ffdad6',
         'on-error': '#ffffff',
-        'on-error-container': '#93000a',
+        'on-error-container': '#93010a',
 
         'background': '#f8fafa',
         'surface': '#f8fafa',

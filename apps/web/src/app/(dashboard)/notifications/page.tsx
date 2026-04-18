@@ -12,8 +12,8 @@ interface Notification {
   id: string;
   title: string;
   body: string;
-  type: 'info' | 'warning' | 'error' | 'success';
-  read: boolean;
+  type: string;
+  isRead: boolean;
   createdAt: string;
 }
 
@@ -22,10 +22,14 @@ export default function NotificationsPage() {
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
 
-  const { data: notifications, isLoading, error } = useQuery({
+  const {
+    data: notifications,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['notifications', user?.id],
     queryFn: async () => {
-      const response = await api.get<{ data: Notification[] }>('/notifications');
+      const response = await api.get<{ data: Notification[]; meta: { total: number; page: number; limit: number } }>('/notifications?limit=100');
       return response.data.data;
     },
     enabled: !!user,
@@ -96,11 +100,10 @@ export default function NotificationsPage() {
     );
   }
 
-  const filteredNotifications = notifications?.filter(n =>
-    filter === 'all' || (filter === 'unread' && !n.read)
-  ) || [];
+  const filteredNotifications =
+    notifications?.filter((n) => filter === 'all' || (filter === 'unread' && !n.isRead)) || [];
 
-  const unreadCount = notifications?.filter(n => !n.read).length || 0;
+  const unreadCount = notifications?.filter((n) => !n.isRead).length || 0;
 
   return (
     <div className="p-8 space-y-8 max-w-4xl">
@@ -171,37 +174,35 @@ export default function NotificationsPage() {
               <div
                 key={notification.id}
                 className={`p-4 rounded-lg border-2 transition-all ${
-                  notification.read
+                  notification.isRead
                     ? 'bg-surface-container border-outline/20 opacity-75'
                     : `${getTypeColor(notification.type)} border-2`
                 }`}
                 onClick={() => {
-                  if (!notification.read) {
+                  if (!notification.isRead) {
                     markAsRead.mutate(notification.id);
                   }
                 }}
               >
                 <div className="flex items-start gap-4">
                   {/* Icon */}
-                  <div className="flex-shrink-0 mt-0.5">
-                    {getTypeIcon(notification.type)}
-                  </div>
+                  <div className="flex-shrink-0 mt-0.5">{getTypeIcon(notification.type)}</div>
 
                   {/* Content */}
                   <div className="flex-1">
                     <div className="flex items-start justify-between gap-4 mb-2">
                       <h3 className="text-body-lg font-medium">{notification.title}</h3>
-                      {!notification.read && (
+                      {!notification.isRead && (
                         <span className="px-2 py-1 rounded-full bg-primary text-on-primary text-label-sm font-medium flex-shrink-0">
                           חדש
                         </span>
                       )}
                     </div>
-                    <p className="text-body-md text-on-surface-variant mb-3">
-                      {notification.body}
-                    </p>
+                    <p className="text-body-md text-on-surface-variant mb-3">{notification.body}</p>
                     <p className="text-label-sm text-on-surface-variant">
-                      {format(new Date(notification.createdAt), 'd MMMM yyyy, HH:mm', { locale: he })}
+                      {format(new Date(notification.createdAt), 'd MMMM yyyy, HH:mm', {
+                        locale: he,
+                      })}
                     </p>
                   </div>
                 </div>

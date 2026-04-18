@@ -22,7 +22,11 @@ interface WeeklyTask {
 export default function WeeklyPage() {
   const [weekOffset, setWeekOffset] = useState(0);
 
-  const { data: weeklyData, isLoading, error } = useQuery({
+  const {
+    data: weeklyData,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['weekly', 'current', weekOffset],
     queryFn: async () => {
       const response = await api.get('/weekly/current', {
@@ -33,9 +37,7 @@ export default function WeeklyPage() {
   });
 
   const weekStart = startOfWeek(addDays(new Date(), weekOffset * 7));
-  const weekDays = Array.from({ length: 7 }, (_, i) =>
-    addDays(weekStart, i)
-  );
+  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
   const tasksByDay = weeklyData
     ? weeklyData.reduce(
@@ -44,7 +46,7 @@ export default function WeeklyPage() {
           acc[task.dayOfWeek].push(task);
           return acc;
         },
-        {} as Record<number, WeeklyTask[]>
+        {} as Record<number, WeeklyTask[]>,
       )
     : {};
 
@@ -70,9 +72,7 @@ export default function WeeklyPage() {
           {isDistributor ? 'משימות החלוקה שלי' : 'תכנון שבועי'}
         </h1>
         <p className="text-body-md text-on-surface-variant">
-          {isDistributor
-            ? 'צפה במשימות החלוקה שלך עבור השבוע'
-            : 'תכנן ותהל משימות שבועיות'}
+          {isDistributor ? 'צפה במשימות החלוקה שלך עבור השבוע' : 'תכנן ותהל משימות שבועיות'}
         </p>
       </div>
 
@@ -88,8 +88,8 @@ export default function WeeklyPage() {
         <div className="flex items-center gap-2">
           <Calendar className="h-5 w-5 text-primary" />
           <span className="text-title-md font-medium">
-            שבוע {weekStart.getDate()}.{weekStart.getMonth() + 1} -
-            {weekDays[6].getDate()}.{weekDays[6].getMonth() + 1}
+            שבוע {weekStart.getDate()}.{weekStart.getMonth() + 1} -{weekDays[6].getDate()}.
+            {weekDays[6].getMonth() + 1}
           </span>
         </div>
 
@@ -118,9 +118,7 @@ export default function WeeklyPage() {
             return (
               <div key={idx} className="card">
                 <div className="mb-4 pb-4 border-b border-border">
-                  <p className="text-label-md text-on-surface-variant mb-1">
-                    {DAY_NAMES[idx]}
-                  </p>
+                  <p className="text-label-md text-on-surface-variant mb-1">{DAY_NAMES[idx]}</p>
                   <p className="text-title-md font-medium">
                     {day.getDate()}.{day.getMonth() + 1}
                   </p>
@@ -140,7 +138,7 @@ export default function WeeklyPage() {
                     {dayTasks.map((task) => (
                       <Link
                         key={task.id}
-                        href={`/dashboard/families/${task.familyId}`}
+                        href={`/families/${task.familyId}`}
                         className={`p-3 rounded-lg text-label-md font-medium transition-colors ${
                           task.completed
                             ? 'bg-success-container/20 text-on-success'
@@ -171,15 +169,9 @@ export default function WeeklyPage() {
       {/* Manager Actions */}
       {isManager && (
         <div className="mt-8 card text-center">
-          <h3 className="text-title-md font-medium mb-2">
-            הוסף משימות לשבוע זה
-          </h3>
-          <p className="text-body-sm text-on-surface-variant mb-4">
-            בחר משפחות וקבע מחלקים לתרומה
-          </p>
-          <button className="btn-primary">
-            צור משימות חדשות
-          </button>
+          <h3 className="text-title-md font-medium mb-2">הוסף משימות לשבוע זה</h3>
+          <p className="text-body-sm text-on-surface-variant mb-4">בחר משפחות וקבע מחלקים לתרומה</p>
+          <button className="btn-primary">צור משימות חדשות</button>
         </div>
       )}
     </div>

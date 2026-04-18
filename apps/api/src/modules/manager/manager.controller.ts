@@ -32,7 +32,7 @@ export class ManagerController {
   async getManagedGroup(
     @CurrentUser() user: ICurrentUser,
   ): Promise<{ data: GroupDetailsDto }> {
-    const group = await this.managerService.getManagedGroup(user.id, user.organizationId!);
+    const group = await this.managerService.getManagedGroup(user.id, user.organizationId);
     return { data: group };
   }
 
@@ -44,7 +44,7 @@ export class ManagerController {
   async getGroupMembers(
     @CurrentUser() user: ICurrentUser,
   ): Promise<{ data: MemberWithStatusDto[] }> {
-    return this.managerService.getGroupMembers(user.id, user.organizationId!);
+    return this.managerService.getGroupMembers(user.id, user.organizationId);
   }
 
   @Get('group/families')
@@ -55,7 +55,7 @@ export class ManagerController {
   async getGroupFamilies(
     @CurrentUser() user: ICurrentUser,
   ): Promise<{ data: Array<Record<string, unknown>> }> {
-    return this.managerService.getGroupFamilies(user.id, user.organizationId!);
+    return this.managerService.getGroupFamilies(user.id, user.organizationId);
   }
 
   @Get('group/weekly-tasks')
@@ -67,7 +67,7 @@ export class ManagerController {
     @CurrentUser() user: ICurrentUser,
     @Query('weekKey') weekKey?: string,
   ): Promise<{ data: WeeklyTaskStatusDto[] }> {
-    return this.managerService.getWeeklyTasks(user.id, user.organizationId!, weekKey);
+    return this.managerService.getWeeklyTasks(user.id, user.organizationId, weekKey);
   }
 
   @Post('group/families/:familyId/weekly-order')
@@ -82,7 +82,7 @@ export class ManagerController {
   ): Promise<{ data: Record<string, unknown> }> {
     return this.managerService.createWeeklyOrder(
       user.id,
-      user.organizationId!,
+      user.organizationId,
       familyId,
       dto.weekKey,
       dto.items,
@@ -102,7 +102,7 @@ export class ManagerController {
   ): Promise<{ data: Record<string, unknown> }> {
     return this.managerService.updateWeeklyOrder(
       user.id,
-      user.organizationId!,
+      user.organizationId,
       orderId,
       dto.items,
       dto.notes,
@@ -121,7 +121,7 @@ export class ManagerController {
   ): Promise<{ data: Record<string, unknown> }> {
     return this.managerService.assignWeeklyDistributor(
       user.id,
-      user.organizationId!,
+      user.organizationId,
       dto.userId,
       dto.weekKey ?? this.getCurrentWeekKey(),
     );

@@ -21,15 +21,12 @@ export class TransformInterceptor implements NestInterceptor {
   intercept(_context: ExecutionContext, next: CallHandler): Observable<unknown> {
     return next.handle().pipe(
       map((data) => {
-        // If data is already wrapped in { data, meta }, return as-is
+        // If data is already wrapped with a 'data' key, pass through
         if (data && typeof data === 'object' && 'data' in data) {
           return data;
         }
-
-        // Otherwise, wrap in { data }
-        return {
-          data,
-        };
+        // Otherwise wrap in { data }
+        return { data };
       }),
     );
   }

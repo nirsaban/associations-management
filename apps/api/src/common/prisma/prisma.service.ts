@@ -5,9 +5,21 @@ import { PrismaClient } from '@prisma/client';
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(PrismaService.name);
 
+  // Models that have a deletedAt field for soft deletes
+  private readonly softDeleteModels = new Set([
+    'Organization',
+    'User',
+    'Group',
+    'Family',
+  ]);
+
   async onModuleInit(): Promise<void> {
-    // Add middleware to enforce soft deletes
+    // Add middleware to enforce soft deletes only on models that support it
     this.$use(async (params, next) => {
+      if (!params.model || !this.softDeleteModels.has(params.model)) {
+        return next(params);
+      }
+
       // For find queries, always exclude soft-deleted records
       if (params.action === 'findUnique' || params.action === 'findFirst') {
         params.args.where = {

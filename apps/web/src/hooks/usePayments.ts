@@ -1,79 +1,59 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { API_ROUTES } from '@/lib/constants';
 
 export interface Payment {
   id: string;
   userId: string;
-  groupId: string;
   amount: number;
-  month: string;
-  status: 'pending' | 'paid' | 'overdue' | 'cancelled';
-  paidAt?: string;
-  dueDate: string;
+  currency: string;
+  monthKey: string;
+  paymentDate?: string;
+  source?: string;
+  status: string;
   createdAt: string;
-  updatedAt: string;
 }
 
-export interface PaymentHistory extends Payment {
-  userName: string;
-  groupName: string;
+export interface PaymentStatus {
+  isPaid: boolean;
+  monthKey: string;
+  paidAt?: string;
 }
 
-export function usePayments() {
-  const queryClient = useQueryClient();
-
-  const list = useQuery({
-    queryKey: ['payments'],
+export function usePayments(page: number = 1, limit: number = 10) {
+  const myPayments = useQuery({
+    queryKey: ['payments', 'me', page, limit],
     queryFn: async () => {
-      const response = await api.get<{ data: Payment[] }>(
-        API_ROUTES.PAYMENTS.LIST
-      );
-      return response.data.data;
+      const response = await api.get<{
+        data: Payment[];
+        meta: { total: number; page: number; limit: number };
+      }>(`${API_ROUTES.PAYMENTS.ME}?page=${page}&limit=${limit}`);
+      return response.data;
     },
   });
 
-  const get = (id: string) =>
-    useQuery({
-      queryKey: ['payment', id],
-      queryFn: async () => {
-        const response = await api.get<{ data: Payment }>(
-          API_ROUTES.PAYMENTS.GET(id)
-        );
-        return response.data.data;
-      },
-      enabled: !!id,
-    });
+  const currentStatus = useQuery({
+    queryKey: ['payments', 'status'],
+    queryFn: async () => {
+      const response = await api.get<{ data: PaymentStatus }>(API_ROUTES.PAYMENTS.STATUS);
+      return response.data.data;
+    },
+  });
 
   const history = useQuery({
-    queryKey: ['payments', 'history'],
+    queryKey: ['payments', 'history', page, limit],
     queryFn: async () => {
-      const response = await api.get<{ data: PaymentHistory[] }>(
-        API_ROUTES.PAYMENTS.HISTORY
-      );
-      return response.data.data;
-    },
-  });
-
-  const pay = useMutation({
-    mutationFn: async (id: string) => {
-      const response = await api.post<{ data: Payment }>(
-        API_ROUTES.PAYMENTS.PAY(id),
-        {}
-      );
-      return response.data.data;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['payments'] });
-      queryClient.invalidateQueries({ queryKey: ['payment', data.id] });
-      queryClient.invalidateQueries({ queryKey: ['payments', 'history'] });
+      const response = await api.get<{
+        data: Payment[];
+        meta: { total: number; page: number; limit: number };
+      }>(`${API_ROUTES.PAYMENTS.HISTORY}?page=${page}&limit=${limit}`);
+      return response.data;
     },
   });
 
   return {
-    list,
-    get,
+    myPayments,
+    currentStatus,
     history,
-    pay,
   };
 }

@@ -54,11 +54,15 @@ export default function AdminFamiliesPage() {
   const [createError, setCreateError] = useState('');
   const [editError, setEditError] = useState('');
 
-  const { data: families, isLoading, error } = useQuery({
+  const {
+    data: families,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['admin', 'families'],
     queryFn: async () => {
-      const res = await api.get<{ data: AdminFamily[] }>('/admin/families');
-      return res.data.data;
+      const res = await api.get('/admin/families', { params: { limit: 200 } });
+      return res.data.data as AdminFamily[];
     },
     enabled: user?.systemRole === 'ADMIN',
   });
@@ -66,8 +70,8 @@ export default function AdminFamiliesPage() {
   const { data: groups } = useQuery({
     queryKey: ['admin', 'groups-list'],
     queryFn: async () => {
-      const res = await api.get<{ data: AdminGroup[] }>('/admin/groups');
-      return res.data.data;
+      const res = await api.get('/admin/groups', { params: { limit: 200 } });
+      return res.data.data as AdminGroup[];
     },
     enabled: user?.systemRole === 'ADMIN',
   });
@@ -133,11 +137,13 @@ export default function AdminFamiliesPage() {
     setEditError('');
   };
 
-  const filteredFamilies = families?.filter(f =>
-    f.familyName.includes(searchTerm) ||
-    (f.contactPhone ?? '').includes(searchTerm) ||
-    (f.address ?? '').includes(searchTerm)
-  ) ?? [];
+  const filteredFamilies =
+    families?.filter(
+      (f) =>
+        f.familyName.includes(searchTerm) ||
+        (f.contactPhone ?? '').includes(searchTerm) ||
+        (f.address ?? '').includes(searchTerm),
+    ) ?? [];
 
   if (user?.systemRole !== 'ADMIN') {
     return (
@@ -173,7 +179,7 @@ export default function AdminFamiliesPage() {
         <input
           type="text"
           value={form.familyName}
-          onChange={(e) => setForm(f => ({ ...f, familyName: e.target.value }))}
+          onChange={(e) => setForm((f) => ({ ...f, familyName: e.target.value }))}
           placeholder="שם המשפחה"
           className="w-full px-4 py-3 rounded-lg border border-outline bg-surface-container focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
         />
@@ -183,7 +189,7 @@ export default function AdminFamiliesPage() {
         <input
           type="text"
           value={form.address}
-          onChange={(e) => setForm(f => ({ ...f, address: e.target.value }))}
+          onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
           placeholder="רחוב, עיר"
           className="w-full px-4 py-3 rounded-lg border border-outline bg-surface-container focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
         />
@@ -193,7 +199,7 @@ export default function AdminFamiliesPage() {
         <input
           type="text"
           value={form.contactName}
-          onChange={(e) => setForm(f => ({ ...f, contactName: e.target.value }))}
+          onChange={(e) => setForm((f) => ({ ...f, contactName: e.target.value }))}
           placeholder="שם איש קשר"
           className="w-full px-4 py-3 rounded-lg border border-outline bg-surface-container focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
         />
@@ -203,7 +209,7 @@ export default function AdminFamiliesPage() {
         <input
           type="tel"
           value={form.contactPhone}
-          onChange={(e) => setForm(f => ({ ...f, contactPhone: e.target.value }))}
+          onChange={(e) => setForm((f) => ({ ...f, contactPhone: e.target.value }))}
           placeholder="05XXXXXXXX"
           dir="ltr"
           className="w-full px-4 py-3 rounded-lg border border-outline bg-surface-container focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
@@ -213,12 +219,14 @@ export default function AdminFamiliesPage() {
         <label className="block text-label-md font-medium mb-2">שיוך לקבוצה (אופציונלי)</label>
         <select
           value={form.groupId}
-          onChange={(e) => setForm(f => ({ ...f, groupId: e.target.value }))}
+          onChange={(e) => setForm((f) => ({ ...f, groupId: e.target.value }))}
           className="w-full px-4 py-3 rounded-lg border border-outline bg-surface-container focus:border-primary focus:outline-none"
         >
           <option value="">ללא שיוך לקבוצה</option>
           {groups?.map((g) => (
-            <option key={g.id} value={g.id}>{g.name}</option>
+            <option key={g.id} value={g.id}>
+              {g.name}
+            </option>
           ))}
         </select>
       </div>
@@ -226,7 +234,7 @@ export default function AdminFamiliesPage() {
         <label className="block text-label-md font-medium mb-2">הערות</label>
         <textarea
           value={form.notes}
-          onChange={(e) => setForm(f => ({ ...f, notes: e.target.value }))}
+          onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
           placeholder="הערות נוספות"
           rows={3}
           className="w-full px-4 py-3 rounded-lg border border-outline bg-surface-container focus:border-primary focus:outline-none resize-none"
@@ -246,7 +254,11 @@ export default function AdminFamiliesPage() {
           </p>
         </div>
         <button
-          onClick={() => { setShowCreateModal(true); setCreateError(''); setCreateForm(emptyForm); }}
+          onClick={() => {
+            setShowCreateModal(true);
+            setCreateError('');
+            setCreateForm(emptyForm);
+          }}
           className="btn-primary flex items-center gap-2"
         >
           <Plus className="h-5 w-5" />
@@ -277,16 +289,15 @@ export default function AdminFamiliesPage() {
         <div className="card text-center py-12">
           <Home className="h-12 w-12 mx-auto text-on-surface-variant/30 mb-4" />
           <p className="text-body-lg text-on-surface-variant">
-            {searchTerm ? 'לא נמצאו משפחות התואמות את החיפוש' : 'אין משפחות. לחץ "הוסף משפחה" להוספה.'}
+            {searchTerm
+              ? 'לא נמצאו משפחות התואמות את החיפוש'
+              : 'אין משפחות. לחץ "הוסף משפחה" להוספה.'}
           </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredFamilies.map((family) => (
-            <div
-              key={family.id}
-              className="card-elevated hover:shadow-lg transition-shadow"
-            >
+            <div key={family.id} className="card-elevated hover:shadow-lg transition-shadow">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-full bg-primary/10">
@@ -346,7 +357,10 @@ export default function AdminFamiliesPage() {
           <div className="bg-surface rounded-lg max-w-lg w-full shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-outline/20 sticky top-0 bg-surface">
               <h2 className="text-headline-sm font-headline">הוסף משפחה חדשה</h2>
-              <button onClick={() => setShowCreateModal(false)} className="p-2 hover:bg-surface-container rounded-md">
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="p-2 hover:bg-surface-container rounded-md"
+              >
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -364,7 +378,10 @@ export default function AdminFamiliesPage() {
               </button>
               <button
                 onClick={() => {
-                  if (!createForm.familyName.trim()) { setCreateError('שם המשפחה הוא שדה חובה'); return; }
+                  if (!createForm.familyName.trim()) {
+                    setCreateError('שם המשפחה הוא שדה חובה');
+                    return;
+                  }
                   createMutation.mutate(createForm);
                 }}
                 disabled={createMutation.isPending}
@@ -383,7 +400,10 @@ export default function AdminFamiliesPage() {
           <div className="bg-surface rounded-lg max-w-lg w-full shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-outline/20 sticky top-0 bg-surface">
               <h2 className="text-headline-sm font-headline">עריכת משפחה</h2>
-              <button onClick={() => setEditingFamily(null)} className="p-2 hover:bg-surface-container rounded-md">
+              <button
+                onClick={() => setEditingFamily(null)}
+                className="p-2 hover:bg-surface-container rounded-md"
+              >
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -417,8 +437,8 @@ export default function AdminFamiliesPage() {
           <div className="bg-surface rounded-lg max-w-sm w-full shadow-xl p-6">
             <h2 className="text-headline-sm font-headline mb-4">מחיקת משפחה</h2>
             <p className="text-body-md text-on-surface-variant mb-6">
-              האם אתה בטוח שברצונך למחוק את משפחת "{deletingFamily.familyName}"?
-              פעולה זו אינה ניתנת לביטול.
+              האם אתה בטוח שברצונך למחוק את משפחת "{deletingFamily.familyName}"? פעולה זו אינה ניתנת
+              לביטול.
             </p>
             <div className="flex gap-3">
               <button onClick={() => setDeletingFamily(null)} className="btn-outline flex-1">

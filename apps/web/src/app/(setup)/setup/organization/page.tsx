@@ -127,24 +127,13 @@ export default function OrganizationSetupWizard() {
 
         <div className="card-elevated mt-8">
           {currentStep === 'basic-info' && (
-            <BasicInfoStep
-              data={wizardData}
-              onUpdate={setWizardData}
-            />
+            <BasicInfoStep data={wizardData} onUpdate={setWizardData} />
           )}
 
-          {currentStep === 'logo' && (
-            <LogoUploadStep
-              data={wizardData}
-              onUpdate={setWizardData}
-            />
-          )}
+          {currentStep === 'logo' && <LogoUploadStep data={wizardData} onUpdate={setWizardData} />}
 
           {currentStep === 'settings' && (
-            <SettingsStep
-              data={wizardData}
-              onUpdate={setWizardData}
-            />
+            <SettingsStep data={wizardData} onUpdate={setWizardData} />
           )}
 
           {currentStep === 'completion' && (

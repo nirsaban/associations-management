@@ -18,7 +18,7 @@ export enum GroupRole {
  * OrderStatus — Status of a weekly order
  */
 export enum OrderStatus {
-  PENDING = "PENDING",
+  DRAFT = "DRAFT",
   COMPLETED = "COMPLETED",
 }
 

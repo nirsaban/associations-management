@@ -13,7 +13,7 @@ services:
       POSTGRES_USER: amutot
       POSTGRES_PASSWORD: amutot_dev_password_change_in_production
     ports:
-      - '5432:5432'
+      - '5434:5432'
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -60,14 +60,14 @@ services:
       DATABASE_URL: postgresql://amutot:amutot_dev_password_change_in_production@postgres:5432/amutot
       JWT_SECRET: ${JWT_SECRET:-dev-secret-key-change-in-production}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-dev-refresh-secret-key}
-      NEXT_PUBLIC_API_URL: http://localhost:3001/api/v1
-      API_PORT: 3001
+      NEXT_PUBLIC_API_URL: http://localhost:3003/api/v1
+      API_PORT: 3003
       API_GLOBAL_PREFIX: api/v1
       LOG_LEVEL: ${LOG_LEVEL:-debug}
       THROTTLE_TTL: 60000
       THROTTLE_LIMIT: 100
     ports:
-      - '3001:3001'
+      - '3003:3003'
     depends_on:
       postgres:
         condition: service_healthy
@@ -77,7 +77,7 @@ services:
       - /app/node_modules
       - /app/apps/api/node_modules
     healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:3001/api/v1/health']
+      test: ['CMD', 'curl', '-f', 'http://localhost:3003/api/v1/health']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -94,17 +94,17 @@ services:
       dockerfile: apps/web/Dockerfile.web
       args:
         NODE_ENV: development
-        NEXT_PUBLIC_API_URL: http://localhost:3001/api/v1
-        NEXT_PUBLIC_APP_URL: http://localhost:3000
+        NEXT_PUBLIC_API_URL: http://localhost:3003/api/v1
+        NEXT_PUBLIC_APP_URL: http://localhost:3010
     container_name: amutot-web
     restart: unless-stopped
     environment:
       NODE_ENV: ${NODE_ENV:-development}
-      NEXT_PUBLIC_API_URL: http://localhost:3001/api/v1
-      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      NEXT_PUBLIC_API_URL: http://localhost:3003/api/v1
+      NEXT_PUBLIC_APP_URL: http://localhost:3010
       NEXT_PUBLIC_APP_NAME: Amutot
     ports:
-      - '3000:3000'
+      - '3010:3010'
     depends_on:
       api:
         condition: service_healthy
@@ -114,7 +114,7 @@ services:
       - /app/node_modules
       - /app/apps/web/node_modules
     healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:3000']
+      test: ['CMD', 'curl', '-f', 'http://localhost:3010']
       interval: 30s
       timeout: 10s
       retries: 3

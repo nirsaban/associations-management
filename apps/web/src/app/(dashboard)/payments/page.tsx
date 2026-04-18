@@ -33,7 +33,11 @@ export default function PaymentsPage() {
   const [page, setPage] = useState(1);
   const pageSize = 20;
 
-  const { data: response, isLoading, error } = useQuery({
+  const {
+    data: response,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['admin-payments', page],
     queryFn: async () => {
       const res = await api.get<{ data: AdminPaymentsResponse }>('/admin/payments', {
@@ -141,9 +145,7 @@ export default function PaymentsPage() {
         <div className="card text-center py-12">
           <CreditCard className="h-12 w-12 mx-auto text-on-surface-variant/30 mb-4" />
           <h3 className="text-title-md font-medium mb-2">אין תשלומים</h3>
-          <p className="text-body-sm text-on-surface-variant">
-            לא נמצאו תשלומים להצגה
-          </p>
+          <p className="text-body-sm text-on-surface-variant">לא נמצאו תשלומים להצגה</p>
         </div>
       ) : (
         <>
@@ -174,7 +176,9 @@ export default function PaymentsPage() {
                     <td className="px-6 py-4">
                       <p className="text-body-md font-medium">{payment.userName || '—'}</p>
                       {payment.userPhone && (
-                        <p className="text-body-sm text-on-surface-variant" dir="ltr">{payment.userPhone}</p>
+                        <p className="text-body-sm text-on-surface-variant" dir="ltr">
+                          {payment.userPhone}
+                        </p>
                       )}
                     </td>
                     <td className="px-6 py-4 text-body-md">
@@ -186,7 +190,9 @@ export default function PaymentsPage() {
                       ₪{payment.amount.toLocaleString()}
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-label-sm font-medium ${getStatusColor(payment.status)}`}>
+                      <span
+                        className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-label-sm font-medium ${getStatusColor(payment.status)}`}
+                      >
                         {getStatusIcon(payment.status)}
                         {getStatusLabel(payment.status)}
                       </span>

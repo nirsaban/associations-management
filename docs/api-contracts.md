@@ -694,7 +694,7 @@ All endpoints have been documented with:
 - `@ApiBearerAuth('access-token')` for protected routes
 - `@ApiProperty` on all DTOs
 
-Access Swagger at: `http://localhost:3001/api/docs`
+Access Swagger at: `http://localhost:3003/api/docs`
 
 ---
 

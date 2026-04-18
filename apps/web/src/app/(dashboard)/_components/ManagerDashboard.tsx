@@ -36,12 +36,8 @@ export function ManagerDashboard() {
     <div className="p-8 space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-headline-md font-headline mb-2">
-          {data?.groupName || 'הקבוצה שלי'}
-        </h1>
-        <p className="text-body-md text-on-surface-variant">
-          ברוך בואך למערכת ניהול הקבוצה
-        </p>
+        <h1 className="text-headline-md font-headline mb-2">{data?.groupName || 'הקבוצה שלי'}</h1>
+        <p className="text-body-md text-on-surface-variant">ברוך בואך למערכת ניהול הקבוצה</p>
       </div>
 
       {/* Stats Grid */}
@@ -49,12 +45,8 @@ export function ManagerDashboard() {
         <div className="card">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-label-md text-on-surface-variant mb-1">
-                חברים
-              </p>
-              <p className="text-headline-md font-bold text-primary">
-                {data?.memberCount || 0}
-              </p>
+              <p className="text-label-md text-on-surface-variant mb-1">חברים</p>
+              <p className="text-headline-md font-bold text-primary">{data?.memberCount || 0}</p>
             </div>
             <Users className="h-8 w-8 text-primary/20" />
           </div>
@@ -63,12 +55,8 @@ export function ManagerDashboard() {
         <div className="card">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-label-md text-on-surface-variant mb-1">
-                משפחות
-              </p>
-              <p className="text-headline-md font-bold text-secondary">
-                {data?.familyCount || 0}
-              </p>
+              <p className="text-label-md text-on-surface-variant mb-1">משפחות</p>
+              <p className="text-headline-md font-bold text-secondary">{data?.familyCount || 0}</p>
             </div>
             <Home className="h-8 w-8 text-secondary/20" />
           </div>
@@ -77,12 +65,8 @@ export function ManagerDashboard() {
         <div className="card">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-label-md text-on-surface-variant mb-1">
-                משימות ממתינות
-              </p>
-              <p className="text-headline-md font-bold text-warning">
-                {data?.pendingTasks || 0}
-              </p>
+              <p className="text-label-md text-on-surface-variant mb-1">משימות ממתינות</p>
+              <p className="text-headline-md font-bold text-warning">{data?.pendingTasks || 0}</p>
             </div>
             <Clock className="h-8 w-8 text-warning/20" />
           </div>
@@ -91,9 +75,7 @@ export function ManagerDashboard() {
         <div className="card">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-label-md text-on-surface-variant mb-1">
-                הזמנות השבוע
-              </p>
+              <p className="text-label-md text-on-surface-variant mb-1">הזמנות השבוע</p>
               <p className="text-headline-md font-bold text-tertiary">
                 {data?.thisWeekOrders || 0}
               </p>
@@ -112,9 +94,7 @@ export function ManagerDashboard() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <span className="text-title-md font-medium text-primary">
-                      {day.day}
-                    </span>
+                    <span className="text-title-md font-medium text-primary">{day.day}</span>
                   </div>
                   <div>
                     <p className="text-title-md font-medium">{day.familiesServed} משפחות</p>
@@ -142,24 +122,14 @@ export function ManagerDashboard() {
       <div>
         <h2 className="text-headline-md font-headline mb-4">פעולות מהירות</h2>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <Link
-            href="/dashboard/weekly"
-            className="card hover:shadow-lg transition-shadow"
-          >
+          <Link href="/weekly" className="card hover:shadow-lg transition-shadow">
             <h3 className="text-title-md font-medium mb-2">קח הזמנות השבוע</h3>
-            <p className="text-body-sm text-on-surface-variant">
-              הוסף משימות לחלוקה שבועית
-            </p>
+            <p className="text-body-sm text-on-surface-variant">הוסף משימות לחלוקה שבועית</p>
           </Link>
 
-          <Link
-            href="/dashboard/families"
-            className="card hover:shadow-lg transition-shadow"
-          >
+          <Link href="/families" className="card hover:shadow-lg transition-shadow">
             <h3 className="text-title-md font-medium mb-2">ניהול משפחות</h3>
-            <p className="text-body-sm text-on-surface-variant">
-              צפה בנתוני משפחות וצור קשר
-            </p>
+            <p className="text-body-sm text-on-surface-variant">צפה בנתוני משפחות וצור קשר</p>
           </Link>
         </div>
       </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { ReactNode, useEffect, useRef } from 'react';
+import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth.store';
 
@@ -8,36 +8,41 @@ export default function SetupLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { user, isAuthenticated } = useAuthStore();
   const hasCheckedRef = useRef(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
-    console.log('[Setup Layout] Auth check:', { isAuthenticated, role: user?.systemRole, hasChecked: hasCheckedRef.current });
+    const unsub = useAuthStore.persist.onFinishHydration(() => {
+      setIsHydrated(true);
+    });
+    if (useAuthStore.persist.hasHydrated()) {
+      setIsHydrated(true);
+    }
+    return () => {
+      unsub();
+    };
+  }, []);
 
-    if (hasCheckedRef.current) {
+  useEffect(() => {
+    if (!isHydrated || hasCheckedRef.current) {
       return;
     }
 
-    // Redirect if not authenticated
     if (!isAuthenticated) {
-      console.log('[Setup Layout] Not authenticated, redirecting to login');
       hasCheckedRef.current = true;
       router.replace('/login');
       return;
     }
 
-    // Only ADMIN users can access setup routes
     if (user?.systemRole !== 'ADMIN') {
-      console.log('[Setup Layout] Not ADMIN, redirecting to dashboard');
       hasCheckedRef.current = true;
       router.replace('/');
       return;
     }
 
-    console.log('[Setup Layout] ADMIN confirmed, showing setup wizard');
     hasCheckedRef.current = true;
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, isHydrated]);
 
-  // Show loading while checking auth
-  if (!isAuthenticated || user?.systemRole !== 'ADMIN') {
+  if (!isHydrated || !isAuthenticated || user?.systemRole !== 'ADMIN') {
     return (
       <div className="flex h-screen items-center justify-center bg-surface">
         <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />

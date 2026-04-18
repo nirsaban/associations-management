@@ -20,7 +20,7 @@ const statusConfig = {
   payment: {
     pending: { badge: 'warning' as const, label: 'ממתין לתשלום' },
     completed: { badge: 'success' as const, label: 'שולם' },
-    overdue: { badge: 'error' as const, label: '逾期' },
+    overdue: { badge: 'error' as const, label: 'באיחור' },
     failed: { badge: 'error' as const, label: 'נכשל' },
   },
   order: {

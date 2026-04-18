@@ -19,10 +19,10 @@
       "Bash(/opt/homebrew/Cellar/postgresql@16/16.11_1/bin/psql -U Nir.Saban -d amutot -c \"GRANT ALL ON SCHEMA public TO amutot;\")",
       "Bash(/opt/homebrew/Cellar/postgresql@16/16.11_1/bin/psql -U Nir.Saban -d postgres -c \"ALTER USER amutot CREATEDB;\")",
       "Bash(pnpm dev:*)",
-      "Bash(curl -s http://localhost:3001/api/v1/health)",
+      "Bash(curl -s http://localhost:3003/api/v1/health)",
       "Bash(pnpm --filter api typecheck)",
-      "Bash(curl -s http://localhost:3001/api/v1)",
-      "Bash(curl -s http://localhost:3000)",
+      "Bash(curl -s http://localhost:3003/api/v1)",
+      "Bash(curl -s http://localhost:3010)",
       "Bash(pnpm install)",
       "Bash(pnpm prisma:generate:*)",
       "Bash(pnpm prisma:seed:*)",
@@ -43,7 +43,22 @@
       "Bash(sed -i '' 's/where.weekStart = weekStart/where.weekKey = weekKey/g' apps/api/src/modules/weekly-orders/weekly-orders.service.ts)",
       "Bash(sed -i '' 's/weekStart?: string/weekKey?: string/g' apps/api/src/modules/weekly-orders/weekly-orders.service.ts)",
       "Bash(wc *)",
-      "Bash(pnpm --filter web typecheck)"
+      "Bash(pnpm --filter web typecheck)",
+      "Bash(sed -n '37,40p' /Users/Nir.Saban/Documents/Claude/Projects/amutot/prisma/schema.prisma)",
+      "Bash(sed -n '20,23p' /Users/Nir.Saban/Documents/Claude/Projects/amutot/packages/types/src/enums.ts)",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm --filter @amutot/api lint)",
+      "Bash(npx prettier:*)",
+      "Bash(pnpm:*)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3010)",
+      "Bash(npx ts-node:*)",
+      "Bash(npx tsx:*)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3003/api/v1)",
+      "Bash(curl:*)",
+      "Read(//tmp/**)",
+      "Bash(pkill -f \"next dev\")",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)"
     ]
   }
 }

@@ -37,7 +37,9 @@ export class NotificationsService {
   ): Promise<{ data: NotificationResponseDto[]; meta: { total: number; page: number; limit: number } }> {
     this.logger.log(`Finding notifications for user ${userId} in org ${organizationId}`);
 
-    const skip = (page - 1) * limit;
+    const safePage = Number(page) || 1;
+    const safeLimit = Number(limit) || 10;
+    const skip = (safePage - 1) * safeLimit;
 
     const [notifications, total] = await Promise.all([
       this.prisma.notification.findMany({
@@ -46,7 +48,7 @@ export class NotificationsService {
           userId,
         },
         skip,
-        take: limit,
+        take: safeLimit,
         orderBy: {
           createdAt: 'desc',
         },

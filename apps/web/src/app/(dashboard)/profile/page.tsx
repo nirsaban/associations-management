@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { useAuthStore } from '@/store/auth.store';
-import { User, Phone, Mail, Building2, Users, Bell, AlertCircle } from 'lucide-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { User, Phone, Mail, Building2, Users, AlertCircle } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { API_ROUTES } from '@/lib/constants';
 
@@ -12,39 +12,34 @@ interface UserProfile {
   phone: string;
   fullName: string;
   email?: string;
-  organizationName?: string;
-  groupName?: string;
-  groupId?: string;
-  notificationSettings: {
-    pushEnabled: boolean;
-    emailEnabled: boolean;
+  systemRole: string;
+  platformRole?: string;
+  organizationId?: string;
+  organization?: {
+    id: string;
+    name: string;
+    slug?: string;
+    logoUrl?: string;
+    setupCompleted?: boolean;
+    isActive?: boolean;
   };
+  registrationCompleted?: boolean;
 }
 
 export default function ProfilePage() {
   const { user } = useAuthStore();
-  const queryClient = useQueryClient();
 
-  const { data: profile, isLoading, error } = useQuery({
+  const {
+    data: profile,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['profile', user?.id],
     queryFn: async () => {
       const response = await api.get<{ data: UserProfile }>(API_ROUTES.USERS.ME);
       return response.data.data;
     },
     enabled: !!user,
-  });
-
-  const updateNotifications = useMutation({
-    mutationFn: async (settings: { pushEnabled: boolean; emailEnabled: boolean }) => {
-      const response = await api.patch<{ data: UserProfile }>(
-        API_ROUTES.USERS.ME,
-        { notificationSettings: settings }
-      );
-      return response.data.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
-    },
   });
 
   if (isLoading) {
@@ -71,9 +66,7 @@ export default function ProfilePage() {
       {/* Header */}
       <div>
         <h1 className="text-headline-lg font-headline mb-2">הפרופיל שלי</h1>
-        <p className="text-body-md text-on-surface-variant">
-          פרטים אישיים והגדרות חשבון
-        </p>
+        <p className="text-body-md text-on-surface-variant">פרטים אישיים והגדרות חשבון</p>
       </div>
 
       {/* Personal Information */}
@@ -121,77 +114,20 @@ export default function ProfilePage() {
           {/* Organization */}
           <div className="p-4 rounded-lg bg-surface-container">
             <p className="text-label-sm text-on-surface-variant mb-1">ארגון</p>
-            <p className="text-body-lg font-medium">{profile?.organizationName || 'לא משויך'}</p>
+            <p className="text-body-lg font-medium">{profile?.organization?.name || 'לא משויך'}</p>
           </div>
 
-          {/* Group */}
+          {/* Role */}
           <div className="p-4 rounded-lg bg-surface-container">
             <p className="text-label-sm text-on-surface-variant mb-1 flex items-center gap-2">
               <Users className="h-4 w-4" />
-              קבוצה
+              תפקיד
             </p>
-            <p className="text-body-lg font-medium">{profile?.groupName || 'לא משויך לקבוצה'}</p>
+            <p className="text-body-lg font-medium">{profile?.systemRole || 'לא הוגדר'}</p>
           </div>
         </div>
       </div>
 
-      {/* Notification Settings */}
-      <div className="card-elevated">
-        <h2 className="text-title-lg font-medium mb-6 flex items-center gap-3">
-          <Bell className="h-6 w-6 text-tertiary" />
-          הגדרות התראות
-        </h2>
-
-        <div className="space-y-4">
-          {/* Push Notifications */}
-          <div className="p-4 rounded-lg bg-surface-container flex items-center justify-between">
-            <div>
-              <p className="text-body-md font-medium">התראות דחיפה</p>
-              <p className="text-body-sm text-on-surface-variant mt-1">
-                קבל התראות בזמן אמת במכשיר
-              </p>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                className="sr-only peer"
-                checked={profile?.notificationSettings?.pushEnabled ?? false}
-                onChange={(e) => {
-                  updateNotifications.mutate({
-                    pushEnabled: e.target.checked,
-                    emailEnabled: profile?.notificationSettings?.emailEnabled ?? false,
-                  });
-                }}
-              />
-              <div className="w-11 h-6 bg-surface-variant peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-            </label>
-          </div>
-
-          {/* Email Notifications */}
-          <div className="p-4 rounded-lg bg-surface-container flex items-center justify-between">
-            <div>
-              <p className="text-body-md font-medium">התראות במייל</p>
-              <p className="text-body-sm text-on-surface-variant mt-1">
-                קבל עדכונים בדואר אלקטרוני
-              </p>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                className="sr-only peer"
-                checked={profile?.notificationSettings?.emailEnabled ?? false}
-                onChange={(e) => {
-                  updateNotifications.mutate({
-                    pushEnabled: profile?.notificationSettings?.pushEnabled ?? false,
-                    emailEnabled: e.target.checked,
-                  });
-                }}
-              />
-              <div className="w-11 h-6 bg-surface-variant peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-            </label>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

@@ -68,7 +68,9 @@ export class UsersService {
   ): Promise<{ data: UserResponseDto[]; meta: { total: number; page: number; limit: number } }> {
     this.logger.log(`Finding users for organization ${organizationId}, page ${page}, search: ${search}`);
 
-    const skip = (page - 1) * limit;
+    const safePage = Number(page) || 1;
+    const safeLimit = Number(limit) || 10;
+    const skip = (safePage - 1) * safeLimit;
 
     const where = {
       organizationId,
@@ -87,7 +89,7 @@ export class UsersService {
       this.prisma.user.findMany({
         where,
         skip,
-        take: Number(limit),
+        take: safeLimit,
         orderBy: { createdAt: 'desc' },
       }),
       this.prisma.user.count({ where }),
@@ -95,7 +97,7 @@ export class UsersService {
 
     return {
       data: users.map((user) => this.mapToDto(user)),
-      meta: { total, page: Number(page), limit: Number(limit) },
+      meta: { total, page: safePage, limit: safeLimit },
     };
   }
 

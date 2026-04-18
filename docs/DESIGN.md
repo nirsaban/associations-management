@@ -1,8 +1,7 @@
 # Amutot Design System — "The Digital Sanctuary"
 
 This document is the authoritative design spec for the **ניהול עמותות** web
-and PWA UI. It is derived from the Stitch reference designs in
-`stitch_nachalat_david_platform/*` and encoded in three places:
+and PWA UI. It is encoded in three places:
 
 - `apps/web/tailwind.config.ts` — Tailwind utility tokens
 - `apps/web/src/app/globals.css` — CSS variables + component classes
@@ -67,7 +66,7 @@ including `fixed` and `dim` variants.
 | `error` | `#ba1a1a` |
 | `error-container` | `#ffdad6` |
 | `on-error` | `#ffffff` |
-| `on-error-container` | `#93000a` |
+| `on-error-container` | `#93010a` |
 
 ### Surfaces (tonal layering stack — low → high)
 | Token | Hex |
@@ -234,8 +233,7 @@ Container widths: `max-w-md` (mobile forms), `max-w-4xl`
 - Lean into whitespace. If empty, scale typography up, don't add boxes.
 - Use `tertiary` accents for warmth — pairs beautifully with the teal.
 - Flip directional icons in RTL.
-- Mirror the Stitch screens under `stitch_nachalat_david_platform/` when
-  implementing new features — they are the canonical visual reference.
+- Follow the established design patterns when implementing new features.
 
 ### Don't
 - Don't use pure black, 1px borders, or default Material elevation shadows.
@@ -247,20 +245,5 @@ Container widths: `max-w-md` (mobile forms), `max-w-4xl`
 
 ## 9. Reference Screens
 
-Canonical Stitch mocks (HTML + screenshot) live at
-`stitch_nachalat_david_platform/`:
-
-| Folder | Screen |
-|--------|--------|
-| `_1/` | Mobile home / user dashboard |
-| `_2/` | Weekly distributor view |
-| `_3/` | Group manager dashboard |
-| `admin_dashboard_1/`, `admin_dashboard_2/` | Admin overview |
-| `admin_users/` | Admin users table |
-| `csv_import/` | CSV import wizard |
-| `login/` | Phone + OTP login |
-| `onboarding/` | Profile + group selection |
-| `weekly_order/` | Family weekly order form |
-
-When building a new page, open the closest Stitch screen and match its
-structure, spacing, and component choices.
+When building a new page, follow the established design patterns
+from existing screens in the codebase.

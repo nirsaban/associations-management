@@ -45,24 +45,18 @@ export function CsvImporter() {
       skipEmptyLines: true,
       complete: (results) => {
         if (results.errors.length > 0) {
-          setErrors(
-            results.errors.map(
-              (err) => `שורה ${err.row}: ${err.message}`
-            )
-          );
+          setErrors(results.errors.map((err) => `שורה ${err.row}: ${err.message}`));
           return;
         }
 
         const rows = results.data as CsvRow[];
         const required = ['phone', 'role'];
         const invalidRows = rows.filter((row) =>
-          required.some((field) => !row[field] || row[field].trim() === '')
+          required.some((field) => !row[field] || row[field].trim() === ''),
         );
 
         if (invalidRows.length > 0) {
-          setErrors([
-            `${invalidRows.length} שורות חסרות שדות חובה (phone, role)`,
-          ]);
+          setErrors([`${invalidRows.length} שורות חסרות שדות חובה (phone, role)`]);
           return;
         }
 
@@ -129,16 +123,11 @@ export function CsvImporter() {
           className="hidden"
         />
         <Upload className="h-12 w-12 mx-auto text-primary/40 mb-4" />
-        <h3 className="text-title-md font-medium mb-2">
-          גרור קובץ CSV כאן או בחר
-        </h3>
+        <h3 className="text-title-md font-medium mb-2">גרור קובץ CSV כאן או בחר</h3>
         <p className="text-body-sm text-on-surface-variant mb-6">
           קובץ חייב להכיל עמודות: phone, role, ו-name (אופציונלי)
         </p>
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          className="btn-primary"
-        >
+        <button onClick={() => fileInputRef.current?.click()} className="btn-primary">
           בחר קובץ
         </button>
       </div>
@@ -164,10 +153,7 @@ export function CsvImporter() {
               <thead className="border-b border-border bg-surface-container-low">
                 <tr>
                   {Object.keys(preview[0]).map((key) => (
-                    <th
-                      key={key}
-                      className="px-4 py-3 text-start text-label-md font-medium"
-                    >
+                    <th key={key} className="px-4 py-3 text-start text-label-md font-medium">
                       {key}
                     </th>
                   ))}
@@ -186,9 +172,7 @@ export function CsvImporter() {
               </tbody>
             </table>
           </div>
-          <p className="text-label-sm text-on-surface-variant mt-4">
-            מוצגות 5 שורות ראשונות בלבד
-          </p>
+          <p className="text-label-sm text-on-surface-variant mt-4">מוצגות 5 שורות ראשונות בלבד</p>
         </div>
       )}
 
@@ -198,13 +182,10 @@ export function CsvImporter() {
           <div className="flex items-start gap-3">
             <CheckCircle className="h-6 w-6 text-success flex-shrink-0" />
             <div>
-              <p className="text-title-md font-medium text-on-surface">
-                ייבוא הושלם בהצלחה
-              </p>
+              <p className="text-title-md font-medium text-on-surface">ייבוא הושלם בהצלחה</p>
               <p className="text-body-sm text-on-surface-variant mt-1">
                 {importMutation.data.successful} משתמשים ייובאו
-                {importMutation.data.failed > 0 &&
-                  `, ${importMutation.data.failed} נכשל`}
+                {importMutation.data.failed > 0 && `, ${importMutation.data.failed} נכשל`}
               </p>
             </div>
           </div>

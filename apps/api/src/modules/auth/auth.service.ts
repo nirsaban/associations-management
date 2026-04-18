@@ -110,6 +110,7 @@ export class AuthService {
             userRole: u.systemRole,
           }))
         : undefined,
+      ...(process.env.NODE_ENV !== 'production' ? { devOtp: otp } : {}),
     };
   }
 
@@ -224,7 +225,7 @@ export class AuthService {
 
       const user = await this.prisma.user.findUnique({
         where: {
-          id: (decoded as Record<string, unknown>).id as string,
+          id: (decoded as Record<string, unknown>).sub as string,
         },
       });
 

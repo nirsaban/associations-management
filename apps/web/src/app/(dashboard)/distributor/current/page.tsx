@@ -31,7 +31,7 @@ export default function CurrentDistributorPage() {
   const { data, isLoading, error } = useQuery({
     queryKey: ['distributor-current', user?.id],
     queryFn: async () => {
-      const response = await api.get<{ data: DistributorData }>('/distributor/current');
+      const response = await api.get<{ data: DistributorData }>('/weekly-distributors/me/current');
       return response.data.data;
     },
     enabled: !!user,
@@ -83,9 +83,7 @@ export default function CurrentDistributorPage() {
             <TruckIcon className="h-10 w-10 text-on-primary" />
           </div>
           <div className="flex-1">
-            <h1 className="text-headline-lg font-headline text-primary mb-2">
-              אתה המחלק השבועי
-            </h1>
+            <h1 className="text-headline-lg font-headline text-primary mb-2">אתה המחלק השבועי</h1>
             <p className="text-body-md text-on-surface-variant mb-4">
               קבוצת {data.groupName} • שבוע {data.weekKey}
             </p>
@@ -104,12 +102,10 @@ export default function CurrentDistributorPage() {
         <div className="flex gap-3">
           <Info className="h-5 w-5 text-warning flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-body-md font-medium text-warning mb-1">
-              הצגת מידע לחלוקה בלבד
-            </p>
+            <p className="text-body-md font-medium text-warning mb-1">הצגת מידע לחלוקה בלבד</p>
             <p className="text-body-sm text-on-surface-variant">
-              כמחלק שבועי, תוכל לצפות בפרטי משפחות, כתובות וטלפונים לצורך ביצוע החלוקה.
-              אין אפשרות לערוך הזמנות, תשלומים או משתמשים.
+              כמחלק שבועי, תוכל לצפות בפרטי משפחות, כתובות וטלפונים לצורך ביצוע החלוקה. אין אפשרות
+              לערוך הזמנות, תשלומים או משתמשים.
             </p>
           </div>
         </div>
@@ -125,9 +121,7 @@ export default function CurrentDistributorPage() {
         {!data.families || data.families.length === 0 ? (
           <div className="text-center py-12">
             <Home className="h-16 w-16 text-on-surface-variant/30 mx-auto mb-4" />
-            <p className="text-body-lg text-on-surface-variant">
-              אין משפחות לחלוקה
-            </p>
+            <p className="text-body-lg text-on-surface-variant">אין משפחות לחלוקה</p>
           </div>
         ) : (
           <div className="space-y-4">

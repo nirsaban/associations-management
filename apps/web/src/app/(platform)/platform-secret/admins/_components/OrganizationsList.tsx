@@ -57,9 +57,7 @@ export function OrganizationsList({ organizations, isLoading, onRefresh }: Organ
     return (
       <div className="card-elevated p-12 text-center">
         <p className="text-title-lg mb-2">אין עמותות במערכת</p>
-        <p className="text-body-md text-on-surface-variant">
-          צור עמותה חדשה כדי להתחיל
-        </p>
+        <p className="text-body-md text-on-surface-variant">צור עמותה חדשה כדי להתחיל</p>
       </div>
     );
   }
@@ -84,9 +82,7 @@ export function OrganizationsList({ organizations, isLoading, onRefresh }: Organ
             <tbody className="divide-y divide-border">
               {organizations.map((organization) => (
                 <tr key={organization.id} className="hover:bg-surface-container/50">
-                  <td className="px-6 py-4 text-body-md font-medium">
-                    {organization.name}
-                  </td>
+                  <td className="px-6 py-4 text-body-md font-medium">{organization.name}</td>
                   <td className="px-6 py-4 text-body-sm font-mono text-on-surface-variant">
                     {organization.slug}
                   </td>
@@ -152,7 +148,9 @@ export function OrganizationsList({ organizations, isLoading, onRefresh }: Organ
                       </button>
 
                       <button
-                        onClick={() => {/* TODO: Navigate to details */}}
+                        onClick={() => {
+                          /* TODO: Navigate to details */
+                        }}
                         className="p-2 hover:bg-surface-container rounded-md transition-colors"
                         title="צפייה בפרטים"
                       >

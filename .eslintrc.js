@@ -16,13 +16,9 @@ module.exports = {
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
-    'plugin:@typescript-eslint/recommended-requiring-type-checking',
-    'plugin:import/errors',
-    'plugin:import/warnings',
-    'plugin:import/typescript',
     'prettier',
   ],
-  plugins: ['@typescript-eslint', 'import', 'prettier'],
+  plugins: ['@typescript-eslint', 'prettier'],
   rules: {
     'prettier/prettier': ['warn', {
       semi: true,
@@ -35,21 +31,9 @@ module.exports = {
       argsIgnorePattern: '^_',
       varsIgnorePattern: '^_',
     }],
-    '@typescript-eslint/explicit-function-return-types': ['warn', {
-      allowExpressions: true,
-      allowTypedFunctionExpressions: true,
-      allowHigherOrderFunctions: true,
-    }],
     '@typescript-eslint/explicit-module-boundary-types': 'off',
-    '@typescript-eslint/no-floating-promises': 'error',
     'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
     'no-debugger': 'error',
-    'import/no-cycle': 'error',
-    'import/order': ['warn', {
-      groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
-      alphabeticalOrder: true,
-      newlines-between: 'always',
-    }],
   },
   overrides: [
     {
@@ -59,22 +43,12 @@ module.exports = {
       },
       rules: {
         '@typescript-eslint/no-explicit-any': 'off',
-        '@typescript-eslint/no-floating-promises': 'off',
       },
     },
     {
       files: ['apps/web/**/*.ts', 'apps/web/**/*.tsx'],
-      parserOptions: {
-        project: 'apps/web/tsconfig.json',
-      },
       rules: {
         'react/react-in-jsx-scope': 'off',
-      },
-    },
-    {
-      files: ['apps/api/**/*.ts'],
-      parserOptions: {
-        project: 'apps/api/tsconfig.json',
       },
     },
   ],

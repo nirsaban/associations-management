@@ -8,9 +8,7 @@ import { X, CheckCircle } from 'lucide-react';
 import { usePlatform } from '@/hooks/usePlatform';
 
 const adminSchema = z.object({
-  phone: z
-    .string()
-    .regex(/^05\d{8}$/, 'מספר טלפון חייב להיות בפורמט 05XXXXXXXX'),
+  phone: z.string().regex(/^05\d{8}$/, 'מספר טלפון חייב להיות בפורמט 05XXXXXXXX'),
   fullName: z.string().min(2, 'שם מלא חייב להכיל לפחות 2 תווים'),
   email: z.string().email('כתובת אימייל לא תקינה').optional().or(z.literal('')),
 });
@@ -26,7 +24,9 @@ type CreateAdminModalProps = {
 export function CreateAdminModal({ organizationId, onClose, onSuccess }: CreateAdminModalProps) {
   const { createFirstAdmin } = usePlatform();
   const [error, setError] = useState<string | null>(null);
-  const [createdAdmin, setCreatedAdmin] = useState<{ phone: string; fullName: string } | null>(null);
+  const [createdAdmin, setCreatedAdmin] = useState<{ phone: string; fullName: string } | null>(
+    null,
+  );
 
   const {
     register,
@@ -83,7 +83,9 @@ export function CreateAdminModal({ organizationId, onClose, onSuccess }: CreateA
 
             <div className="bg-primary-container/50 rounded-lg p-4 space-y-2">
               <p className="text-label-md text-on-surface-variant">מספר טלפון:</p>
-              <p className="text-body-lg font-medium font-mono" dir="ltr">{createdAdmin.phone}</p>
+              <p className="text-body-lg font-medium font-mono" dir="ltr">
+                {createdAdmin.phone}
+              </p>
             </div>
 
             <div className="rounded-lg bg-surface-container-high p-4">
@@ -150,12 +152,8 @@ export function CreateAdminModal({ organizationId, onClose, onSuccess }: CreateA
               placeholder="0501234567"
               maxLength={10}
             />
-            {errors.phone && (
-              <p className="text-body-sm text-error">{errors.phone.message}</p>
-            )}
-            <p className="text-body-sm text-on-surface-variant">
-              בפורמט ישראלי: 05XXXXXXXX
-            </p>
+            {errors.phone && <p className="text-body-sm text-error">{errors.phone.message}</p>}
+            <p className="text-body-sm text-on-surface-variant">בפורמט ישראלי: 05XXXXXXXX</p>
           </div>
 
           {/* Full Name */}
@@ -188,9 +186,7 @@ export function CreateAdminModal({ organizationId, onClose, onSuccess }: CreateA
               placeholder="admin@example.org"
               dir="ltr"
             />
-            {errors.email && (
-              <p className="text-body-sm text-error">{errors.email.message}</p>
-            )}
+            {errors.email && <p className="text-body-sm text-error">{errors.email.message}</p>}
           </div>
 
           {/* Error Message */}
@@ -209,11 +205,7 @@ export function CreateAdminModal({ organizationId, onClose, onSuccess }: CreateA
             >
               {createFirstAdmin.isPending ? 'יוצר...' : 'צור מנהל'}
             </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="btn-ghost flex-1"
-            >
+            <button type="button" onClick={onClose} className="btn-ghost flex-1">
               ביטול
             </button>
           </div>

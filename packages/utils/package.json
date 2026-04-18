@@ -19,7 +19,7 @@
     "@amutot/types": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
-    "typescript": "^5.3.0"
+    "@types/node": "^20.19.39",
+    "typescript": "^5.9.3"
   }
 }

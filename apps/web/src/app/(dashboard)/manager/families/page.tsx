@@ -18,10 +18,14 @@ interface Family {
 export default function ManagerFamiliesPage() {
   const { user } = useAuthStore();
 
-  const { data: families, isLoading, error } = useQuery({
+  const {
+    data: families,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['manager-families', user?.id],
     queryFn: async () => {
-      const response = await api.get<{ data: Family[] }>('/manager/families');
+      const response = await api.get<{ data: Family[] }>('/manager/group/families');
       return response.data.data;
     },
     enabled: !!user,
@@ -51,9 +55,7 @@ export default function ManagerFamiliesPage() {
       {/* Header */}
       <div>
         <h1 className="text-headline-lg font-headline mb-2">משפחות בקבוצה</h1>
-        <p className="text-body-md text-on-surface-variant">
-          רשימת משפחות תחת ניהול הקבוצה שלך
-        </p>
+        <p className="text-body-md text-on-surface-variant">רשימת משפחות תחת ניהול הקבוצה שלך</p>
       </div>
 
       {/* Info Note */}
@@ -61,12 +63,10 @@ export default function ManagerFamiliesPage() {
         <div className="flex gap-3">
           <Info className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-body-md font-medium text-primary mb-1">
-              הרשאות תצוגה בלבד
-            </p>
+            <p className="text-body-md font-medium text-primary mb-1">הרשאות תצוגה בלבד</p>
             <p className="text-body-sm text-on-surface-variant">
-              כמנהל קבוצה, תוכל לצפות בפרטי המשפחות בקבוצה שלך.
-              לעריכה או הוספת משפחות חדשות יש לפנות למנהל המערכת.
+              כמנהל קבוצה, תוכל לצפות בפרטי המשפחות בקבוצה שלך. לעריכה או הוספת משפחות חדשות יש
+              לפנות למנהל המערכת.
             </p>
           </div>
         </div>
@@ -82,9 +82,7 @@ export default function ManagerFamiliesPage() {
         {!families || families.length === 0 ? (
           <div className="text-center py-12">
             <Home className="h-16 w-16 text-on-surface-variant/30 mx-auto mb-4" />
-            <p className="text-body-lg text-on-surface-variant mb-2">
-              אין משפחות בקבוצה
-            </p>
+            <p className="text-body-lg text-on-surface-variant mb-2">אין משפחות בקבוצה</p>
             <p className="text-body-sm text-on-surface-variant">
               צור קשר עם מנהל המערכת להוספת משפחות
             </p>

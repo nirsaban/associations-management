@@ -85,8 +85,8 @@ pnpm prisma migrate dev
 pnpm start:dev
 ```
 
-The API will be available at `http://localhost:3001/api/v1`
-Swagger docs available at `http://localhost:3001/api/docs`
+The API will be available at `http://localhost:3003/api/v1`
+Swagger docs available at `http://localhost:3003/api/docs`
 
 ## Available Scripts
 

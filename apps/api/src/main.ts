@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import morgan from 'morgan';
 import { AppModule } from './app.module';
 
@@ -9,7 +9,7 @@ async function bootstrap(): Promise<void> {
 
   // Enable CORS
   app.enableCors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    origin: process.env.CORS_ORIGIN || 'http://localhost:3010',
     credentials: true,
   });
 
@@ -69,13 +69,15 @@ async function bootstrap(): Promise<void> {
     },
   });
 
-  const PORT = process.env.PORT || 3001;
+  const PORT = process.env.PORT || 3003;
   await app.listen(PORT);
-  console.log(`Server running on http://localhost:${PORT}`);
-  console.log(`Swagger docs available at http://localhost:${PORT}/api/docs`);
+  const logger = new Logger('Bootstrap');
+  logger.log(`Server running on http://localhost:${PORT}`);
+  logger.log(`Swagger docs available at http://localhost:${PORT}/api/docs`);
 }
 
 bootstrap().catch((error) => {
-  console.error('Failed to start application:', error);
+  const logger = new Logger('Bootstrap');
+  logger.error('Failed to start application:', error);
   process.exit(1);
 });

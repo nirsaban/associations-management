@@ -45,7 +45,9 @@ export class FamiliesService {
   ): Promise<{ data: FamilyResponseDto[]; meta: { total: number; page: number; limit: number } }> {
     this.logger.log(`Finding families for organization ${organizationId}, page ${page}`);
 
-    const skip = (page - 1) * limit;
+    const safePage = Number(page) || 1;
+    const safeLimit = Number(limit) || 10;
+    const skip = (safePage - 1) * safeLimit;
 
     const where = {
       organizationId,
@@ -57,7 +59,7 @@ export class FamiliesService {
       this.prisma.family.findMany({
         where,
         skip,
-        take: Number(limit),
+        take: safeLimit,
         orderBy: { createdAt: 'desc' },
       }),
       this.prisma.family.count({ where }),
@@ -65,7 +67,7 @@ export class FamiliesService {
 
     return {
       data: families.map((family) => this.mapToDto(family)),
-      meta: { total, page: Number(page), limit: Number(limit) },
+      meta: { total, page: safePage, limit: safeLimit },
     };
   }
 

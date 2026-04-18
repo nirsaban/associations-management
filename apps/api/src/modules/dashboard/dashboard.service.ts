@@ -166,6 +166,7 @@ export class DashboardService {
 
     const paymentStatus = await this.prisma.payment.findFirst({
       where: {
+        organizationId,
         userId,
         monthKey: currentMonth,
         status: 'COMPLETED',
@@ -185,6 +186,7 @@ export class DashboardService {
 
     const unreadNotifications = await this.prisma.notification.count({
       where: {
+        organizationId,
         userId,
         status: { not: 'READ' },
       },

@@ -57,7 +57,7 @@ export function usePlatform() {
     mutationFn: async ({ organizationId, ...data }: CreateFirstAdminDto) => {
       const response = await api.post(
         `/platform/organizations/${organizationId}/first-admin`,
-        data
+        data,
       );
       return response.data;
     },
@@ -75,7 +75,7 @@ export function usePlatform() {
         if (params.status) searchParams.set('status', params.status);
 
         const response = await api.get<{ data: Organization[] }>(
-          `/platform/organizations?${searchParams.toString()}`
+          `/platform/organizations?${searchParams.toString()}`,
         );
         return response.data;
       },

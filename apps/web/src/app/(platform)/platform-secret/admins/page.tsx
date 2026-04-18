@@ -26,12 +26,8 @@ export default function PlatformAdminsPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-headline-lg font-headline mb-2">
-              ניהול פלטפורמה
-            </h1>
-            <p className="text-body-md text-on-surface-variant">
-              ניהול עמותות ומנהלים בפלטפורמה
-            </p>
+            <h1 className="text-headline-lg font-headline mb-2">ניהול פלטפורמה</h1>
+            <p className="text-body-md text-on-surface-variant">ניהול עמותות ומנהלים בפלטפורמה</p>
           </div>
 
           <button

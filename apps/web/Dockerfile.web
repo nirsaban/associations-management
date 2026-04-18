@@ -41,8 +41,8 @@ COPY apps/web ./apps/web
 
 # Build arguments for environment variables
 ARG NODE_ENV=production
-ARG NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
-ARG NEXT_PUBLIC_APP_URL=http://localhost:3000
+ARG NEXT_PUBLIC_API_URL=http://localhost:3003/api/v1
+ARG NEXT_PUBLIC_APP_URL=http://localhost:3010
 ARG NEXT_PUBLIC_APP_NAME=Amutot
 
 # Set environment variables
@@ -86,10 +86,10 @@ USER nextjs
 
 # Health check endpoint
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:3000 || exit 1
+    CMD curl -f http://localhost:3010 || exit 1
 
 # Expose port
-EXPOSE 3000
+EXPOSE 3010
 
 # Set environment for production
 ENV NODE_ENV=production

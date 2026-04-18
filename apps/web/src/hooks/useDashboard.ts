@@ -15,7 +15,7 @@ export interface AdminDashboard {
     timestamp: string;
   }>;
   paymentStats: {
-    thisMont: number;
+    thisMonth: number;
     lastMonth: number;
     trend: number;
   };
@@ -54,9 +54,7 @@ export function useDashboard() {
   const adminDashboard = useQuery({
     queryKey: ['dashboard', 'admin'],
     queryFn: async () => {
-      const response = await api.get<{ data: AdminDashboard }>(
-        API_ROUTES.DASHBOARD.ADMIN
-      );
+      const response = await api.get<{ data: AdminDashboard }>('/admin/dashboard');
       return response.data.data;
     },
     enabled: user?.systemRole === 'ADMIN',
@@ -65,20 +63,16 @@ export function useDashboard() {
   const managerDashboard = useQuery({
     queryKey: ['dashboard', 'manager'],
     queryFn: async () => {
-      const response = await api.get<{ data: ManagerDashboard }>(
-        API_ROUTES.DASHBOARD.MANAGER
-      );
+      const response = await api.get<{ data: ManagerDashboard }>(API_ROUTES.DASHBOARD.MANAGER);
       return response.data.data;
     },
-    enabled: false,
+    enabled: !!user && user.systemRole !== 'ADMIN' && user.systemRole !== 'USER',
   });
 
   const userDashboard = useQuery({
     queryKey: ['dashboard', 'user'],
     queryFn: async () => {
-      const response = await api.get<{ data: UserDashboard }>(
-        API_ROUTES.DASHBOARD.USER
-      );
+      const response = await api.get<{ data: UserDashboard }>(API_ROUTES.DASHBOARD.USER);
       return response.data.data;
     },
     enabled: user?.systemRole === 'USER',

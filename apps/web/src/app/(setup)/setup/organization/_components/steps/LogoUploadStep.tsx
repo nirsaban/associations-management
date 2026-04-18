@@ -81,7 +81,7 @@ export function LogoUploadStep({ data, onUpdate }: LogoUploadStepProps) {
         className={cn(
           'border-2 border-dashed rounded-lg p-12 text-center transition-colors',
           isDragging && 'border-primary bg-primary/5',
-          !isDragging && 'border-border hover:border-primary/50'
+          !isDragging && 'border-border hover:border-primary/50',
         )}
         onDragOver={(e) => {
           e.preventDefault();
@@ -98,21 +98,13 @@ export function LogoUploadStep({ data, onUpdate }: LogoUploadStepProps) {
               className="max-h-32 mx-auto object-contain"
             />
             <div className="flex items-center justify-center gap-3">
-              <button
-                onClick={handleRemove}
-                className="btn-outline flex items-center gap-2"
-              >
+              <button onClick={handleRemove} className="btn-outline flex items-center gap-2">
                 <X className="h-4 w-4" />
                 הסר תמונה
               </button>
               <label className="btn-ghost cursor-pointer">
                 החלף תמונה
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileInput}
-                  className="hidden"
-                />
+                <input type="file" accept="image/*" onChange={handleFileInput} className="hidden" />
               </label>
             </div>
           </div>
@@ -120,17 +112,10 @@ export function LogoUploadStep({ data, onUpdate }: LogoUploadStepProps) {
           <>
             <Upload className="w-12 h-12 mx-auto text-on-surface-variant mb-4" />
             <p className="text-body-lg mb-2">גרור קובץ לכאן או לחץ לבחירה</p>
-            <p className="text-body-sm text-on-surface-variant mb-4">
-              PNG, JPG או SVG - עד 2MB
-            </p>
+            <p className="text-body-sm text-on-surface-variant mb-4">PNG, JPG או SVG - עד 2MB</p>
             <label className="btn-primary inline-flex cursor-pointer">
               בחר קובץ
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileInput}
-                className="hidden"
-              />
+              <input type="file" accept="image/*" onChange={handleFileInput} className="hidden" />
             </label>
           </>
         )}

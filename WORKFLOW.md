@@ -208,7 +208,7 @@ pnpm prisma:studio
 
 ### Development
 ```bash
-# Start all dev servers (web on :3000, api on :3001)
+# Start all dev servers (web on :3010, api on :3003)
 pnpm dev
 
 # Watch and rebuild (no server start)
@@ -372,7 +372,7 @@ turbo prune --scope="@amutot/api"
 - [ ] Run `pnpm --filter web typecheck` — zero errors
 
 ### Step 6: Integration & Review
-- [ ] Link API URL in `.env` — `NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1`
+- [ ] Link API URL in `.env` — `NEXT_PUBLIC_API_URL=http://localhost:3003/api/v1`
 - [ ] Start dev servers: `pnpm dev`
 - [ ] Test flow end-to-end: create, read, update, delete
 - [ ] Test with RTL enabled (set `dir="rtl"` in layout)
@@ -406,7 +406,7 @@ turbo prune --scope="@amutot/api"
    # Edit .env.local with your local values:
    # DATABASE_URL=postgresql://user:password@localhost:5432/amutot_dev
    # JWT_SECRET=your-secret-key
-   # NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
+   # NEXT_PUBLIC_API_URL=http://localhost:3003/api/v1
    ```
 
 3. **Set up database**:
@@ -418,9 +418,9 @@ turbo prune --scope="@amutot/api"
 4. **Start dev servers**:
    ```bash
    pnpm dev
-   # Frontend: http://localhost:3000
-   # Backend API: http://localhost:3001/api/v1
-   # Swagger docs: http://localhost:3001/api/v1
+   # Frontend: http://localhost:3010
+   # Backend API: http://localhost:3003/api/v1
+   # Swagger docs: http://localhost:3003/api/v1
    ```
 
 ### Docker Compose (Local with Containers)
@@ -442,8 +442,8 @@ turbo prune --scope="@amutot/api"
    ```
 
 4. **Access services**:
-   - Frontend: http://localhost:3000
-   - API: http://localhost:3001/api/v1
+   - Frontend: http://localhost:3010
+   - API: http://localhost:3003/api/v1
    - pgAdmin: http://localhost:5050 (user: admin@admin.com, pass: admin)
 
 5. **View logs**:
@@ -665,4 +665,4 @@ For questions about:
 - **Code style**: Run `pnpm lint` and `pnpm format`
 - **Testing**: See test files in `**/*.spec.ts`
 - **Database**: See `prisma/schema.prisma` and run `pnpm prisma:studio`
-- **API docs**: Run `pnpm dev` and visit `http://localhost:3001/api/v1` (Swagger)
+- **API docs**: Run `pnpm dev` and visit `http://localhost:3003/api/v1` (Swagger)

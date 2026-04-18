@@ -101,8 +101,8 @@ Ports:
 
 | Service    | Port |
 | ---------- | ---- |
-| Web        | 3000 |
-| API        | 3001 |
+| Web        | 3010 |
+| API        | 3003 |
 | PostgreSQL | 5432 |
 | pgAdmin    | 5050 |
 

@@ -77,14 +77,10 @@ export function OrganizationSelection({
 
               <div className="flex-1">
                 <h3 className="text-body-lg font-medium">{org.name}</h3>
-                <p className="text-body-sm text-on-surface-variant">
-                  {getRoleLabel(org.userRole)}
-                </p>
+                <p className="text-body-sm text-on-surface-variant">{getRoleLabel(org.userRole)}</p>
               </div>
 
-              {selectedOrgId === org.id && (
-                <CheckCircle className="h-6 w-6 text-primary" />
-              )}
+              {selectedOrgId === org.id && <CheckCircle className="h-6 w-6 text-primary" />}
             </div>
           </button>
         ))}
@@ -99,10 +95,7 @@ export function OrganizationSelection({
         >
           המשך
         </button>
-        <button
-          onClick={onBack}
-          className="btn-ghost flex-1 py-3 text-title-md"
-        >
+        <button onClick={onBack} className="btn-ghost flex-1 py-3 text-title-md">
           חזור
         </button>
       </div>

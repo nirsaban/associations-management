@@ -20,7 +20,7 @@ You are the master orchestrator for a multi-tenant SaaS platform for Israeli non
 - **UI**: Hebrew-first, RTL only
 - **Multi-tenant**: Every entity scoped by `organizationId`
 - **Auth**: Phone + OTP (Green API), JWT tokens
-- **Ports**: Web 3000, API 3001, PostgreSQL 5432, pgAdmin 5050
+- **Ports**: Web 3010, API 3003, PostgreSQL 5432, pgAdmin 5050
 
 ## Responsibilities
 

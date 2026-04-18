@@ -17,11 +17,7 @@ export interface PushSubscriptionData {
  * Check if push notifications are supported in the browser
  */
 export function isPushNotificationSupported(): boolean {
-  return (
-    'serviceWorker' in navigator &&
-    'PushManager' in window &&
-    'Notification' in window
-  );
+  return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
 }
 
 /**
@@ -84,9 +80,7 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
  * @param vapidPublicKey - The VAPID public key from the server
  * @returns The push subscription object
  */
-export async function getPushSubscription(
-  vapidPublicKey: string
-): Promise<PushSubscription> {
+export async function getPushSubscription(vapidPublicKey: string): Promise<PushSubscription> {
   if (!isPushNotificationSupported()) {
     throw new Error('Push notifications are not supported');
   }
@@ -115,7 +109,7 @@ export async function getPushSubscription(
  * @returns The subscription data
  */
 export async function subscribeToPushNotifications(
-  vapidPublicKey?: string
+  vapidPublicKey?: string,
 ): Promise<PushSubscriptionData> {
   // Request notification permission
   const permission = await requestNotificationPermission();
@@ -258,9 +252,7 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
  */
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding)
-    .replace(/-/g, '+')
-    .replace(/_/g, '/');
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
 
   const rawData = atob(base64);
   const outputArray = new Uint8Array(rawData.length);

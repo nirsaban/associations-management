@@ -12,7 +12,9 @@ interface PaymentRecord {
   id: string;
   amount: number;
   monthKey: string;
-  status: 'pending' | 'paid' | 'overdue' | 'cancelled';
+  status: string;
+  transactionId?: string;
+  method?: string;
   paidAt?: string;
   createdAt: string;
 }
@@ -21,16 +23,24 @@ export default function MyDonationsPage() {
   const { user } = useAuthStore();
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
 
-  const { data: payments, isLoading, error } = useQuery({
-    queryKey: ['my-payments', user?.id, selectedYear],
+  const {
+    data: paymentsResponse,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['my-payments', user?.id],
     queryFn: async () => {
-      const response = await api.get<{ data: PaymentRecord[] }>(
-        `/payments/me?year=${selectedYear}`
-      );
+      const response = await api.get<{
+        data: PaymentRecord[];
+        meta: { total: number; page: number; limit: number };
+      }>('/payments/me?limit=100');
       return response.data.data;
     },
     enabled: !!user,
   });
+
+  // Filter payments by selected year on the client side
+  const payments = paymentsResponse?.filter((p) => p.monthKey.startsWith(String(selectedYear)));
 
   // Generate year options (last 3 years)
   const currentYear = new Date().getFullYear();
@@ -105,8 +115,10 @@ export default function MyDonationsPage() {
     );
   }
 
-  const totalPaid = payments?.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0) || 0;
-  const totalPending = payments?.filter(p => p.status === 'pending').reduce((sum, p) => sum + p.amount, 0) || 0;
+  const totalPaid =
+    payments?.filter((p) => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0) || 0;
+  const totalPending =
+    payments?.filter((p) => p.status === 'pending').reduce((sum, p) => sum + p.amount, 0) || 0;
 
   return (
     <div className="p-8 space-y-8 max-w-6xl">
@@ -114,9 +126,7 @@ export default function MyDonationsPage() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-headline-lg font-headline mb-2">התרומות שלי</h1>
-          <p className="text-body-md text-on-surface-variant">
-            היסטוריית תשלומים ותרומות
-          </p>
+          <p className="text-body-md text-on-surface-variant">היסטוריית תשלומים ותרומות</p>
         </div>
 
         {/* Year Filter */}
@@ -127,8 +137,10 @@ export default function MyDonationsPage() {
             onChange={(e) => setSelectedYear(parseInt(e.target.value))}
             className="px-4 py-2 rounded-lg bg-surface-container border-2 border-outline focus:border-primary focus:outline-none"
           >
-            {years.map(year => (
-              <option key={year} value={year}>{year}</option>
+            {years.map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
             ))}
           </select>
         </div>
@@ -141,15 +153,15 @@ export default function MyDonationsPage() {
           <div className="flex items-start justify-between mb-4">
             <div>
               <p className="text-label-md text-on-surface-variant mb-1">סה"כ שולם</p>
-              <p className="text-headline-lg font-bold text-success">₪{totalPaid.toLocaleString()}</p>
+              <p className="text-headline-lg font-bold text-success">
+                ₪{totalPaid.toLocaleString()}
+              </p>
             </div>
             <div className="p-3 rounded-full bg-success/10">
               <CheckCircle className="h-8 w-8 text-success" />
             </div>
           </div>
-          <p className="text-body-sm text-on-surface-variant">
-            תשלומים שאושרו בשנת {selectedYear}
-          </p>
+          <p className="text-body-sm text-on-surface-variant">תשלומים שאושרו בשנת {selectedYear}</p>
         </div>
 
         {/* Total Pending */}
@@ -157,15 +169,15 @@ export default function MyDonationsPage() {
           <div className="flex items-start justify-between mb-4">
             <div>
               <p className="text-label-md text-on-surface-variant mb-1">ממתין לתשלום</p>
-              <p className="text-headline-lg font-bold text-warning">₪{totalPending.toLocaleString()}</p>
+              <p className="text-headline-lg font-bold text-warning">
+                ₪{totalPending.toLocaleString()}
+              </p>
             </div>
             <div className="p-3 rounded-full bg-warning/10">
               <Clock className="h-8 w-8 text-warning" />
             </div>
           </div>
-          <p className="text-body-sm text-on-surface-variant">
-            תשלומים שטרם אושרו
-          </p>
+          <p className="text-body-sm text-on-surface-variant">תשלומים שטרם אושרו</p>
         </div>
       </div>
 
@@ -201,8 +213,7 @@ export default function MyDonationsPage() {
                       <p className="text-body-sm text-on-surface-variant mt-0.5">
                         {payment.paidAt
                           ? `שולם ב-${format(new Date(payment.paidAt), 'd MMMM yyyy', { locale: he })}`
-                          : `נוצר ב-${format(new Date(payment.createdAt), 'd MMMM yyyy', { locale: he })}`
-                        }
+                          : `נוצר ב-${format(new Date(payment.createdAt), 'd MMMM yyyy', { locale: he })}`}
                       </p>
                     </div>
                   </div>
@@ -210,7 +221,9 @@ export default function MyDonationsPage() {
                   {/* Right: Amount & Status */}
                   <div className="flex items-center gap-4">
                     <p className="text-headline-sm font-bold">₪{payment.amount.toLocaleString()}</p>
-                    <span className={`px-3 py-1 rounded-full text-label-sm font-medium ${getStatusColor(payment.status)}`}>
+                    <span
+                      className={`px-3 py-1 rounded-full text-label-sm font-medium ${getStatusColor(payment.status)}`}
+                    >
                       {getStatusLabel(payment.status)}
                     </span>
                   </div>

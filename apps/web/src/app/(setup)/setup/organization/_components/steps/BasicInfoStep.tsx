@@ -10,10 +10,7 @@ type BasicInfoStepProps = {
 };
 
 // Debounce utility
-function useDebouncedCallback<T extends (...args: any[]) => any>(
-  callback: T,
-  delay: number
-): T {
+function useDebouncedCallback<T extends (...args: any[]) => any>(callback: T, delay: number): T {
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
 
   return useCallback(
@@ -24,7 +21,7 @@ function useDebouncedCallback<T extends (...args: any[]) => any>(
       const newTimeoutId = setTimeout(() => callback(...args), delay);
       setTimeoutId(newTimeoutId);
     }) as T,
-    [callback, delay, timeoutId]
+    [callback, delay, timeoutId],
   );
 }
 
@@ -87,9 +84,7 @@ export function BasicInfoStep({ data, onUpdate }: BasicInfoStepProps) {
     <div className="p-8 space-y-6">
       <div>
         <h2 className="text-title-lg font-medium mb-2">פרטי העמותה</h2>
-        <p className="text-body-sm text-on-surface-variant">
-          מלא את הפרטים הבסיסיים של העמותה שלך
-        </p>
+        <p className="text-body-sm text-on-surface-variant">מלא את הפרטים הבסיסיים של העמותה שלך</p>
       </div>
 
       {/* Name */}
@@ -123,9 +118,7 @@ export function BasicInfoStep({ data, onUpdate }: BasicInfoStepProps) {
             dir="ltr"
           />
           <div className="absolute start-3 top-1/2 -translate-y-1/2">
-            {isCheckingSlug && (
-              <Loader2 className="h-5 w-5 text-on-surface-variant animate-spin" />
-            )}
+            {isCheckingSlug && <Loader2 className="h-5 w-5 text-on-surface-variant animate-spin" />}
             {!isCheckingSlug && slugAvailable === true && (
               <CheckCircle className="h-5 w-5 text-success" />
             )}
@@ -138,9 +131,7 @@ export function BasicInfoStep({ data, onUpdate }: BasicInfoStepProps) {
           הכתובת תהיה: amutot.app/{slug || 'slug'}
         </p>
         {slugAvailable === false && (
-          <p className="text-body-sm text-error">
-            הכתובת תפוסה - אנא בחר כתובת אחרת
-          </p>
+          <p className="text-body-sm text-error">הכתובת תפוסה - אנא בחר כתובת אחרת</p>
         )}
       </div>
 

@@ -32,7 +32,7 @@ export function useGroups() {
   const list = useQuery({
     queryKey: ['groups'],
     queryFn: async () => {
-      const response = await api.get<{ data: Group[] }>(API_ROUTES.GROUPS.LIST);
+      const response = await api.get<{ data: Group[]; meta: { total: number; page: number; limit: number } }>(API_ROUTES.GROUPS.LIST);
       return response.data.data;
     },
   });
@@ -41,9 +41,7 @@ export function useGroups() {
     useQuery({
       queryKey: ['group', id],
       queryFn: async () => {
-        const response = await api.get<{ data: GroupDetail }>(
-          API_ROUTES.GROUPS.GET(id)
-        );
+        const response = await api.get<{ data: GroupDetail }>(API_ROUTES.GROUPS.GET(id));
         return response.data.data;
       },
       enabled: !!id,
@@ -51,10 +49,7 @@ export function useGroups() {
 
   const create = useMutation({
     mutationFn: async (group: Omit<Group, 'id' | 'createdAt' | 'updatedAt'>) => {
-      const response = await api.post<{ data: Group }>(
-        API_ROUTES.GROUPS.CREATE,
-        group
-      );
+      const response = await api.post<{ data: Group }>(API_ROUTES.GROUPS.CREATE, group);
       return response.data.data;
     },
     onSuccess: () => {
@@ -63,17 +58,8 @@ export function useGroups() {
   });
 
   const update = useMutation({
-    mutationFn: async ({
-      id,
-      data,
-    }: {
-      id: string;
-      data: Partial<Group>;
-    }) => {
-      const response = await api.patch<{ data: Group }>(
-        API_ROUTES.GROUPS.UPDATE(id),
-        data
-      );
+    mutationFn: async ({ id, data }: { id: string; data: Partial<Group> }) => {
+      const response = await api.patch<{ data: Group }>(API_ROUTES.GROUPS.UPDATE(id), data);
       return response.data.data;
     },
     onSuccess: (data) => {

@@ -57,13 +57,15 @@ export class GroupsService {
   ): Promise<{ data: GroupResponseDto[]; meta: { total: number; page: number; limit: number } }> {
     this.logger.log(`Finding groups for organization ${organizationId}, page ${page}`);
 
-    const skip = (page - 1) * limit;
+    const safePage = Number(page) || 1;
+    const safeLimit = Number(limit) || 10;
+    const skip = (safePage - 1) * safeLimit;
 
     const [groups, total] = await Promise.all([
       this.prisma.group.findMany({
         where: { organizationId, deletedAt: null },
         skip,
-        take: Number(limit),
+        take: safeLimit,
         orderBy: { createdAt: 'desc' },
         include: {
           _count: { select: { memberships: true, families: true } },
@@ -74,7 +76,7 @@ export class GroupsService {
 
     return {
       data: groups.map((group) => this.mapToDto(group)),
-      meta: { total, page: Number(page), limit: Number(limit) },
+      meta: { total, page: safePage, limit: safeLimit },
     };
   }
 

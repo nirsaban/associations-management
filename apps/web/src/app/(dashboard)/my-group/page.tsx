@@ -8,26 +8,36 @@ import api from '@/lib/api';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 
-interface MyGroupData {
+interface GroupSummary {
   groupId: string;
   groupName: string;
-  managerName: string;
-  membershipStatus: 'active' | 'pending' | 'inactive';
-  joinedAt: string;
-  memberCount: number;
+  managerName?: string;
+  membershipStatus: 'ACTIVE' | 'PENDING' | 'INACTIVE' | 'active' | 'pending' | 'inactive';
+  joinedAt?: string;
+  memberCount?: number;
+}
+
+interface HomepageContext {
+  group?: GroupSummary;
 }
 
 export default function MyGroupPage() {
   const { user } = useAuthStore();
 
-  const { data: groupData, isLoading, error } = useQuery({
-    queryKey: ['my-group', user?.id],
+  const {
+    data: context,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['homepage-context-group', user?.id],
     queryFn: async () => {
-      const response = await api.get<{ data: MyGroupData }>('/users/me/group');
+      const response = await api.get<{ data: HomepageContext }>('/homepage/context');
       return response.data.data;
     },
     enabled: !!user,
   });
+
+  const groupData = context?.group;
 
   if (isLoading) {
     return (
@@ -69,6 +79,8 @@ export default function MyGroupPage() {
     );
   }
 
+  const rawStatus = groupData.membershipStatus?.toLowerCase();
+
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'active':
@@ -100,9 +112,7 @@ export default function MyGroupPage() {
       {/* Header */}
       <div>
         <h1 className="text-headline-lg font-headline mb-2">הקבוצה שלי</h1>
-        <p className="text-body-md text-on-surface-variant">
-          פרטי חברות בקבוצה
-        </p>
+        <p className="text-body-md text-on-surface-variant">פרטי חברות בקבוצה</p>
       </div>
 
       {/* Group Information */}
@@ -114,8 +124,10 @@ export default function MyGroupPage() {
           <div className="flex-1">
             <h2 className="text-headline-md font-headline mb-1">{groupData.groupName}</h2>
             <div className="flex items-center gap-2">
-              <span className={`px-3 py-1 rounded-full text-label-sm font-medium ${getStatusColor(groupData.membershipStatus)}`}>
-                {getStatusLabel(groupData.membershipStatus)}
+              <span
+                className={`px-3 py-1 rounded-full text-label-sm font-medium ${getStatusColor(rawStatus)}`}
+              >
+                {getStatusLabel(rawStatus)}
               </span>
             </div>
           </div>
@@ -123,30 +135,36 @@ export default function MyGroupPage() {
 
         <div className="space-y-4">
           {/* Manager */}
-          <div className="p-4 rounded-lg bg-surface-container">
-            <p className="text-label-sm text-on-surface-variant mb-1 flex items-center gap-2">
-              <User className="h-4 w-4" />
-              מנהל הקבוצה
-            </p>
-            <p className="text-body-lg font-medium">{groupData.managerName}</p>
-          </div>
+          {groupData.managerName && (
+            <div className="p-4 rounded-lg bg-surface-container">
+              <p className="text-label-sm text-on-surface-variant mb-1 flex items-center gap-2">
+                <User className="h-4 w-4" />
+                מנהל הקבוצה
+              </p>
+              <p className="text-body-lg font-medium">{groupData.managerName}</p>
+            </div>
+          )}
 
           {/* Member Count */}
-          <div className="p-4 rounded-lg bg-surface-container">
-            <p className="text-label-sm text-on-surface-variant mb-1 flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              מספר חברים
-            </p>
-            <p className="text-body-lg font-medium">{groupData.memberCount} חברים</p>
-          </div>
+          {groupData.memberCount !== undefined && (
+            <div className="p-4 rounded-lg bg-surface-container">
+              <p className="text-label-sm text-on-surface-variant mb-1 flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                מספר חברים
+              </p>
+              <p className="text-body-lg font-medium">{groupData.memberCount} חברים</p>
+            </div>
+          )}
 
           {/* Join Date */}
-          <div className="p-4 rounded-lg bg-surface-container">
-            <p className="text-label-sm text-on-surface-variant mb-1">תאריך הצטרפות</p>
-            <p className="text-body-lg font-medium">
-              {format(new Date(groupData.joinedAt), 'd MMMM yyyy', { locale: he })}
-            </p>
-          </div>
+          {groupData.joinedAt && (
+            <div className="p-4 rounded-lg bg-surface-container">
+              <p className="text-label-sm text-on-surface-variant mb-1">תאריך הצטרפות</p>
+              <p className="text-body-lg font-medium">
+                {format(new Date(groupData.joinedAt), 'd MMMM yyyy', { locale: he })}
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -155,12 +173,10 @@ export default function MyGroupPage() {
         <div className="flex gap-3">
           <Info className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-body-md font-medium text-primary mb-1">
-              מידע על הקבוצה
-            </p>
+            <p className="text-body-md font-medium text-primary mb-1">מידע על הקבוצה</p>
             <p className="text-body-sm text-on-surface-variant">
-              הקבוצה מאפשרת ניהול משותף של משפחות ותפקידים שבועיים.
-              לפרטים נוספים ניתן לפנות למנהל הקבוצה.
+              הקבוצה מאפשרת ניהול משותף של משפחות ותפקידים שבועיים. לפרטים נוספים ניתן לפנות למנהל
+              הקבוצה.
             </p>
           </div>
         </div>

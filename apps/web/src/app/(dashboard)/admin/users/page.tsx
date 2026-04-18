@@ -17,10 +17,12 @@ interface AdminUser {
 }
 
 interface UsersResponse {
-  users: AdminUser[];
-  total: number;
-  page: number;
-  pageSize: number;
+  data: AdminUser[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+  };
 }
 
 interface CreateUserForm {
@@ -53,17 +55,26 @@ export default function AdminUsersPage() {
   const [deletingUser, setDeletingUser] = useState<AdminUser | null>(null);
 
   const [createForm, setCreateForm] = useState<CreateUserForm>({ fullName: '', phone: '' });
-  const [editForm, setEditForm] = useState<EditUserForm>({ fullName: '', email: '', isActive: true });
+  const [editForm, setEditForm] = useState<EditUserForm>({
+    fullName: '',
+    email: '',
+    isActive: true,
+  });
   const [createError, setCreateError] = useState('');
   const [editError, setEditError] = useState('');
 
-  const { data: response, isLoading, error } = useQuery({
+  const {
+    data: response,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['admin', 'users', page, searchTerm],
     queryFn: async () => {
       const res = await api.get<{ data: UsersResponse }>('/admin/users', {
-        params: { page, pageSize, search: searchTerm || undefined },
+        params: { page, limit: pageSize, search: searchTerm || undefined },
       });
-      return res.data.data;
+      const body = res.data as unknown as { data: AdminUser[]; meta?: { total?: number } };
+      return { users: body.data, total: body.meta?.total ?? 0 };
     },
     enabled: user?.systemRole === 'ADMIN',
   });
@@ -153,7 +164,10 @@ export default function AdminUsersPage() {
           </p>
         </div>
         <button
-          onClick={() => { setShowCreateModal(true); setCreateError(''); }}
+          onClick={() => {
+            setShowCreateModal(true);
+            setCreateError('');
+          }}
           className="btn-primary flex items-center gap-2"
         >
           <Plus className="h-5 w-5" />
@@ -168,7 +182,10 @@ export default function AdminUsersPage() {
           type="text"
           placeholder="חפש לפי שם או טלפון..."
           value={searchTerm}
-          onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setPage(1);
+          }}
           className="w-full rounded-lg border border-outline bg-surface-container-low ps-12 pe-4 py-3 text-body-md transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
         />
       </div>
@@ -213,9 +230,7 @@ export default function AdminUsersPage() {
                 ) : (
                   users.map((u) => (
                     <tr key={u.id} className="hover:bg-surface-container/50">
-                      <td className="px-6 py-4 text-body-md font-medium">
-                        {u.fullName || '—'}
-                      </td>
+                      <td className="px-6 py-4 text-body-md font-medium">{u.fullName || '—'}</td>
                       <td className="px-6 py-4 text-body-md" dir="ltr">
                         {u.phone}
                       </td>
@@ -293,7 +308,10 @@ export default function AdminUsersPage() {
           <div className="bg-surface rounded-lg max-w-md w-full shadow-xl">
             <div className="flex items-center justify-between p-6 border-b border-outline/20">
               <h2 className="text-headline-sm font-headline">הוסף משתמש חדש</h2>
-              <button onClick={() => setShowCreateModal(false)} className="p-2 hover:bg-surface-container rounded-md">
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="p-2 hover:bg-surface-container rounded-md"
+              >
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -308,7 +326,7 @@ export default function AdminUsersPage() {
                 <input
                   type="text"
                   value={createForm.fullName}
-                  onChange={(e) => setCreateForm(f => ({ ...f, fullName: e.target.value }))}
+                  onChange={(e) => setCreateForm((f) => ({ ...f, fullName: e.target.value }))}
                   placeholder="שם המשתמש"
                   className="w-full px-4 py-3 rounded-lg border border-outline bg-surface-container focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
@@ -318,7 +336,7 @@ export default function AdminUsersPage() {
                 <input
                   type="tel"
                   value={createForm.phone}
-                  onChange={(e) => setCreateForm(f => ({ ...f, phone: e.target.value }))}
+                  onChange={(e) => setCreateForm((f) => ({ ...f, phone: e.target.value }))}
                   placeholder="05XXXXXXXX"
                   dir="ltr"
                   className="w-full px-4 py-3 rounded-lg border border-outline bg-surface-container focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
@@ -329,7 +347,7 @@ export default function AdminUsersPage() {
                 <input
                   type="email"
                   value={createForm.email ?? ''}
-                  onChange={(e) => setCreateForm(f => ({ ...f, email: e.target.value }))}
+                  onChange={(e) => setCreateForm((f) => ({ ...f, email: e.target.value }))}
                   placeholder="user@example.com"
                   dir="ltr"
                   className="w-full px-4 py-3 rounded-lg border border-outline bg-surface-container focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
@@ -342,8 +360,14 @@ export default function AdminUsersPage() {
               </button>
               <button
                 onClick={() => {
-                  if (!createForm.fullName.trim()) { setCreateError('שם מלא הוא שדה חובה'); return; }
-                  if (!createForm.phone.trim()) { setCreateError('טלפון הוא שדה חובה'); return; }
+                  if (!createForm.fullName.trim()) {
+                    setCreateError('שם מלא הוא שדה חובה');
+                    return;
+                  }
+                  if (!createForm.phone.trim()) {
+                    setCreateError('טלפון הוא שדה חובה');
+                    return;
+                  }
                   createMutation.mutate(createForm);
                 }}
                 disabled={createMutation.isPending}
@@ -362,7 +386,10 @@ export default function AdminUsersPage() {
           <div className="bg-surface rounded-lg max-w-md w-full shadow-xl">
             <div className="flex items-center justify-between p-6 border-b border-outline/20">
               <h2 className="text-headline-sm font-headline">עריכת משתמש</h2>
-              <button onClick={() => setEditingUser(null)} className="p-2 hover:bg-surface-container rounded-md">
+              <button
+                onClick={() => setEditingUser(null)}
+                className="p-2 hover:bg-surface-container rounded-md"
+              >
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -377,7 +404,7 @@ export default function AdminUsersPage() {
                 <input
                   type="text"
                   value={editForm.fullName}
-                  onChange={(e) => setEditForm(f => ({ ...f, fullName: e.target.value }))}
+                  onChange={(e) => setEditForm((f) => ({ ...f, fullName: e.target.value }))}
                   className="w-full px-4 py-3 rounded-lg border border-outline bg-surface-container focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
               </div>
@@ -386,7 +413,7 @@ export default function AdminUsersPage() {
                 <input
                   type="email"
                   value={editForm.email}
-                  onChange={(e) => setEditForm(f => ({ ...f, email: e.target.value }))}
+                  onChange={(e) => setEditForm((f) => ({ ...f, email: e.target.value }))}
                   dir="ltr"
                   className="w-full px-4 py-3 rounded-lg border border-outline bg-surface-container focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
@@ -396,7 +423,7 @@ export default function AdminUsersPage() {
                   <input
                     type="checkbox"
                     checked={editForm.isActive}
-                    onChange={(e) => setEditForm(f => ({ ...f, isActive: e.target.checked }))}
+                    onChange={(e) => setEditForm((f) => ({ ...f, isActive: e.target.checked }))}
                     className="h-5 w-5 rounded border-outline text-primary"
                   />
                   <span className="text-label-md font-medium">משתמש פעיל</span>
@@ -425,8 +452,8 @@ export default function AdminUsersPage() {
           <div className="bg-surface rounded-lg max-w-sm w-full shadow-xl p-6">
             <h2 className="text-headline-sm font-headline mb-4">מחיקת משתמש</h2>
             <p className="text-body-md text-on-surface-variant mb-6">
-              האם אתה בטוח שברצונך למחוק את {deletingUser.fullName || deletingUser.phone}?
-              פעולה זו אינה ניתנת לביטול.
+              האם אתה בטוח שברצונך למחוק את {deletingUser.fullName || deletingUser.phone}? פעולה זו
+              אינה ניתנת לביטול.
             </p>
             <div className="flex gap-3">
               <button onClick={() => setDeletingUser(null)} className="btn-outline flex-1">

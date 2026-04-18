@@ -39,9 +39,7 @@ export default function GroupsPage() {
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-headline-md font-headline mb-2">קבוצות</h1>
-          <p className="text-body-md text-on-surface-variant">
-            ניהול קבוצות וחברים
-          </p>
+          <p className="text-body-md text-on-surface-variant">ניהול קבוצות וחברים</p>
         </div>
         {user?.systemRole === 'ADMIN' && (
           <button className="btn-primary flex items-center gap-2">
@@ -55,16 +53,14 @@ export default function GroupsPage() {
         <div className="card text-center py-12">
           <Users className="h-12 w-12 mx-auto text-on-surface-variant/30 mb-4" />
           <h3 className="text-title-md font-medium mb-2">אין קבוצות</h3>
-          <p className="text-body-sm text-on-surface-variant">
-            התחל ביצירת קבוצה חדשה
-          </p>
+          <p className="text-body-sm text-on-surface-variant">התחל ביצירת קבוצה חדשה</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {groups.map((group) => (
             <Link
               key={group.id}
-              href={`/dashboard/groups/${group.id}`}
+              href={`/groups/${group.id}`}
               className="card hover:shadow-lg transition-shadow cursor-pointer"
             >
               <h3 className="text-title-md font-medium mb-3">{group.name}</h3>

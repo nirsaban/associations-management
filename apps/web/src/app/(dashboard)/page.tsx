@@ -3,21 +3,43 @@
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth.store';
+import { useQuery } from '@tanstack/react-query';
+import api from '@/lib/api';
 import { AdminDashboard } from './_components/AdminDashboard';
 import { UserDashboard } from './_components/UserDashboard';
+
+interface HomepageContext {
+  setup?: {
+    needsSetup: boolean;
+  };
+}
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
   const router = useRouter();
 
+  // SUPER_ADMIN redirect handled before any API call
   useEffect(() => {
-    if (!user) return;
-
-    // SUPER_ADMIN must be redirected to platform area
-    if (user.platformRole === 'SUPER_ADMIN') {
+    if (user?.platformRole === 'SUPER_ADMIN') {
       router.replace('/platform-secret/admins');
     }
   }, [user, router]);
+
+  const { data: context } = useQuery({
+    queryKey: ['homepage-context-setup', user?.id],
+    queryFn: async () => {
+      const res = await api.get<{ data: HomepageContext }>('/homepage/context');
+      return res.data.data;
+    },
+    enabled: !!user && user.platformRole !== 'SUPER_ADMIN',
+  });
+
+  // Redirect to setup wizard if org setup is incomplete
+  useEffect(() => {
+    if (context?.setup?.needsSetup) {
+      router.replace('/setup/organization');
+    }
+  }, [context, router]);
 
   if (!user) {
     return (
@@ -44,6 +66,5 @@ export default function DashboardPage() {
   }
 
   // All others (USER, GROUP_MANAGER, WEEKLY_DISTRIBUTOR) get user dashboard
-  // The user dashboard reads homepage context which includes manager/distributor data
   return <UserDashboard />;
 }

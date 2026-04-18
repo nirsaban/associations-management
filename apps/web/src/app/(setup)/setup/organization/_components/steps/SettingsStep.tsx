@@ -39,9 +39,7 @@ export function SettingsStep({ data, onUpdate }: SettingsStepProps) {
           className="w-full rounded-lg border border-border bg-surface-container-low px-4 py-3 text-body-md transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           placeholder="150"
         />
-        <p className="text-body-sm text-on-surface-variant">
-          הסכום החודשי הסטנדרטי שמשפחות ישלמו
-        </p>
+        <p className="text-body-sm text-on-surface-variant">הסכום החודשי הסטנדרטי שמשפחות ישלמו</p>
       </div>
 
       {/* Payment Instructions */}

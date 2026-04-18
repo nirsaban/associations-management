@@ -170,13 +170,15 @@ export class PaymentsService {
   ): Promise<{ data: PaymentResponseDto[]; meta: { total: number; page: number; limit: number } }> {
     this.logger.log(`Getting payment history for user ${userId}`);
 
-    const skip = (page - 1) * limit;
+    const safePage = Number(page) || 1;
+    const safeLimit = Number(limit) || 10;
+    const skip = (safePage - 1) * safeLimit;
 
     const [payments, total] = await Promise.all([
       this.prisma.payment.findMany({
         where: { organizationId, userId },
         skip,
-        take: Number(limit),
+        take: safeLimit,
         orderBy: { monthKey: 'desc' },
       }),
       this.prisma.payment.count({ where: { organizationId, userId } }),

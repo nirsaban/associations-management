@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '@/store/auth.store';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3003/api/v1';
 
 const api: AxiosInstance = axios.create({
   baseURL: API_URL,
@@ -21,7 +21,7 @@ api.interceptors.request.use(
   },
   (error: AxiosError) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Response interceptor to handle token refresh
@@ -42,8 +42,7 @@ api.interceptors.response.use(
             refreshToken,
           });
 
-          const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
-            response.data.data;
+          const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data.data;
 
           useAuthStore.getState().setTokens(newAccessToken, newRefreshToken);
 
@@ -61,13 +60,15 @@ api.interceptors.response.use(
         if (typeof document !== 'undefined') {
           document.cookie = 'auth_token=; path=/; max-age=0; SameSite=Strict';
         }
-        window.location.href = '/login';
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
         return Promise.reject(refreshError);
       }
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;

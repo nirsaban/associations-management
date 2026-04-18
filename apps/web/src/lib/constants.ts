@@ -12,26 +12,26 @@ export const API_ROUTES = {
     LOGO: '/organization/me/logo',
   },
   USERS: {
-    LIST: '/users',
-    GET: (id: string) => `/users/${id}`,
-    UPDATE: (id: string) => `/users/${id}`,
-    DELETE: (id: string) => `/users/${id}`,
-    ME: '/users/me',
+    LIST: '/admin/users',
+    GET: (id: string) => `/admin/users/${id}`,
+    UPDATE: (id: string) => `/admin/users/${id}`,
+    DELETE: (id: string) => `/admin/users/${id}`,
+    ME: '/auth/me',
   },
   GROUPS: {
-    LIST: '/groups',
-    GET: (id: string) => `/groups/${id}`,
-    CREATE: '/groups',
-    UPDATE: (id: string) => `/groups/${id}`,
-    DELETE: (id: string) => `/groups/${id}`,
-    MEMBERS: (id: string) => `/groups/${id}/members`,
+    LIST: '/admin/groups',
+    GET: (id: string) => `/admin/groups/${id}`,
+    CREATE: '/admin/groups',
+    UPDATE: (id: string) => `/admin/groups/${id}`,
+    DELETE: (id: string) => `/admin/groups/${id}`,
+    MEMBERS: (id: string) => `/admin/groups/${id}/members`,
   },
   FAMILIES: {
-    LIST: '/families',
-    GET: (id: string) => `/families/${id}`,
-    CREATE: '/families',
-    UPDATE: (id: string) => `/families/${id}`,
-    DELETE: (id: string) => `/families/${id}`,
+    LIST: '/admin/families',
+    GET: (id: string) => `/admin/families/${id}`,
+    CREATE: '/admin/families',
+    UPDATE: (id: string) => `/admin/families/${id}`,
+    DELETE: (id: string) => `/admin/families/${id}`,
   },
   DONATIONS: {
     LIST: '/donations',
@@ -46,10 +46,10 @@ export const API_ROUTES = {
     ASSIGN_DISTRIBUTOR: (id: string) => `/weekly/${id}/assign-distributor`,
   },
   PAYMENTS: {
-    LIST: '/payments',
-    GET: (id: string) => `/payments/${id}`,
-    PAY: (id: string) => `/payments/${id}/pay`,
+    ME: '/payments/me',
+    STATUS: '/payments/me/status',
     HISTORY: '/payments/history',
+    UNPAID: (monthKey: string) => `/payments/unpaid/${monthKey}`,
   },
   DASHBOARD: {
     ADMIN: '/dashboard/admin',
@@ -83,21 +83,13 @@ export const MONTH_NAMES = [
 ];
 
 // Week Day Names in Hebrew
-export const DAY_NAMES = [
-  'ראשון',
-  'שני',
-  'שלישי',
-  'רביעי',
-  'חמישי',
-  'שישי',
-  'שבת',
-];
+export const DAY_NAMES = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
 
 // Payment Status Labels
 export const PAYMENT_STATUS_LABELS: Record<string, string> = {
   pending: 'ממתין לתשלום',
   paid: 'שולם',
-  overdue: '逾期',
+  overdue: 'באיחור',
   cancelled: 'בוטל',
 };
 

@@ -10,25 +10,14 @@ interface PushNotificationToggleProps {
  * Toggle component for enabling/disabling push notifications
  * Shows appropriate UI based on browser support and permission status
  */
-export function PushNotificationToggle({
-  className = '',
-}: PushNotificationToggleProps) {
-  const {
-    isSupported,
-    permission,
-    isSubscribed,
-    isLoading,
-    error,
-    subscribe,
-    unsubscribe,
-  } = usePushNotifications();
+export function PushNotificationToggle({ className = '' }: PushNotificationToggleProps) {
+  const { isSupported, permission, isSubscribed, isLoading, error, subscribe, unsubscribe } =
+    usePushNotifications();
 
   // Browser doesn't support push notifications
   if (!isSupported) {
     return (
-      <div className={`text-sm text-gray-500 ${className}`}>
-        הדפדפן שלך אינו תומך בהתראות דחיפה
-      </div>
+      <div className={`text-sm text-gray-500 ${className}`}>הדפדפן שלך אינו תומך בהתראות דחיפה</div>
     );
   }
 
@@ -36,12 +25,8 @@ export function PushNotificationToggle({
   if (permission === 'denied') {
     return (
       <div className={`space-y-2 ${className}`}>
-        <div className="text-sm text-red-600">
-          הרשאת התראות נחסמה
-        </div>
-        <div className="text-xs text-gray-600">
-          כדי לקבל התראות, יש לאפשר הרשאות בהגדרות הדפדפן
-        </div>
+        <div className="text-sm text-red-600">הרשאת התראות נחסמה</div>
+        <div className="text-xs text-gray-600">כדי לקבל התראות, יש לאפשר הרשאות בהגדרות הדפדפן</div>
       </div>
     );
   }
@@ -58,12 +43,8 @@ export function PushNotificationToggle({
     <div className={`space-y-2 ${className}`}>
       <div className="flex items-center justify-between">
         <div className="flex-1">
-          <div className="text-sm font-medium text-gray-900">
-            התראות דחיפה
-          </div>
-          <div className="text-xs text-gray-600">
-            קבל התראות על עדכונים חשובים
-          </div>
+          <div className="text-sm font-medium text-gray-900">התראות דחיפה</div>
+          <div className="text-xs text-gray-600">קבל התראות על עדכונים חשובים</div>
         </div>
         <button
           onClick={handleToggle}
@@ -88,24 +69,14 @@ export function PushNotificationToggle({
       </div>
 
       {/* Loading state */}
-      {isLoading && (
-        <div className="text-xs text-gray-500">
-          מעדכן...
-        </div>
-      )}
+      {isLoading && <div className="text-xs text-gray-500">מעדכן...</div>}
 
       {/* Error state */}
-      {error && (
-        <div className="text-xs text-red-600">
-          שגיאה: {error.message}
-        </div>
-      )}
+      {error && <div className="text-xs text-red-600">שגיאה: {error.message}</div>}
 
       {/* Success state */}
       {!isLoading && !error && isSubscribed && (
-        <div className="text-xs text-green-600">
-          התראות מופעלות
-        </div>
+        <div className="text-xs text-green-600">התראות מופעלות</div>
       )}
     </div>
   );

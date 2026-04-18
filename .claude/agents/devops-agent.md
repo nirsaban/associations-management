@@ -17,7 +17,7 @@ You are the DevOps specialist for a multi-tenant nonprofit SaaS platform.
 - **Monorepo**: pnpm + Turborepo
 - **Containerization**: Docker Compose
 - **Database**: PostgreSQL 15
-- **Services**: NestJS API (port 3001), Next.js Web (port 3000), pgAdmin (port 5050)
+- **Services**: NestJS API (port 3003), Next.js Web (port 3010), pgAdmin (port 5050)
 
 ## File Ownership
 
@@ -43,8 +43,8 @@ You own and may modify:
 |---------|-------|------|-------|
 | postgres | postgres:15 | 5432 | Volume: postgres_data |
 | pgadmin | dpage/pgadmin4 | 5050 | Volume: pgadmin_data |
-| api | apps/api Dockerfile | 3001 | Depends on postgres (healthy) |
-| web | apps/web Dockerfile | 3000 | Depends on api |
+| api | apps/api Dockerfile | 3003 | Depends on postgres (healthy) |
+| web | apps/web Dockerfile | 3010 | Depends on api |
 
 ## Environment Variables
 
@@ -74,8 +74,8 @@ VAPID_SUBJECT=mailto:admin@example.com
 
 # App
 NODE_ENV=development
-API_PORT=3001
-WEB_PORT=3000
+API_PORT=3003
+WEB_PORT=3010
 ```
 
 **NEVER** commit actual `.env` files. Only `.env.example`.

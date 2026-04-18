@@ -87,9 +87,7 @@ export function OtpVerification({
         <label htmlFor="otp" className="block text-title-md font-medium">
           קוד אימות
         </label>
-        <p className="text-body-sm text-on-surface-variant">
-          קוד בן 6 ספרות נשלח ל-{phone}
-        </p>
+        <p className="text-body-sm text-on-surface-variant">קוד בן 6 ספרות נשלח ל-{phone}</p>
         <input
           id="otp"
           type="text"
@@ -99,9 +97,7 @@ export function OtpVerification({
           {...register('otp')}
           className="w-full rounded-lg border border-border bg-surface-container-low px-4 py-3 text-center text-2xl font-mono transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 tracking-widest"
         />
-        {errors.otp && (
-          <p className="text-body-sm text-error">{errors.otp.message}</p>
-        )}
+        {errors.otp && <p className="text-body-sm text-error">{errors.otp.message}</p>}
       </div>
 
       <div className="flex justify-between items-center text-body-sm">
@@ -124,11 +120,7 @@ export function OtpVerification({
         {isLoading ? 'אימות...' : 'אימות'}
       </button>
 
-      <button
-        type="button"
-        onClick={onBack}
-        className="btn-ghost w-full py-3 text-title-md"
-      >
+      <button type="button" onClick={onBack} className="btn-ghost w-full py-3 text-title-md">
         חזור לשלב קודם
       </button>
     </form>

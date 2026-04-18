@@ -23,12 +23,8 @@ export function CompletionStep({ organizationName, onStartUsing }: CompletionSte
 
       {/* Success Message */}
       <div className="space-y-3">
-        <h2 className="text-headline-md font-headline">
-          ברוך הבא, {organizationName}!
-        </h2>
-        <p className="text-body-lg text-on-surface-variant">
-          ההקמה הושלמה בהצלחה
-        </p>
+        <h2 className="text-headline-md font-headline">ברוך הבא, {organizationName}!</h2>
+        <p className="text-body-lg text-on-surface-variant">ההקמה הושלמה בהצלחה</p>
       </div>
 
       {/* Features List */}
@@ -58,10 +54,7 @@ export function CompletionStep({ organizationName, onStartUsing }: CompletionSte
       </div>
 
       {/* CTA Button */}
-      <button
-        onClick={onStartUsing}
-        className="btn-primary text-title-md px-8 py-4"
-      >
+      <button onClick={onStartUsing} className="btn-primary text-title-md px-8 py-4">
         התחל להשתמש במערכת
       </button>
 

@@ -39,10 +39,7 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
 
   return (
     <div className="p-8">
-      <Link
-        href="/dashboard/groups"
-        className="flex items-center gap-2 text-primary hover:underline mb-6"
-      >
+      <Link href="/groups" className="flex items-center gap-2 text-primary hover:underline mb-6">
         <ArrowRight className="h-4 w-4" />
         חזרה לקבוצות
       </Link>
@@ -51,17 +48,13 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
       <div className="card-elevated mb-8">
         <h1 className="text-headline-md font-headline mb-2">{group.name}</h1>
         {group.description && (
-          <p className="text-body-md text-on-surface-variant mb-6">
-            {group.description}
-          </p>
+          <p className="text-body-md text-on-surface-variant mb-6">{group.description}</p>
         )}
 
         <div className="grid grid-cols-3 gap-4 pt-6 border-t border-border">
           <div>
             <p className="text-label-sm text-on-surface-variant mb-1">סה"כ חברים</p>
-            <p className="text-headline-sm font-bold text-primary">
-              {group.memberCount}
-            </p>
+            <p className="text-headline-sm font-bold text-primary">{group.memberCount}</p>
           </div>
           <div>
             <p className="text-label-sm text-on-surface-variant mb-1">משפחות</p>
@@ -92,17 +85,15 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
                     </div>
                     <div>
                       <p className="text-title-md font-medium">{member.name}</p>
-                      <p className="text-label-sm text-on-surface-variant">
-                        {member.phone}
-                      </p>
+                      <p className="text-label-sm text-on-surface-variant">{member.phone}</p>
                     </div>
                   </div>
                   <div className="px-3 py-1 rounded-full bg-primary-container text-on-primary-container text-label-sm font-medium">
                     {member.role === 'manager'
                       ? 'מנהל'
                       : member.role === 'distributor'
-                      ? 'מחלק'
-                      : 'חבר'}
+                        ? 'מחלק'
+                        : 'חבר'}
                   </div>
                 </div>
               </div>

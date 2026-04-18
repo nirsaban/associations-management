@@ -1,5 +1,5 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { RolesGuard } from '@common/guards/roles.guard';
 import { Roles } from '@common/decorators/roles.decorator';
@@ -20,6 +20,69 @@ import {
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
+  @Get('dashboard')
+  @ApiOperation({
+    summary: 'Get full admin dashboard',
+    description: 'קבלת כל נתוני דשבורד הניהול - סטטיסטיקות, הכנסות, קבוצות, סטטוס שבועי',
+  })
+  async getDashboard(
+    @CurrentUser() user: ICurrentUser,
+  ): Promise<{ data: Record<string, unknown> }> {
+    const [stats, revenueByMonth, weeklyStatusResult, groups] = await Promise.all([
+      this.adminService.getDashboardStats(user.organizationId),
+      this.adminService.getRevenueByMonth(user.organizationId, 2),
+      this.adminService.getWeeklyStatus(user.organizationId),
+      this.adminService.getGroupsOverview(user.organizationId),
+    ]);
+
+    const months = revenueByMonth.data;
+    const thisMonth = months.length > 0 ? months[months.length - 1].revenue : 0;
+    const lastMonth = months.length > 1 ? months[months.length - 2].revenue : 0;
+    const trend = lastMonth > 0 ? ((thisMonth - lastMonth) / lastMonth) * 100 : 0;
+
+    const weeklyData = weeklyStatusResult.data;
+    const groupsWithDistributor = weeklyData.filter((g) => g.hasDistributor).length;
+    const completedOrders = weeklyData.reduce((sum, g) => sum + g.completedOrders, 0);
+    const totalOrders = weeklyData.reduce((sum, g) => sum + g.completedOrders + g.pendingOrders, 0);
+
+    return {
+      data: {
+        stats: {
+          totalUsers: stats.totalUsers,
+          totalGroups: stats.totalGroups,
+          totalFamilies: stats.totalFamilies,
+          unpaidUsersThisMonth: stats.unpaidUsersThisMonth,
+        },
+        revenue: { thisMonth, lastMonth, trend },
+        weeklyStatus: {
+          groupsWithDistributor,
+          totalGroups: stats.totalGroups,
+          completedOrders,
+          totalOrders,
+        },
+        groupsOverview: groups,
+      },
+    };
+  }
+
+  @Get('payments')
+  @ApiOperation({
+    summary: 'Get admin payments list',
+    description: 'קבלת רשימת כל התשלומים בעמותה',
+  })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  async getPayments(
+    @CurrentUser() user: ICurrentUser,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ): Promise<{ data: { payments: Record<string, unknown>[]; total: number; page: number; pageSize: number } }> {
+    const safePage = Number(page) || 1;
+    const safeLimit = Number(limit) || 20;
+    const result = await this.adminService.getPaymentsList(user.organizationId, safePage, safeLimit);
+    return { data: result };
+  }
+
   @Get('dashboard/stats')
   @ApiOperation({
     summary: 'Get dashboard statistics',
@@ -28,7 +91,7 @@ export class AdminController {
   async getDashboardStats(
     @CurrentUser() user: ICurrentUser,
   ): Promise<{ data: AdminStatsDto }> {
-    const stats = await this.adminService.getDashboardStats(user.organizationId!);
+    const stats = await this.adminService.getDashboardStats(user.organizationId);
     return { data: stats };
   }
 
@@ -40,7 +103,7 @@ export class AdminController {
   async getMonthlyRevenue(
     @CurrentUser() user: ICurrentUser,
   ): Promise<{ data: { revenue: number } }> {
-    const result = await this.adminService.getMonthlyRevenue(user.organizationId!);
+    const result = await this.adminService.getMonthlyRevenue(user.organizationId);
     return { data: result };
   }
 
@@ -53,7 +116,7 @@ export class AdminController {
     @CurrentUser() user: ICurrentUser,
     @Query('months') months?: number,
   ): Promise<{ data: RevenueByMonthDto[] }> {
-    return this.adminService.getRevenueByMonth(user.organizationId!, months ?? 12);
+    return this.adminService.getRevenueByMonth(user.organizationId, months ?? 12);
   }
 
   @Get('unpaid-users')
@@ -65,7 +128,7 @@ export class AdminController {
     @CurrentUser() user: ICurrentUser,
     @Query('monthKey') monthKey?: string,
   ): Promise<{ data: UnpaidUserDto[] }> {
-    return this.adminService.getUnpaidUsers(user.organizationId!, monthKey);
+    return this.adminService.getUnpaidUsers(user.organizationId, monthKey);
   }
 
   @Get('weekly-status')
@@ -77,6 +140,6 @@ export class AdminController {
     @CurrentUser() user: ICurrentUser,
     @Query('weekKey') weekKey?: string,
   ): Promise<{ data: GroupWeeklyStatusDto[] }> {
-    return this.adminService.getWeeklyStatus(user.organizationId!, weekKey);
+    return this.adminService.getWeeklyStatus(user.organizationId, weekKey);
   }
 }

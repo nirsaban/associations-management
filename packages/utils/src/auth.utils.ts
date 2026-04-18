@@ -91,6 +91,7 @@ export function canCreateInGroup(
  * Check if a user can edit/update a resource
  */
 export function canEditResource(
+  userId: string,
   userSystemRole: SystemRole | undefined,
   userGroupId: string | undefined,
   userGroupRole: GroupRole | undefined,
@@ -111,7 +112,7 @@ export function canEditResource(
   }
 
   // Resource owners can edit their own resources
-  if (resourceOwnerId === userSystemRole) {
+  if (resourceOwnerId !== undefined && resourceOwnerId === userId) {
     return true;
   }
 

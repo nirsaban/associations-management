@@ -10,9 +10,7 @@ import Link from 'next/link';
 import { api } from '@/lib/api';
 
 const NAVIGATION = {
-  SUPER_ADMIN: [
-    { label: 'פלטפורמה', href: '/platform-secret/admins' },
-  ],
+  SUPER_ADMIN: [{ label: 'פלטפורמה', href: '/platform-secret/admins' }],
   ADMIN: [
     { label: 'בית', href: '/' },
     { label: 'דשבורד ניהול', href: '/admin' },
@@ -51,10 +49,23 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { sidebarOpen, toggleSidebar } = useUIStore();
   const { logout } = useAuth();
   const [isCheckingSetup, setIsCheckingSetup] = useState(true);
+  const [isHydrated, setIsHydrated] = useState(false);
   const hasRedirectedRef = useRef(false);
 
+  // Wait for Zustand to hydrate from localStorage
   useEffect(() => {
-    if (hasRedirectedRef.current) {
+    const unsub = useAuthStore.persist.onFinishHydration(() => {
+      setIsHydrated(true);
+    });
+    // If already hydrated (e.g. on client-side navigation)
+    if (useAuthStore.persist.hasHydrated()) {
+      setIsHydrated(true);
+    }
+    return () => { unsub(); };
+  }, []);
+
+  useEffect(() => {
+    if (!isHydrated || hasRedirectedRef.current) {
       return;
     }
 
@@ -100,9 +111,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     return () => {
       isMounted = false;
     };
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, isHydrated]);
 
-  if (!isAuthenticated || isCheckingSetup) {
+  if (!isHydrated || !isAuthenticated || isCheckingSetup) {
     return (
       <div className="flex h-screen items-center justify-center bg-surface">
         <div className="text-center">
@@ -131,9 +142,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       >
         <div className="sticky top-0 border-b border-outline/30 bg-surface-container-low px-6 py-6">
           <h1 className="text-headline-sm font-headline">ניהול עמותות</h1>
-          <p className="text-label-sm text-on-surface-variant mt-1">
-            {user?.name || user?.phone}
-          </p>
+          <p className="text-label-sm text-on-surface-variant mt-1">{user?.name || user?.phone}</p>
         </div>
 
         <nav className="px-4 py-6 space-y-1">
@@ -172,26 +181,17 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             onClick={toggleSidebar}
             className="md:hidden p-2 hover:bg-surface-container rounded-md transition-colors"
           >
-            {sidebarOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
-            )}
+            {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
         </header>
 
         {/* Main Area */}
-        <main className="flex-1 overflow-auto">
-          {children}
-        </main>
+        <main className="flex-1 overflow-auto">{children}</main>
       </div>
 
       {/* Mobile overlay */}
       {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-30 bg-black/50 md:hidden"
-          onClick={toggleSidebar}
-        />
+        <div className="fixed inset-0 z-30 bg-black/50 md:hidden" onClick={toggleSidebar} />
       )}
     </div>
   );

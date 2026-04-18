@@ -76,9 +76,7 @@ export default function AdminDashboardPage() {
       {/* Header */}
       <div>
         <h1 className="text-headline-lg font-headline mb-2">דשבורד ניהול</h1>
-        <p className="text-body-md text-on-surface-variant">
-          סקירת מערכת ונתונים ארגוניים
-        </p>
+        <p className="text-body-md text-on-surface-variant">סקירת מערכת ונתונים ארגוניים</p>
       </div>
 
       {/* Stats Grid */}
@@ -87,9 +85,7 @@ export default function AdminDashboardPage() {
         <div className="card-elevated">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-label-md text-on-surface-variant mb-1">
-                סה"כ משתמשים
-              </p>
+              <p className="text-label-md text-on-surface-variant mb-1">סה"כ משתמשים</p>
               <p className="text-headline-lg font-bold text-primary">
                 {data?.stats.totalUsers || 0}
               </p>
@@ -104,9 +100,7 @@ export default function AdminDashboardPage() {
         <div className="card-elevated">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-label-md text-on-surface-variant mb-1">
-                קבוצות
-              </p>
+              <p className="text-label-md text-on-surface-variant mb-1">קבוצות</p>
               <p className="text-headline-lg font-bold text-secondary">
                 {data?.stats.totalGroups || 0}
               </p>
@@ -121,9 +115,7 @@ export default function AdminDashboardPage() {
         <div className="card-elevated">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-label-md text-on-surface-variant mb-1">
-                משפחות
-              </p>
+              <p className="text-label-md text-on-surface-variant mb-1">משפחות</p>
               <p className="text-headline-lg font-bold text-tertiary">
                 {data?.stats.totalFamilies || 0}
               </p>
@@ -135,12 +127,10 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Unpaid Users */}
-        <Link href="/dashboard/admin/payments" className="card-elevated hover:shadow-lg transition-shadow">
+        <Link href="/admin/payments" className="card-elevated hover:shadow-lg transition-shadow">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-label-md text-on-surface-variant mb-1">
-                טרם שילמו החודש
-              </p>
+              <p className="text-label-md text-on-surface-variant mb-1">טרם שילמו החודש</p>
               <p className="text-headline-lg font-bold text-warning">
                 {data?.stats.unpaidUsersThisMonth || 0}
               </p>
@@ -162,11 +152,15 @@ export default function AdminDashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="p-4 rounded-lg bg-surface-container">
             <p className="text-label-sm text-on-surface-variant mb-1">החודש הנוכחי</p>
-            <p className="text-headline-md font-bold">₪{data?.revenue.thisMonth.toLocaleString() || 0}</p>
+            <p className="text-headline-md font-bold">
+              ₪{data?.revenue.thisMonth.toLocaleString() || 0}
+            </p>
           </div>
           <div className="p-4 rounded-lg bg-surface-container">
             <p className="text-label-sm text-on-surface-variant mb-1">החודש הקודם</p>
-            <p className="text-headline-md font-bold">₪{data?.revenue.lastMonth.toLocaleString() || 0}</p>
+            <p className="text-headline-md font-bold">
+              ₪{data?.revenue.lastMonth.toLocaleString() || 0}
+            </p>
           </div>
           <div className="p-4 rounded-lg bg-surface-container">
             <p className="text-label-sm text-on-surface-variant mb-1">מגמה</p>
@@ -217,14 +211,17 @@ export default function AdminDashboardPage() {
               <Users className="h-6 w-6 text-secondary" />
               סקירת קבוצות
             </h2>
-            <Link href="/dashboard/groups" className="btn-outline btn-sm">
+            <Link href="/groups" className="btn-outline btn-sm">
               צפייה בכל הקבוצות
             </Link>
           </div>
 
           <div className="space-y-3">
             {data.groupsOverview.slice(0, 5).map((group) => (
-              <div key={group.id} className="p-4 rounded-lg bg-surface-container flex items-center justify-between">
+              <div
+                key={group.id}
+                className="p-4 rounded-lg bg-surface-container flex items-center justify-between"
+              >
                 <div>
                   <p className="text-body-md font-medium">{group.name}</p>
                   <p className="text-body-sm text-on-surface-variant mt-1">
@@ -251,70 +248,40 @@ export default function AdminDashboardPage() {
       <div>
         <h2 className="text-headline-md font-headline mb-4">פעולות מהירות</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Link
-            href="/dashboard/admin/users"
-            className="card hover:shadow-lg transition-shadow"
-          >
+          <Link href="/admin/users" className="card hover:shadow-lg transition-shadow">
             <Users className="h-8 w-8 text-primary mb-3" />
             <h3 className="text-title-md font-medium mb-2">ניהול משתמשים</h3>
-            <p className="text-body-sm text-on-surface-variant">
-              צפייה ועריכת משתמשים
-            </p>
+            <p className="text-body-sm text-on-surface-variant">צפייה ועריכת משתמשים</p>
           </Link>
 
-          <Link
-            href="/dashboard/groups"
-            className="card hover:shadow-lg transition-shadow"
-          >
+          <Link href="/groups" className="card hover:shadow-lg transition-shadow">
             <Users className="h-8 w-8 text-secondary mb-3" />
             <h3 className="text-title-md font-medium mb-2">ניהול קבוצות</h3>
-            <p className="text-body-sm text-on-surface-variant">
-              קבוצות, מנהלים וחברים
-            </p>
+            <p className="text-body-sm text-on-surface-variant">קבוצות, מנהלים וחברים</p>
           </Link>
 
-          <Link
-            href="/dashboard/families"
-            className="card hover:shadow-lg transition-shadow"
-          >
+          <Link href="/families" className="card hover:shadow-lg transition-shadow">
             <Home className="h-8 w-8 text-tertiary mb-3" />
             <h3 className="text-title-md font-medium mb-2">ניהול משפחות</h3>
-            <p className="text-body-sm text-on-surface-variant">
-              הוספה ועריכת משפחות
-            </p>
+            <p className="text-body-sm text-on-surface-variant">הוספה ועריכת משפחות</p>
           </Link>
 
-          <Link
-            href="/dashboard/payments"
-            className="card hover:shadow-lg transition-shadow"
-          >
+          <Link href="/payments" className="card hover:shadow-lg transition-shadow">
             <CreditCard className="h-8 w-8 text-primary mb-3" />
             <h3 className="text-title-md font-medium mb-2">תשלומים</h3>
-            <p className="text-body-sm text-on-surface-variant">
-              ניהול תשלומים ודוחות
-            </p>
+            <p className="text-body-sm text-on-surface-variant">ניהול תשלומים ודוחות</p>
           </Link>
 
-          <Link
-            href="/dashboard/admin/csv-import"
-            className="card hover:shadow-lg transition-shadow"
-          >
+          <Link href="/admin/csv-import" className="card hover:shadow-lg transition-shadow">
             <Upload className="h-8 w-8 text-secondary mb-3" />
             <h3 className="text-title-md font-medium mb-2">ייבוא CSV</h3>
-            <p className="text-body-sm text-on-surface-variant">
-              ייבוא משתמשים, קבוצות ומשפחות
-            </p>
+            <p className="text-body-sm text-on-surface-variant">ייבוא משתמשים, קבוצות ומשפחות</p>
           </Link>
 
-          <Link
-            href="/dashboard/admin/push"
-            className="card hover:shadow-lg transition-shadow"
-          >
+          <Link href="/admin/push" className="card hover:shadow-lg transition-shadow">
             <Bell className="h-8 w-8 text-tertiary mb-3" />
             <h3 className="text-title-md font-medium mb-2">התראות</h3>
-            <p className="text-body-sm text-on-surface-variant">
-              שליחת התראות והודעות
-            </p>
+            <p className="text-body-sm text-on-surface-variant">שליחת התראות והודעות</p>
           </Link>
         </div>
       </div>

@@ -104,9 +104,7 @@ export function CreateOrganizationModal({ onClose, onSuccess }: CreateOrganizati
               className="w-full rounded-lg border border-border bg-surface-container-low px-4 py-3 text-body-md transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
               placeholder="לדוגמה: עמותת צדקה"
             />
-            {errors.name && (
-              <p className="text-body-sm text-error">{errors.name.message}</p>
-            )}
+            {errors.name && <p className="text-body-sm text-error">{errors.name.message}</p>}
           </div>
 
           {/* Slug */}
@@ -122,9 +120,7 @@ export function CreateOrganizationModal({ onClose, onSuccess }: CreateOrganizati
               placeholder="tzedaka-org"
               dir="ltr"
             />
-            {errors.slug && (
-              <p className="text-body-sm text-error">{errors.slug.message}</p>
-            )}
+            {errors.slug && <p className="text-body-sm text-error">{errors.slug.message}</p>}
             <p className="text-body-sm text-on-surface-variant">
               הכתובת תהיה: amutot.app/{watch('slug') || 'slug'}
             </p>
@@ -183,11 +179,7 @@ export function CreateOrganizationModal({ onClose, onSuccess }: CreateOrganizati
             >
               {createOrganization.isPending ? 'יוצר...' : 'צור עמותה'}
             </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="btn-ghost flex-1"
-            >
+            <button type="button" onClick={onClose} className="btn-ghost flex-1">
               ביטול
             </button>
           </div>

@@ -41,7 +41,7 @@ export default function LoginPage() {
     phoneNumber: string,
     session: string,
     requiresOrgSelection: boolean,
-    orgs?: Organization[]
+    orgs?: Organization[],
   ) => {
     setPhone(phoneNumber);
     setSessionId(session);
@@ -66,9 +66,7 @@ export default function LoginPage() {
         {/* Header */}
         <div className="mb-12 text-center">
           <h1 className="text-headline-lg font-headline mb-2">ניהול עמותות</h1>
-          <p className="text-body-md text-on-surface-variant">
-            מערכת ניהול לעמותות ישראליות
-          </p>
+          <p className="text-body-md text-on-surface-variant">מערכת ניהול לעמותות ישראליות</p>
         </div>
 
         {/* Card */}
@@ -119,7 +117,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <p className="text-center text-body-sm text-on-surface-variant mt-8">
-          © 2024 ניהול עמותות. כל הזכויות שמורות.
+          © {new Date().getFullYear()} ניהול עמותות. כל הזכויות שמורות.
         </p>
       </div>
     </div>

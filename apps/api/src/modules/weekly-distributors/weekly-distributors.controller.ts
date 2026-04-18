@@ -25,6 +25,18 @@ import { DistributorResponseDto } from './dto/distributor-response.dto';
 export class WeeklyDistributorsController {
   constructor(private readonly weeklyDistributorsService: WeeklyDistributorsService) {}
 
+  @Get('me/current')
+  @ApiOperation({
+    summary: 'Get my current delivery assignment',
+    description: 'Returns the current user\'s distributor assignment with families for delivery',
+  })
+  async getMyCurrentAssignment(
+    @CurrentUser() user: ICurrentUser,
+  ): Promise<{ data: Record<string, unknown> | null }> {
+    const data = await this.weeklyDistributorsService.getMyCurrentAssignment(user.organizationId, user.id);
+    return { data };
+  }
+
   @Post(':groupId')
   @Roles('admin', 'manager')
   @ApiOperation({
@@ -37,7 +49,7 @@ export class WeeklyDistributorsController {
     @Body() assignDistributorDto: AssignDistributorDto,
   ): Promise<{ data: DistributorResponseDto }> {
     const distributor = await this.weeklyDistributorsService.assignDistributor(
-      user.organizationId!,
+      user.organizationId,
       groupId,
       assignDistributorDto,
     );
@@ -55,7 +67,7 @@ export class WeeklyDistributorsController {
     @Query('week') week?: string,
   ): Promise<{ data: DistributorResponseDto | null }> {
     const distributor = await this.weeklyDistributorsService.getCurrentDistributor(
-      user.organizationId!,
+      user.organizationId,
       groupId,
       week,
     );
@@ -74,7 +86,7 @@ export class WeeklyDistributorsController {
     @Query('limit') limit: number = 10,
   ): Promise<object> {
     return this.weeklyDistributorsService.getDistributorsForWeek(
-      user.organizationId!,
+      user.organizationId,
       week,
       page,
       limit,
@@ -93,6 +105,6 @@ export class WeeklyDistributorsController {
     @Param('groupId') groupId: string,
     @Param('weekKey') weekKey: string,
   ): Promise<void> {
-    await this.weeklyDistributorsService.removeDistributor(user.organizationId!, groupId, weekKey);
+    await this.weeklyDistributorsService.removeDistributor(user.organizationId, groupId, weekKey);
   }
 }

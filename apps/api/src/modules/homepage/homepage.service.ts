@@ -73,6 +73,7 @@ export class HomepageService {
     const unreadCount = await this.prisma.notification.count({
       where: {
         userId,
+        organizationId: organizationId ?? undefined,
         status: { not: 'READ' },
       },
     });
@@ -83,6 +84,7 @@ export class HomepageService {
     const payment = await this.prisma.payment.findFirst({
       where: {
         userId,
+        organizationId: organizationId ?? undefined,
         monthKey: currentMonth,
         status: 'COMPLETED',
       },
@@ -91,6 +93,7 @@ export class HomepageService {
     const lastPayment = await this.prisma.payment.findFirst({
       where: {
         userId,
+        organizationId: organizationId ?? undefined,
         status: 'COMPLETED',
       },
       orderBy: {
@@ -124,6 +127,7 @@ export class HomepageService {
     const distributorAssignment = await this.prisma.weeklyDistributorAssignment.findFirst({
       where: {
         assignedUserId: userId,
+        organizationId: organizationId ?? undefined,
         weekKey: currentWeekKey,
       },
       include: {
@@ -205,14 +209,14 @@ export class HomepageService {
     if (isDistributor) {
       const deliveriesCount = await this.prisma.weeklyOrder.count({
         where: {
-          groupId: distributorAssignment!.groupId,
+          groupId: distributorAssignment.groupId,
           weekKey: currentWeekKey,
         },
       });
 
       context.distributor = {
         currentWeek: currentWeekKey,
-        assignedGroup: distributorAssignment!.group.name,
+        assignedGroup: distributorAssignment.group.name,
         deliveriesCount,
       };
       context.visibleCards.push('distributor-notice');

@@ -42,7 +42,9 @@ export function useAuth() {
   } = useAuthStore();
 
   const login = useCallback(
-    async (phone: string): Promise<{
+    async (
+      phone: string,
+    ): Promise<{
       sessionId: string;
       requiresOrgSelection: boolean;
       organizations?: Organization[];
@@ -63,7 +65,7 @@ export function useAuth() {
         setLoading(false);
       }
     },
-    [setLoading]
+    [setLoading],
   );
 
   const verifyOtp = useCallback(
@@ -71,22 +73,18 @@ export function useAuth() {
       phone: string,
       otp: string,
       sessionId: string,
-      organizationId?: string | null
+      organizationId?: string | null,
     ): Promise<void> => {
       setLoading(true);
       try {
-        const response = await api.post<VerifyOtpResponse>(
-          API_ROUTES.AUTH.VERIFY_OTP,
-          {
-            phone,
-            otp,
-            sessionId,
-            organizationId: organizationId || undefined,
-          }
-        );
+        const response = await api.post<VerifyOtpResponse>(API_ROUTES.AUTH.VERIFY_OTP, {
+          phone,
+          otp,
+          sessionId,
+          organizationId: organizationId || undefined,
+        });
 
-        const { user: userData, accessToken, refreshToken } =
-          response.data.data;
+        const { user: userData, accessToken, refreshToken } = response.data.data;
 
         setUser(userData);
         setTokens(accessToken, refreshToken);
@@ -100,7 +98,7 @@ export function useAuth() {
         setLoading(false);
       }
     },
-    [setLoading, setUser, setTokens]
+    [setLoading, setUser, setTokens],
   );
 
   const handleLogout = useCallback(async (): Promise<void> => {

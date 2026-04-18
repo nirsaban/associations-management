@@ -246,6 +246,68 @@ export class AdminService {
     return { data };
   }
 
+  async getPaymentsList(
+    organizationId: string,
+    page: number = 1,
+    limit: number = 20,
+  ) {
+    const skip = (page - 1) * limit;
+
+    const [payments, total] = await Promise.all([
+      this.prisma.payment.findMany({
+        where: { organizationId },
+        include: {
+          user: { select: { fullName: true, phone: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.payment.count({ where: { organizationId } }),
+    ]);
+
+    return {
+      payments: payments.map((p) => ({
+        id: p.id,
+        userId: p.userId,
+        userName: p.user.fullName,
+        userPhone: p.user.phone,
+        amount: Number(p.amount),
+        monthKey: p.monthKey,
+        status: p.status,
+        paymentDate: p.paymentDate?.toISOString(),
+        createdAt: p.createdAt.toISOString(),
+      })),
+      total,
+      page,
+      pageSize: limit,
+    };
+  }
+
+  async getGroupsOverview(organizationId: string) {
+    const groups = await this.prisma.group.findMany({
+      where: { organizationId, deletedAt: null },
+      include: {
+        manager: { select: { fullName: true } },
+        _count: {
+          select: {
+            memberships: true,
+            families: { where: { deletedAt: null } },
+          },
+        },
+      },
+      orderBy: { name: 'asc' },
+    });
+
+    return groups.map((g) => ({
+      id: g.id,
+      name: g.name,
+      memberCount: g._count.memberships,
+      familyCount: g._count.families,
+      managerName: g.manager?.fullName ?? null,
+    }));
+  }
+
   private getCurrentMonthKey(): string {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;

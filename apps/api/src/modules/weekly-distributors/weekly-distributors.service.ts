@@ -155,6 +155,50 @@ export class WeeklyDistributorsService {
     });
   }
 
+  async getMyCurrentAssignment(organizationId: string, userId: string) {
+    const weekKey = this.getCurrentWeekKey();
+
+    const assignment = await this.prisma.weeklyDistributorAssignment.findFirst({
+      where: { organizationId, assignedUserId: userId, weekKey },
+      include: {
+        group: { select: { name: true } },
+      },
+    });
+
+    if (!assignment) {
+      return null;
+    }
+
+    const families = await this.prisma.family.findMany({
+      where: { organizationId, groupId: assignment.groupId, deletedAt: null },
+      include: {
+        weeklyOrders: {
+          where: { weekKey },
+          select: { shoppingListJson: true },
+        },
+      },
+    });
+
+    return {
+      weekKey,
+      groupName: assignment.group.name,
+      families: families.map((f) => ({
+        id: f.id,
+        familyName: f.familyName,
+        address: f.address ?? '',
+        contactPhone: f.contactPhone ?? '',
+        contactName: f.contactName ?? '',
+        notes: f.notes ?? undefined,
+        orderSummary: f.weeklyOrders.length > 0
+          ? {
+              itemsCount: Array.isArray(f.weeklyOrders[0].shoppingListJson) ? (f.weeklyOrders[0].shoppingListJson as unknown[]).length : 0,
+              items: Array.isArray(f.weeklyOrders[0].shoppingListJson) ? (f.weeklyOrders[0].shoppingListJson as Array<{ item: string }>).map((i) => i.item) : [],
+            }
+          : undefined,
+      })),
+    };
+  }
+
   private getCurrentWeekKey(): string {
     const now = new Date();
     const startOfYear = new Date(now.getFullYear(), 0, 1);

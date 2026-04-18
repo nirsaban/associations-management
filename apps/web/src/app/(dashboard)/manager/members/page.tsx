@@ -19,10 +19,14 @@ interface GroupMember {
 export default function ManagerMembersPage() {
   const { user } = useAuthStore();
 
-  const { data: members, isLoading, error } = useQuery({
+  const {
+    data: members,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['manager-members', user?.id],
     queryFn: async () => {
-      const response = await api.get<{ data: GroupMember[] }>('/manager/members');
+      const response = await api.get<{ data: GroupMember[] }>('/manager/group/members');
       return response.data.data;
     },
     enabled: !!user,
@@ -47,17 +51,15 @@ export default function ManagerMembersPage() {
     );
   }
 
-  const paidCount = members?.filter(m => m.paymentStatus === 'paid').length || 0;
-  const unpaidCount = members?.filter(m => m.paymentStatus === 'unpaid').length || 0;
+  const paidCount = members?.filter((m) => m.paymentStatus === 'paid').length || 0;
+  const unpaidCount = members?.filter((m) => m.paymentStatus === 'unpaid').length || 0;
 
   return (
     <div className="p-8 space-y-8 max-w-6xl">
       {/* Header */}
       <div>
         <h1 className="text-headline-lg font-headline mb-2">חברי הקבוצה</h1>
-        <p className="text-body-md text-on-surface-variant">
-          רשימת חברים וסטטוס תשלומים
-        </p>
+        <p className="text-body-md text-on-surface-variant">רשימת חברים וסטטוס תשלומים</p>
       </div>
 
       {/* Important Warning */}
@@ -65,12 +67,10 @@ export default function ManagerMembersPage() {
         <div className="flex gap-3">
           <Info className="h-5 w-5 text-warning flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-body-md font-medium text-warning mb-1">
-              הצגת סטטוס בלבד
-            </p>
+            <p className="text-body-md font-medium text-warning mb-1">הצגת סטטוס בלבד</p>
             <p className="text-body-sm text-on-surface-variant">
-              כמנהל קבוצה, תוכל לראות רק את הסטטוס (שולם/לא שולם) ולא את סכומי התשלומים.
-              לפרטים מלאים ומספריים יש לפנות למנהל המערכת.
+              כמנהל קבוצה, תוכל לראות רק את הסטטוס (שולם/לא שולם) ולא את סכומי התשלומים. לפרטים
+              מלאים ומספריים יש לפנות למנהל המערכת.
             </p>
           </div>
         </div>
@@ -86,9 +86,7 @@ export default function ManagerMembersPage() {
             </div>
             <div>
               <p className="text-label-sm text-on-surface-variant">סה"כ חברים</p>
-              <p className="text-headline-lg font-bold text-primary">
-                {members?.length || 0}
-              </p>
+              <p className="text-headline-lg font-bold text-primary">{members?.length || 0}</p>
             </div>
           </div>
         </div>
@@ -130,9 +128,7 @@ export default function ManagerMembersPage() {
         {!members || members.length === 0 ? (
           <div className="text-center py-12">
             <Users className="h-16 w-16 text-on-surface-variant/30 mx-auto mb-4" />
-            <p className="text-body-lg text-on-surface-variant">
-              אין חברים בקבוצה
-            </p>
+            <p className="text-body-lg text-on-surface-variant">אין חברים בקבוצה</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -150,7 +146,10 @@ export default function ManagerMembersPage() {
                     <div className="flex-1">
                       <p className="text-body-lg font-medium">{member.fullName}</p>
                       <div className="flex items-center gap-4 mt-1">
-                        <p className="text-body-sm text-on-surface-variant flex items-center gap-1" dir="ltr">
+                        <p
+                          className="text-body-sm text-on-surface-variant flex items-center gap-1"
+                          dir="ltr"
+                        >
                           <Phone className="h-3 w-3" />
                           {member.phone}
                         </p>
@@ -185,9 +184,9 @@ export default function ManagerMembersPage() {
       {/* Footer Note */}
       <div className="card bg-surface-container">
         <p className="text-body-sm text-on-surface-variant">
-          <strong>לתשומת לבך:</strong> המידע המוצג כאן מוגבל לסטטוס תשלום בלבד.
-          אין אפשרות לצפות בסכומי תשלומים או בפרטים פיננסיים מלאים.
-          למידע נוסף או לדיווחים פיננסיים יש לפנות למנהל הארגון.
+          <strong>לתשומת לבך:</strong> המידע המוצג כאן מוגבל לסטטוס תשלום בלבד. אין אפשרות לצפות
+          בסכומי תשלומים או בפרטים פיננסיים מלאים. למידע נוסף או לדיווחים פיננסיים יש לפנות למנהל
+          הארגון.
         </p>
       </div>
     </div>

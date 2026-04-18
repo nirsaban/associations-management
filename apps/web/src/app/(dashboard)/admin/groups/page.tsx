@@ -8,12 +8,13 @@ import { AlertCircle, Plus, Users, X, Edit2, Trash2 } from 'lucide-react';
 
 interface AdminGroup {
   id: string;
+  organizationId: string;
   name: string;
-  managerUserId?: string;
-  managerName?: string;
-  memberCount: number;
-  familyCount: number;
-  isActive: boolean;
+  managerId?: string;
+  memberCount?: number;
+  familyCount?: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface OrgUser {
@@ -24,7 +25,7 @@ interface OrgUser {
 
 interface CreateGroupForm {
   name: string;
-  managerUserId?: string;
+  managerId?: string;
 }
 
 export default function AdminGroupsPage() {
@@ -39,10 +40,16 @@ export default function AdminGroupsPage() {
   const [createError, setCreateError] = useState('');
   const [editError, setEditError] = useState('');
 
-  const { data: groups, isLoading, error } = useQuery({
+  const {
+    data: groups,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['admin', 'groups'],
     queryFn: async () => {
-      const res = await api.get<{ data: AdminGroup[] }>('/admin/groups');
+      const res = await api.get<{ data: AdminGroup[]; meta: { total: number; page: number; limit: number } }>('/admin/groups', {
+        params: { limit: 200 },
+      });
       return res.data.data;
     },
     enabled: user?.systemRole === 'ADMIN',
@@ -51,10 +58,10 @@ export default function AdminGroupsPage() {
   const { data: orgUsers } = useQuery({
     queryKey: ['admin', 'users-list'],
     queryFn: async () => {
-      const res = await api.get<{ data: { users: OrgUser[] } }>('/admin/users', {
-        params: { pageSize: 200 },
+      const res = await api.get<{ data: OrgUser[]; meta: { total: number; page: number; limit: number } }>('/admin/users', {
+        params: { limit: 200 },
       });
-      return res.data.data.users;
+      return res.data.data;
     },
     enabled: user?.systemRole === 'ADMIN',
   });
@@ -104,7 +111,7 @@ export default function AdminGroupsPage() {
 
   const openEditModal = (g: AdminGroup) => {
     setEditingGroup(g);
-    setEditForm({ name: g.name, managerUserId: g.managerUserId });
+    setEditForm({ name: g.name, managerId: g.managerId });
     setEditError('');
   };
 
@@ -140,7 +147,10 @@ export default function AdminGroupsPage() {
           </p>
         </div>
         <button
-          onClick={() => { setShowCreateModal(true); setCreateError(''); }}
+          onClick={() => {
+            setShowCreateModal(true);
+            setCreateError('');
+          }}
           className="btn-primary flex items-center gap-2"
         >
           <Plus className="h-5 w-5" />
@@ -189,17 +199,22 @@ export default function AdminGroupsPage() {
                   <tr key={g.id} className="hover:bg-surface-container/50">
                     <td className="px-6 py-4 text-body-md font-medium">{g.name}</td>
                     <td className="px-6 py-4 text-body-md">
-                      {g.managerName || (
+                      {g.managerId ? (
+                        (() => {
+                          const manager = orgUsers?.find((u) => u.id === g.managerId);
+                          return manager?.fullName || manager?.phone || 'מנהל לא נמצא';
+                        })()
+                      ) : (
                         <span className="text-on-surface-variant text-body-sm">לא שובץ</span>
                       )}
                     </td>
                     <td className="px-6 py-4">
                       <span className="inline-flex items-center gap-1 text-body-md">
                         <Users className="h-4 w-4 text-on-surface-variant" />
-                        {g.memberCount}
+                        {g.memberCount ?? 0}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-body-md">{g.familyCount}</td>
+                    <td className="px-6 py-4 text-body-md">{g.familyCount ?? 0}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-2">
                         <button
@@ -232,7 +247,10 @@ export default function AdminGroupsPage() {
           <div className="bg-surface rounded-lg max-w-md w-full shadow-xl">
             <div className="flex items-center justify-between p-6 border-b border-outline/20">
               <h2 className="text-headline-sm font-headline">צור קבוצה חדשה</h2>
-              <button onClick={() => setShowCreateModal(false)} className="p-2 hover:bg-surface-container rounded-md">
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="p-2 hover:bg-surface-container rounded-md"
+              >
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -247,16 +265,20 @@ export default function AdminGroupsPage() {
                 <input
                   type="text"
                   value={createForm.name}
-                  onChange={(e) => setCreateForm(f => ({ ...f, name: e.target.value }))}
+                  onChange={(e) => setCreateForm((f) => ({ ...f, name: e.target.value }))}
                   placeholder="שם הקבוצה"
                   className="w-full px-4 py-3 rounded-lg border border-outline bg-surface-container focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
               </div>
               <div>
-                <label className="block text-label-md font-medium mb-2">מנהל קבוצה (אופציונלי)</label>
+                <label className="block text-label-md font-medium mb-2">
+                  מנהל קבוצה (אופציונלי)
+                </label>
                 <select
-                  value={createForm.managerUserId ?? ''}
-                  onChange={(e) => setCreateForm(f => ({ ...f, managerUserId: e.target.value || undefined }))}
+                  value={createForm.managerId ?? ''}
+                  onChange={(e) =>
+                    setCreateForm((f) => ({ ...f, managerId: e.target.value || undefined }))
+                  }
                   className="w-full px-4 py-3 rounded-lg border border-outline bg-surface-container focus:border-primary focus:outline-none"
                 >
                   <option value="">בחר מנהל...</option>
@@ -274,7 +296,10 @@ export default function AdminGroupsPage() {
               </button>
               <button
                 onClick={() => {
-                  if (!createForm.name.trim()) { setCreateError('שם הקבוצה הוא שדה חובה'); return; }
+                  if (!createForm.name.trim()) {
+                    setCreateError('שם הקבוצה הוא שדה חובה');
+                    return;
+                  }
                   createMutation.mutate(createForm);
                 }}
                 disabled={createMutation.isPending}
@@ -293,7 +318,10 @@ export default function AdminGroupsPage() {
           <div className="bg-surface rounded-lg max-w-md w-full shadow-xl">
             <div className="flex items-center justify-between p-6 border-b border-outline/20">
               <h2 className="text-headline-sm font-headline">עריכת קבוצה</h2>
-              <button onClick={() => setEditingGroup(null)} className="p-2 hover:bg-surface-container rounded-md">
+              <button
+                onClick={() => setEditingGroup(null)}
+                className="p-2 hover:bg-surface-container rounded-md"
+              >
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -308,15 +336,17 @@ export default function AdminGroupsPage() {
                 <input
                   type="text"
                   value={editForm.name}
-                  onChange={(e) => setEditForm(f => ({ ...f, name: e.target.value }))}
+                  onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))}
                   className="w-full px-4 py-3 rounded-lg border border-outline bg-surface-container focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
               </div>
               <div>
                 <label className="block text-label-md font-medium mb-2">מנהל קבוצה</label>
                 <select
-                  value={editForm.managerUserId ?? ''}
-                  onChange={(e) => setEditForm(f => ({ ...f, managerUserId: e.target.value || undefined }))}
+                  value={editForm.managerId ?? ''}
+                  onChange={(e) =>
+                    setEditForm((f) => ({ ...f, managerId: e.target.value || undefined }))
+                  }
                   className="w-full px-4 py-3 rounded-lg border border-outline bg-surface-container focus:border-primary focus:outline-none"
                 >
                   <option value="">ללא מנהל</option>
@@ -350,8 +380,8 @@ export default function AdminGroupsPage() {
           <div className="bg-surface rounded-lg max-w-sm w-full shadow-xl p-6">
             <h2 className="text-headline-sm font-headline mb-4">מחיקת קבוצה</h2>
             <p className="text-body-md text-on-surface-variant mb-6">
-              האם אתה בטוח שברצונך למחוק את הקבוצה "{deletingGroup.name}"?
-              פעולה זו אינה ניתנת לביטול.
+              האם אתה בטוח שברצונך למחוק את הקבוצה "{deletingGroup.name}"? פעולה זו אינה ניתנת
+              לביטול.
             </p>
             <div className="flex gap-3">
               <button onClick={() => setDeletingGroup(null)} className="btn-outline flex-1">

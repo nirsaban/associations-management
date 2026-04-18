@@ -14,8 +14,7 @@ export function ServiceWorkerRegistration() {
   useEffect(() => {
     // Only register in production or when explicitly enabled
     const shouldRegister =
-      process.env.NODE_ENV === 'production' ||
-      process.env.NEXT_PUBLIC_ENABLE_SW === 'true';
+      process.env.NODE_ENV === 'production' || process.env.NEXT_PUBLIC_ENABLE_SW === 'true';
 
     if (!shouldRegister) {
       console.log('[PWA] Service worker disabled in development');
@@ -45,10 +44,7 @@ export function ServiceWorkerRegistration() {
           if (!newWorker) return;
 
           newWorker.addEventListener('statechange', () => {
-            if (
-              newWorker.state === 'installed' &&
-              navigator.serviceWorker.controller
-            ) {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               // New service worker is available
               console.log('[PWA] New service worker available');
 

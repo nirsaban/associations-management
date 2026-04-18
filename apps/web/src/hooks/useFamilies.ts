@@ -23,9 +23,7 @@ export function useFamilies() {
   const list = useQuery({
     queryKey: ['families'],
     queryFn: async () => {
-      const response = await api.get<{ data: Family[] }>(
-        API_ROUTES.FAMILIES.LIST
-      );
+      const response = await api.get<{ data: Family[]; meta: { total: number; page: number; limit: number } }>(API_ROUTES.FAMILIES.LIST);
       return response.data.data;
     },
   });
@@ -34,9 +32,7 @@ export function useFamilies() {
     useQuery({
       queryKey: ['family', id],
       queryFn: async () => {
-        const response = await api.get<{ data: Family }>(
-          API_ROUTES.FAMILIES.GET(id)
-        );
+        const response = await api.get<{ data: Family }>(API_ROUTES.FAMILIES.GET(id));
         return response.data.data;
       },
       enabled: !!id,
@@ -44,10 +40,7 @@ export function useFamilies() {
 
   const create = useMutation({
     mutationFn: async (family: Omit<Family, 'id' | 'createdAt' | 'updatedAt'>) => {
-      const response = await api.post<{ data: Family }>(
-        API_ROUTES.FAMILIES.CREATE,
-        family
-      );
+      const response = await api.post<{ data: Family }>(API_ROUTES.FAMILIES.CREATE, family);
       return response.data.data;
     },
     onSuccess: () => {
@@ -56,17 +49,8 @@ export function useFamilies() {
   });
 
   const update = useMutation({
-    mutationFn: async ({
-      id,
-      data,
-    }: {
-      id: string;
-      data: Partial<Family>;
-    }) => {
-      const response = await api.patch<{ data: Family }>(
-        API_ROUTES.FAMILIES.UPDATE(id),
-        data
-      );
+    mutationFn: async ({ id, data }: { id: string; data: Partial<Family> }) => {
+      const response = await api.patch<{ data: Family }>(API_ROUTES.FAMILIES.UPDATE(id), data);
       return response.data.data;
     },
     onSuccess: (data) => {

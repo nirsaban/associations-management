@@ -9,9 +9,9 @@ export interface User {
   phone: string;
   name?: string;
   email?: string;
-  platformRole?: PlatformRole;  // Only set for SUPER_ADMIN
+  platformRole?: PlatformRole; // Only set for SUPER_ADMIN
   systemRole: SystemRole;
-  organizationId: string | null;  // Null for SUPER_ADMIN
+  organizationId: string | null; // Null for SUPER_ADMIN
   createdAt: string;
 }
 
@@ -44,8 +44,7 @@ export const useAuthStore = create<AuthStore>()(
 
       setUser: (user) => set({ user, isAuthenticated: !!user }),
 
-      setTokens: (accessToken, refreshToken) =>
-        set({ accessToken, refreshToken }),
+      setTokens: (accessToken, refreshToken) => set({ accessToken, refreshToken }),
 
       setLoading: (loading) => set({ isLoading: loading }),
 
@@ -69,6 +68,6 @@ export const useAuthStore = create<AuthStore>()(
         refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated,
       }),
-    }
-  )
+    },
+  ),
 );

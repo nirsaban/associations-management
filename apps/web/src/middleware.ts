@@ -44,9 +44,7 @@ function shouldBypass(pathname: string): boolean {
 }
 
 function isPublicRoute(pathname: string): boolean {
-  return PUBLIC_ROUTES.some(
-    (route) => pathname === route || pathname.startsWith(route + '/'),
-  );
+  return PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith(route + '/'));
 }
 
 /**
@@ -58,10 +56,7 @@ function decodeJwtPayload(token: string): Record<string, unknown> | null {
     const parts = token.split('.');
     if (parts.length !== 3) return null;
     const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-    const padded = base64.padEnd(
-      base64.length + ((4 - (base64.length % 4)) % 4),
-      '=',
-    );
+    const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
     const decoded = atob(padded);
     return JSON.parse(decoded) as Record<string, unknown>;
   } catch {
@@ -101,9 +96,7 @@ export function middleware(request: NextRequest) {
   // SUPER_ADMIN must stay in /platform-secret; everywhere else redirects them back.
   if (isSuperAdmin) {
     if (!pathname.startsWith(PLATFORM_ROUTE_PREFIX)) {
-      return NextResponse.redirect(
-        new URL('/platform-secret/admins', request.url),
-      );
+      return NextResponse.redirect(new URL('/platform-secret/admins', request.url));
     }
     return NextResponse.next();
   }
@@ -121,10 +114,7 @@ export function middleware(request: NextRequest) {
   // that decision to the client layout.
 
   // Prevent non-ADMIN from accessing the setup wizard
-  if (
-    pathname.startsWith(SETUP_ROUTE_PREFIX) &&
-    payload?.systemRole !== 'ADMIN'
-  ) {
+  if (pathname.startsWith(SETUP_ROUTE_PREFIX) && payload?.systemRole !== 'ADMIN') {
     return NextResponse.redirect(new URL('/', request.url));
   }
 

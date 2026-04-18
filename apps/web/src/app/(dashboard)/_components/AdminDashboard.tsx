@@ -40,12 +40,8 @@ export function AdminDashboard() {
         <div className="card">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-label-md text-on-surface-variant mb-1">
-                סה"כ משתמשים
-              </p>
-              <p className="text-headline-md font-bold text-primary">
-                {data?.totalUsers || 0}
-              </p>
+              <p className="text-label-md text-on-surface-variant mb-1">סה"כ משתמשים</p>
+              <p className="text-headline-md font-bold text-primary">{data?.totalUsers || 0}</p>
             </div>
             <Users className="h-8 w-8 text-primary/20" />
           </div>
@@ -55,12 +51,8 @@ export function AdminDashboard() {
         <div className="card">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-label-md text-on-surface-variant mb-1">
-                קבוצות
-              </p>
-              <p className="text-headline-md font-bold text-secondary">
-                {data?.totalGroups || 0}
-              </p>
+              <p className="text-label-md text-on-surface-variant mb-1">קבוצות</p>
+              <p className="text-headline-md font-bold text-secondary">{data?.totalGroups || 0}</p>
             </div>
             <Users className="h-8 w-8 text-secondary/20" />
           </div>
@@ -70,12 +62,8 @@ export function AdminDashboard() {
         <div className="card">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-label-md text-on-surface-variant mb-1">
-                משפחות
-              </p>
-              <p className="text-headline-md font-bold text-tertiary">
-                {data?.totalFamilies || 0}
-              </p>
+              <p className="text-label-md text-on-surface-variant mb-1">משפחות</p>
+              <p className="text-headline-md font-bold text-tertiary">{data?.totalFamilies || 0}</p>
             </div>
             <Home className="h-8 w-8 text-tertiary/20" />
           </div>
@@ -85,9 +73,7 @@ export function AdminDashboard() {
         <div className="card">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-label-md text-on-surface-variant mb-1">
-                תשלומים ממתינים
-              </p>
+              <p className="text-label-md text-on-surface-variant mb-1">תשלומים ממתינים</p>
               <p className="text-headline-md font-bold text-warning">
                 {data?.pendingPayments || 0}
               </p>
@@ -101,34 +87,19 @@ export function AdminDashboard() {
       <div>
         <h2 className="text-headline-md font-headline mb-4">קשורים מהירים</h2>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <Link
-            href="/dashboard/admin/users"
-            className="card hover:shadow-lg transition-shadow"
-          >
+          <Link href="/admin/users" className="card hover:shadow-lg transition-shadow">
             <h3 className="text-title-md font-medium mb-2">ניהול משתמשים</h3>
-            <p className="text-body-sm text-on-surface-variant">
-              צפה בכל המשתמשים בוערוך הרשאות
-            </p>
+            <p className="text-body-sm text-on-surface-variant">צפה בכל המשתמשים וערוך הרשאות</p>
           </Link>
 
-          <Link
-            href="/dashboard/groups"
-            className="card hover:shadow-lg transition-shadow"
-          >
+          <Link href="/admin/groups" className="card hover:shadow-lg transition-shadow">
             <h3 className="text-title-md font-medium mb-2">קבוצות</h3>
-            <p className="text-body-sm text-on-surface-variant">
-              ניהול קבוצות ודברים חברים
-            </p>
+            <p className="text-body-sm text-on-surface-variant">ניהול קבוצות וחברים</p>
           </Link>
 
-          <Link
-            href="/dashboard/payments"
-            className="card hover:shadow-lg transition-shadow"
-          >
+          <Link href="/payments" className="card hover:shadow-lg transition-shadow">
             <h3 className="text-title-md font-medium mb-2">תשלומים</h3>
-            <p className="text-body-sm text-on-surface-variant">
-              ניהול תשלומים ודוחות כספיים
-            </p>
+            <p className="text-body-sm text-on-surface-variant">ניהול תשלומים ודוחות כספיים</p>
           </Link>
         </div>
       </div>

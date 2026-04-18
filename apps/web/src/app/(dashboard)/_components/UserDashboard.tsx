@@ -40,7 +40,11 @@ export function UserDashboard() {
   const { user } = useAuthStore();
 
   // Use homepage context endpoint instead of separate dashboard endpoint
-  const { data: context, isLoading, error } = useQuery({
+  const {
+    data: context,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['homepage-context', user?.id],
     queryFn: async () => {
       const response = await api.get<{ data: HomepageContext }>('/homepage/context');
@@ -82,9 +86,7 @@ export function UserDashboard() {
         <h1 className="text-headline-lg font-headline mb-2">
           שלום, {context?.user?.fullName || 'משתמש'}
         </h1>
-        <p className="text-body-md text-on-surface-variant">
-          ברוכים הבאים לדשבורד האישי שלך
-        </p>
+        <p className="text-body-md text-on-surface-variant">ברוכים הבאים לדשבורד האישי שלך</p>
       </div>
 
       {/* Weekly Distributor Notice - High Priority */}
@@ -95,9 +97,7 @@ export function UserDashboard() {
               <TruckIcon className="h-8 w-8 text-on-primary" />
             </div>
             <div className="flex-1">
-              <h2 className="text-headline-md font-headline text-primary mb-2">
-                אתה המחלק השבועי
-              </h2>
+              <h2 className="text-headline-md font-headline text-primary mb-2">אתה המחלק השבועי</h2>
               <p className="text-body-md text-on-surface-variant mb-4">
                 שובץ לך תפקיד חלוקה עבור קבוצת {context.weeklyDistributor.groupName} השבוע
               </p>
@@ -108,13 +108,12 @@ export function UserDashboard() {
                 </div>
                 <div className="px-4 py-2 rounded-lg bg-surface-container">
                   <p className="text-label-sm text-on-surface-variant">משפחות</p>
-                  <p className="text-body-md font-medium">{context.weeklyDistributor.familyCount}</p>
+                  <p className="text-body-md font-medium">
+                    {context.weeklyDistributor.familyCount}
+                  </p>
                 </div>
               </div>
-              <Link
-                href="/dashboard/distributor/current"
-                className="btn-primary inline-block"
-              >
+              <Link href="/distributor/current" className="btn-primary inline-block">
                 צפייה בפרטי החלוקה
               </Link>
             </div>
@@ -146,26 +145,28 @@ export function UserDashboard() {
             </div>
           </div>
 
-          <Link href="/dashboard/profile" className="btn-outline w-full">
+          <Link href="/profile" className="btn-outline w-full">
             צפייה בפרופיל מלא
           </Link>
         </div>
 
         {/* Payment Status Card */}
-        <div className={`card-elevated border-2 ${
-          payment?.currentMonthStatus === 'paid'
-            ? 'border-success'
-            : isDue
-            ? 'border-error'
-            : 'border-warning'
-        }`}>
+        <div
+          className={`card-elevated border-2 ${
+            payment?.currentMonthStatus === 'paid'
+              ? 'border-success'
+              : isDue
+                ? 'border-error'
+                : 'border-warning'
+          }`}
+        >
           <div className="flex items-start justify-between mb-4">
             <div>
-              <p className="text-label-md text-on-surface-variant mb-1">
-                סטטוס תשלום חודשי
-              </p>
+              <p className="text-label-md text-on-surface-variant mb-1">סטטוס תשלום חודשי</p>
               {payment ? (
-                <h2 className="text-headline-lg font-bold">₪{payment.currentMonthAmount.toLocaleString()}</h2>
+                <h2 className="text-headline-lg font-bold">
+                  ₪{payment.currentMonthAmount.toLocaleString()}
+                </h2>
               ) : (
                 <h2 className="text-headline-md font-headline">אין תשלומים</h2>
               )}
@@ -191,7 +192,7 @@ export function UserDashboard() {
               )}
 
               {payment.currentMonthStatus === 'pending' && (
-                <Link href="/dashboard/my-donations" className="btn-primary w-full">
+                <Link href="/my-donations" className="btn-primary w-full">
                   צפייה בתשלומים
                 </Link>
               )}
@@ -231,7 +232,7 @@ export function UserDashboard() {
                 <p className="text-label-sm text-on-surface-variant mb-1">שם הקבוצה</p>
                 <p className="text-body-lg font-medium">{context.user.groupName}</p>
               </div>
-              <Link href="/dashboard/my-group" className="btn-outline w-full">
+              <Link href="/my-group" className="btn-outline w-full">
                 צפייה בפרטי קבוצה
               </Link>
             </>
@@ -275,7 +276,7 @@ export function UserDashboard() {
                   </div>
                 ))}
               </div>
-              <Link href="/dashboard/notifications" className="btn-outline w-full">
+              <Link href="/notifications" className="btn-outline w-full">
                 צפייה בכל ההתראות
               </Link>
             </>
@@ -291,37 +292,22 @@ export function UserDashboard() {
       <div>
         <h2 className="text-headline-md font-headline mb-4">קישורים מהירים</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Link
-            href="/dashboard/my-donations"
-            className="card hover:shadow-lg transition-shadow"
-          >
+          <Link href="/my-donations" className="card hover:shadow-lg transition-shadow">
             <CreditCard className="h-8 w-8 text-primary mb-3" />
             <h3 className="text-title-md font-medium mb-2">התרומות שלי</h3>
-            <p className="text-body-sm text-on-surface-variant">
-              היסטוריית תשלומים ותרומות
-            </p>
+            <p className="text-body-sm text-on-surface-variant">היסטוריית תשלומים ותרומות</p>
           </Link>
 
-          <Link
-            href="/dashboard/profile"
-            className="card hover:shadow-lg transition-shadow"
-          >
+          <Link href="/profile" className="card hover:shadow-lg transition-shadow">
             <User className="h-8 w-8 text-secondary mb-3" />
             <h3 className="text-title-md font-medium mb-2">הגדרות פרופיל</h3>
-            <p className="text-body-sm text-on-surface-variant">
-              עדכון פרטים אישיים והגדרות
-            </p>
+            <p className="text-body-sm text-on-surface-variant">עדכון פרטים אישיים והגדרות</p>
           </Link>
 
-          <Link
-            href="/dashboard/notifications"
-            className="card hover:shadow-lg transition-shadow"
-          >
+          <Link href="/notifications" className="card hover:shadow-lg transition-shadow">
             <Bell className="h-8 w-8 text-tertiary mb-3" />
             <h3 className="text-title-md font-medium mb-2">התראות</h3>
-            <p className="text-body-sm text-on-surface-variant">
-              כל ההתראות וההודעות שלך
-            </p>
+            <p className="text-body-sm text-on-surface-variant">כל ההתראות וההודעות שלך</p>
           </Link>
         </div>
       </div>

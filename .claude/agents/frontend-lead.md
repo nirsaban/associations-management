@@ -99,7 +99,7 @@ apps/web/src/
 
 ## API Integration
 
-- API base URL: `http://localhost:3001/api/v1` (dev)
+- API base URL: `http://localhost:3003/api/v1` (dev)
 - Auth: Bearer JWT token in Authorization header
 - Homepage context: `GET /homepage/context` — single endpoint that returns all cards/actions for current user
 - Always handle loading, error, and empty states

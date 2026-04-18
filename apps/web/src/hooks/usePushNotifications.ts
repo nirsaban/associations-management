@@ -30,12 +30,10 @@ export interface UsePushNotificationsReturn {
 export function usePushNotifications(): UsePushNotificationsReturn {
   const [isSupported] = useState(() => isPushNotificationSupported());
   const [permission, setPermission] = useState<NotificationPermission>(() =>
-    getNotificationPermissionStatus()
+    getNotificationPermissionStatus(),
   );
   const [isSubscribed, setIsSubscribed] = useState(false);
-  const [subscription, setSubscription] = useState<PushSubscriptionData | null>(
-    null
-  );
+  const [subscription, setSubscription] = useState<PushSubscriptionData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
