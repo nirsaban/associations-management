@@ -20,7 +20,16 @@ export class RolesGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const user = request.user;
 
-    if (!user || !user.systemRole) {
+    if (!user) {
+      return false;
+    }
+
+    // SUPER_ADMIN עוקף בדיקת systemRole — יש לו גישה מלאה
+    if (user.platformRole === 'SUPER_ADMIN') {
+      return true;
+    }
+
+    if (!user.systemRole) {
       return false;
     }
 

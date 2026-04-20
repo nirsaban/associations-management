@@ -210,6 +210,7 @@ export class AuthService {
         phone: user.phone,
         name: user.fullName,
         email: user.email || undefined,
+        platformRole: user.platformRole ?? undefined,
         systemRole: user.systemRole,
         organizationId: user.organizationId,
         createdAt: user.createdAt.toISOString(),
@@ -261,6 +262,7 @@ export class AuthService {
           phone: user.phone,
           name: user.fullName,
           email: user.email || undefined,
+          platformRole: user.platformRole ?? undefined,
           systemRole: user.systemRole,
           organizationId: user.organizationId,
           createdAt: user.createdAt.toISOString(),
@@ -287,7 +289,7 @@ export class AuthService {
             slug: true,
             logoUrl: true,
             setupCompleted: true,
-            isActive: true,
+            status: true,
           },
         },
       },
@@ -307,7 +309,57 @@ export class AuthService {
       organizationId: user.organizationId,
       organization: user.organization,
       registrationCompleted: user.registrationCompleted,
+      activationCompleted: user.activationCompleted,
       createdAt: user.createdAt,
+    };
+  }
+
+  /**
+   * Issue JWT tokens for a user. Used by both OTP verification and WebAuthn authentication.
+   */
+  async issueTokens(user: {
+    id: string;
+    phone: string;
+    fullName: string;
+    email: string | null;
+    organizationId: string | null;
+    platformRole: string | null;
+    systemRole: string;
+    createdAt: Date;
+  }): Promise<TokenResponseDto> {
+    const payload = {
+      sub: user.id,
+      phone: user.phone,
+      organizationId: user.organizationId ?? undefined,
+      platformRole: user.platformRole ?? undefined,
+      systemRole: user.systemRole,
+    };
+
+    const accessToken = this.jwtService.sign(payload, {
+      expiresIn: '1h',
+      secret: process.env.JWT_SECRET || 'your-secret-key',
+    });
+
+    const refreshToken = this.jwtService.sign(payload, {
+      expiresIn: '7d',
+      secret: process.env.JWT_REFRESH_SECRET || 'your-refresh-secret',
+    });
+
+    return {
+      accessToken,
+      refreshToken,
+      tokenType: 'Bearer',
+      expiresIn: 3600,
+      user: {
+        id: user.id,
+        phone: user.phone,
+        name: user.fullName,
+        email: user.email || undefined,
+        platformRole: user.platformRole ?? undefined,
+        systemRole: user.systemRole,
+        organizationId: user.organizationId,
+        createdAt: user.createdAt.toISOString(),
+      },
     };
   }
 

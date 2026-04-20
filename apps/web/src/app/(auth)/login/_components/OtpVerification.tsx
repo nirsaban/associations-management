@@ -67,7 +67,7 @@ export function OtpVerification({
 
       if (user?.platformRole === 'SUPER_ADMIN') {
         console.log('[OTP] SUPER_ADMIN logged in, going to platform');
-        router.replace('/platform-secret/admins');
+        router.replace('/platform');
       } else if (user?.systemRole === 'ADMIN') {
         console.log('[OTP] ADMIN logged in, checking setup status...');
         // Will be handled by dashboard layout

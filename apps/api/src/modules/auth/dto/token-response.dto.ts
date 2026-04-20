@@ -13,7 +13,10 @@ export class UserDataDto {
   @ApiProperty({ required: false })
   email?: string;
 
-  @ApiProperty({ enum: ['SUPER_ADMIN', 'ADMIN', 'USER'] })
+  @ApiProperty({ enum: ['SUPER_ADMIN'], required: false })
+  platformRole?: string;
+
+  @ApiProperty({ enum: ['ADMIN', 'USER'] })
   systemRole!: string;
 
   @ApiProperty({ required: false })

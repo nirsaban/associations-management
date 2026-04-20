@@ -147,7 +147,7 @@ export default function AdminFamiliesPage() {
 
   if (user?.systemRole !== 'ADMIN') {
     return (
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="rounded-lg bg-error-container px-6 py-4 text-on-error-container">
           <p>גישה מוגבלת</p>
         </div>
@@ -157,7 +157,7 @@ export default function AdminFamiliesPage() {
 
   if (error) {
     return (
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="rounded-lg bg-error-container px-6 py-4 text-on-error-container flex gap-3">
           <AlertCircle className="h-5 w-5 flex-shrink-0" />
           <span>שגיאה בטעינת משפחות</span>
@@ -244,12 +244,12 @@ export default function AdminFamiliesPage() {
   );
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 lg:p-8">
       {/* Header */}
-      <div className="mb-8 flex items-center justify-between gap-4">
+      <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-headline-md font-headline mb-2">משפחות</h1>
-          <p className="text-body-md text-on-surface-variant">
+          <h1 className="text-headline-sm sm:text-headline-md font-headline mb-1 sm:mb-2">משפחות</h1>
+          <p className="text-body-sm sm:text-body-md text-on-surface-variant">
             ניהול משפחות הארגון ({families?.length || 0} משפחות)
           </p>
         </div>
@@ -259,7 +259,7 @@ export default function AdminFamiliesPage() {
             setCreateError('');
             setCreateForm(emptyForm);
           }}
-          className="btn-primary flex items-center gap-2"
+          className="btn-primary flex items-center justify-center gap-2 w-full sm:w-auto"
         >
           <Plus className="h-5 w-5" />
           הוסף משפחה
@@ -295,7 +295,7 @@ export default function AdminFamiliesPage() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {filteredFamilies.map((family) => (
             <div key={family.id} className="card-elevated hover:shadow-lg transition-shadow">
               <div className="flex items-start justify-between mb-4">
@@ -353,8 +353,8 @@ export default function AdminFamiliesPage() {
 
       {/* Create Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-surface rounded-lg max-w-lg w-full shadow-xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+          <div className="bg-surface rounded-t-2xl sm:rounded-lg max-w-lg w-full shadow-xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-outline/20 sticky top-0 bg-surface">
               <h2 className="text-headline-sm font-headline">הוסף משפחה חדשה</h2>
               <button
@@ -396,8 +396,8 @@ export default function AdminFamiliesPage() {
 
       {/* Edit Modal */}
       {editingFamily && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-surface rounded-lg max-w-lg w-full shadow-xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+          <div className="bg-surface rounded-t-2xl sm:rounded-lg max-w-lg w-full shadow-xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-outline/20 sticky top-0 bg-surface">
               <h2 className="text-headline-sm font-headline">עריכת משפחה</h2>
               <button
@@ -433,8 +433,8 @@ export default function AdminFamiliesPage() {
 
       {/* Delete Confirmation */}
       {deletingFamily && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-surface rounded-lg max-w-sm w-full shadow-xl p-6">
+        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+          <div className="bg-surface rounded-t-2xl sm:rounded-lg max-w-sm w-full shadow-xl p-6">
             <h2 className="text-headline-sm font-headline mb-4">מחיקת משפחה</h2>
             <p className="text-body-md text-on-surface-variant mb-6">
               האם אתה בטוח שברצונך למחוק את משפחת "{deletingFamily.familyName}"? פעולה זו אינה ניתנת

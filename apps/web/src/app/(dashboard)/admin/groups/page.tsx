@@ -117,7 +117,7 @@ export default function AdminGroupsPage() {
 
   if (user?.systemRole !== 'ADMIN') {
     return (
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="rounded-lg bg-error-container px-6 py-4 text-on-error-container">
           <p>גישה מוגבלת</p>
         </div>
@@ -127,7 +127,7 @@ export default function AdminGroupsPage() {
 
   if (error) {
     return (
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="rounded-lg bg-error-container px-6 py-4 text-on-error-container flex gap-3">
           <AlertCircle className="h-5 w-5 flex-shrink-0" />
           <span>שגיאה בטעינת קבוצות</span>
@@ -137,12 +137,12 @@ export default function AdminGroupsPage() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 lg:p-8">
       {/* Header */}
-      <div className="mb-8 flex items-center justify-between gap-4">
+      <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-headline-md font-headline mb-2">קבוצות</h1>
-          <p className="text-body-md text-on-surface-variant">
+          <h1 className="text-headline-sm sm:text-headline-md font-headline mb-1 sm:mb-2">קבוצות</h1>
+          <p className="text-body-sm sm:text-body-md text-on-surface-variant">
             ניהול קבוצות הארגון ({groups?.length || 0} קבוצות)
           </p>
         </div>
@@ -151,7 +151,7 @@ export default function AdminGroupsPage() {
             setShowCreateModal(true);
             setCreateError('');
           }}
-          className="btn-primary flex items-center gap-2"
+          className="btn-primary flex items-center justify-center gap-2 w-full sm:w-auto"
         >
           <Plus className="h-5 w-5" />
           צור קבוצה
@@ -166,7 +166,55 @@ export default function AdminGroupsPage() {
           ))}
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-outline/30">
+        <>
+        {/* Mobile cards */}
+        <div className="space-y-3 md:hidden">
+          {!groups || groups.length === 0 ? (
+            <div className="text-center py-12 text-on-surface-variant">
+              אין קבוצות. לחץ "צור קבוצה" להוספת קבוצה ראשונה.
+            </div>
+          ) : (
+            groups.map((g) => (
+              <div key={g.id} className="rounded-lg border border-outline/30 p-4 space-y-3">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-body-md font-medium">{g.name}</p>
+                    <p className="text-body-sm text-on-surface-variant">
+                      {g.managerId ? (() => {
+                        const manager = orgUsers?.find((u) => u.id === g.managerId);
+                        return `מנהל: ${manager?.fullName || manager?.phone || 'לא נמצא'}`;
+                      })() : 'ללא מנהל'}
+                    </p>
+                  </div>
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => openEditModal(g)}
+                      className="p-2 hover:bg-surface-container rounded-md text-secondary min-h-[44px] min-w-[44px] flex items-center justify-center"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => setDeletingGroup(g)}
+                      className="p-2 hover:bg-surface-container rounded-md text-error min-h-[44px] min-w-[44px] flex items-center justify-center"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 text-body-sm text-on-surface-variant">
+                  <span className="inline-flex items-center gap-1">
+                    <Users className="h-4 w-4" />
+                    {g.memberCount ?? 0} חברים
+                  </span>
+                  <span>{g.familyCount ?? 0} משפחות</span>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop table */}
+        <div className="hidden md:block overflow-x-auto rounded-lg border border-outline/30">
           <table className="w-full">
             <thead className="border-b border-outline/30 bg-surface-container-low">
               <tr>
@@ -239,12 +287,13 @@ export default function AdminGroupsPage() {
             </tbody>
           </table>
         </div>
+        </>
       )}
 
       {/* Create Group Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-surface rounded-lg max-w-md w-full shadow-xl">
+        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+          <div className="bg-surface rounded-t-2xl sm:rounded-lg max-w-md w-full shadow-xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-outline/20">
               <h2 className="text-headline-sm font-headline">צור קבוצה חדשה</h2>
               <button
@@ -314,8 +363,8 @@ export default function AdminGroupsPage() {
 
       {/* Edit Group Modal */}
       {editingGroup && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-surface rounded-lg max-w-md w-full shadow-xl">
+        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+          <div className="bg-surface rounded-t-2xl sm:rounded-lg max-w-md w-full shadow-xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-outline/20">
               <h2 className="text-headline-sm font-headline">עריכת קבוצה</h2>
               <button
@@ -376,8 +425,8 @@ export default function AdminGroupsPage() {
 
       {/* Delete Confirmation */}
       {deletingGroup && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-surface rounded-lg max-w-sm w-full shadow-xl p-6">
+        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+          <div className="bg-surface rounded-t-2xl sm:rounded-lg max-w-sm w-full shadow-xl p-6">
             <h2 className="text-headline-sm font-headline mb-4">מחיקת קבוצה</h2>
             <p className="text-body-md text-on-surface-variant mb-6">
               האם אתה בטוח שברצונך למחוק את הקבוצה "{deletingGroup.name}"? פעולה זו אינה ניתנת

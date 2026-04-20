@@ -9,7 +9,7 @@ interface UIStore {
 }
 
 export const useUIStore = create<UIStore>((set, get) => ({
-  sidebarOpen: true,
+  sidebarOpen: false,
   theme: 'light',
 
   toggleSidebar: () => set({ sidebarOpen: !get().sidebarOpen }),

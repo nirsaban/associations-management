@@ -2,9 +2,11 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ClsModule } from 'nestjs-cls';
 
 import { PrismaModule } from '@common/prisma/prisma.module';
 import { TransformInterceptor } from '@common/interceptors/transform.interceptor';
+import { TenantInterceptor } from '@common/tenant/tenant.interceptor';
 import { HttpExceptionFilter } from '@common/filters/http-exception.filter';
 import { APP_INTERCEPTOR, APP_FILTER } from '@nestjs/core';
 
@@ -24,6 +26,7 @@ import { OrganizationModule } from '@modules/organization/organization.module';
 import { HomepageModule } from '@modules/homepage/homepage.module';
 import { ManagerModule } from '@modules/manager/manager.module';
 import { AdminModule } from '@modules/admin/admin.module';
+import { ActivationModule } from '@modules/activation/activation.module';
 
 @Module({
   imports: [
@@ -37,6 +40,10 @@ import { AdminModule } from '@modules/admin/admin.module';
         limit: 100,
       },
     ]),
+    ClsModule.forRoot({
+      global: true,
+      middleware: { mount: true },
+    }),
     ScheduleModule.forRoot(),
     PrismaModule,
     AuthModule,
@@ -55,8 +62,13 @@ import { AdminModule } from '@modules/admin/admin.module';
     HomepageModule,
     ManagerModule,
     AdminModule,
+    ActivationModule,
   ],
   providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TenantInterceptor,
+    },
     {
       provide: APP_INTERCEPTOR,
       useClass: TransformInterceptor,

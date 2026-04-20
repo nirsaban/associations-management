@@ -17,7 +17,7 @@ export default function FamilyDetailPage({ params }: FamilyDetailPageProps) {
 
   if (isLoading) {
     return (
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="space-y-4">
           <div className="card h-20 animate-pulse bg-surface-container" />
           <div className="card h-40 animate-pulse bg-surface-container" />
@@ -28,7 +28,7 @@ export default function FamilyDetailPage({ params }: FamilyDetailPageProps) {
 
   if (error || !family) {
     return (
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="rounded-lg bg-error-container px-6 py-4 text-on-error-container flex gap-3">
           <AlertCircle className="h-5 w-5 flex-shrink-0" />
           <span>שגיאה בטעינת נתוני המשפחה</span>
@@ -38,7 +38,7 @@ export default function FamilyDetailPage({ params }: FamilyDetailPageProps) {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 lg:p-8">
       <Link href="/families" className="flex items-center gap-2 text-primary hover:underline mb-6">
         <ArrowRight className="h-4 w-4" />
         חזרה למשפחות

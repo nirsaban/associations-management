@@ -11,8 +11,8 @@ export function AdminDashboard() {
 
   if (isLoading) {
     return (
-      <div className="p-8 space-y-6">
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-6">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="card h-24 animate-pulse bg-surface-container" />
           ))}
@@ -23,7 +23,7 @@ export function AdminDashboard() {
 
   if (error) {
     return (
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="rounded-lg bg-error-container px-6 py-4 text-on-error-container flex gap-3">
           <AlertCircle className="h-5 w-5 flex-shrink-0" />
           <span>שגיאה בטעינת הדשבורד</span>
@@ -33,9 +33,9 @@ export function AdminDashboard() {
   }
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {/* Total Users */}
         <div className="card">
           <div className="flex items-start justify-between">
@@ -85,8 +85,8 @@ export function AdminDashboard() {
 
       {/* Shortcuts */}
       <div>
-        <h2 className="text-headline-md font-headline mb-4">קשורים מהירים</h2>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <h2 className="text-headline-sm sm:text-headline-md font-headline mb-3 sm:mb-4">קשורים מהירים</h2>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4">
           <Link href="/admin/users" className="card hover:shadow-lg transition-shadow">
             <h3 className="text-title-md font-medium mb-2">ניהול משתמשים</h3>
             <p className="text-body-sm text-on-surface-variant">צפה בכל המשתמשים וערוך הרשאות</p>

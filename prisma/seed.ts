@@ -2,26 +2,20 @@ import { config } from 'dotenv';
 import { resolve } from 'path';
 import { PrismaClient } from '@prisma/client';
 
-// Load environment variables from root .env file
+// טעינת משתני סביבה מקובץ .env בשורש
 config({ path: resolve(__dirname, '../.env') });
 
 const prisma = new PrismaClient();
 
 /**
- * Comprehensive seed data for Amutot platform testing
+ * נתוני seed מקיפים לפלטפורמת עמותות
  *
- * Creates:
- * - 1 SUPER_ADMIN user
- * - 1 demo organization (עמותת הדגמה)
- * - 1 org ADMIN
- * - 5+ regular users
- * - 1 group manager
- * - 2 groups with members
- * - 3 families
- * - Weekly orders for current week
- * - Weekly distributor assignment
- * - Payments across 3 months
- * - Notifications
+ * יוצר:
+ * - 1 סופר אדמין
+ * - 2 עמותות (A + B), שתיהן ACTIVE
+ * - לכל עמותה: 1 אדמין, 2 מנהלי קבוצות, 5 משתמשים רגילים, 2 קבוצות, 3 משפחות
+ * - הזמנות שבועיות, תשלומים ל-3 חודשים, התראות
+ * - טלפון זהה (0501234571) קיים בשתי העמותות — להוכחת ייחודיות לפי עמותה
  */
 
 function getCurrentWeekKey(): string {
@@ -41,11 +35,346 @@ function getMonthKey(monthsAgo: number = 0): string {
   return `${year}-${month}`;
 }
 
-async function main() {
-  console.log('Starting seed...');
+async function seedOrganization(
+  superAdminId: string,
+  orgData: {
+    name: string;
+    slug: string;
+    contactPhone: string;
+    contactEmail: string;
+    address: string;
+    setupCompleted?: boolean;
+  },
+  phones: {
+    admin: string;
+    manager1: string;
+    manager2: string;
+    users: string[];
+  },
+  names: {
+    admin: string;
+    manager1: string;
+    manager2: string;
+    users: string[];
+    groups: [string, string];
+    families: [string, string, string];
+  },
+) {
+  const weekKey = getCurrentWeekKey();
+  const currentMonth = getMonthKey(0);
+  const lastMonth = getMonthKey(1);
+  const twoMonthsAgo = getMonthKey(2);
 
-  // Clean existing data (in reverse order of dependencies)
-  console.log('Cleaning existing data...');
+  // יצירת עמותה
+  const org = await prisma.organization.create({
+    data: {
+      name: orgData.name,
+      slug: orgData.slug,
+      contactPhone: orgData.contactPhone,
+      contactEmail: orgData.contactEmail,
+      address: orgData.address,
+      status: 'ACTIVE',
+      setupCompleted: orgData.setupCompleted ?? true,
+      createdBySuperAdminId: superAdminId,
+      settings: {
+        monthlyPaymentAmount: 150,
+        weeklyDistributionDay: 'THURSDAY',
+      },
+    },
+  });
+
+  console.log(`  עמותה נוצרה: ${org.name} (${org.slug})`);
+
+  // אדמין
+  const admin = await prisma.user.create({
+    data: {
+      organizationId: org.id,
+      phone: phones.admin,
+      fullName: names.admin,
+      email: `admin@${orgData.slug}.org.il`,
+      systemRole: 'ADMIN',
+      isActive: true,
+      registrationCompleted: true,
+    },
+  });
+
+  // מנהלי קבוצות
+  const manager1 = await prisma.user.create({
+    data: {
+      organizationId: org.id,
+      phone: phones.manager1,
+      fullName: names.manager1,
+      email: `manager1@${orgData.slug}.org.il`,
+      systemRole: 'USER',
+      isActive: true,
+      registrationCompleted: true,
+    },
+  });
+
+  const manager2 = await prisma.user.create({
+    data: {
+      organizationId: org.id,
+      phone: phones.manager2,
+      fullName: names.manager2,
+      email: `manager2@${orgData.slug}.org.il`,
+      systemRole: 'USER',
+      isActive: true,
+      registrationCompleted: true,
+    },
+  });
+
+  // משתמשים רגילים
+  const users = [];
+  for (let i = 0; i < phones.users.length; i++) {
+    const user = await prisma.user.create({
+      data: {
+        organizationId: org.id,
+        phone: phones.users[i],
+        fullName: names.users[i],
+        systemRole: 'USER',
+        isActive: true,
+        registrationCompleted: i < 4, // משתמש אחרון לא השלים הרשמה
+      },
+    });
+    users.push(user);
+  }
+
+  // קבוצות
+  const group1 = await prisma.group.create({
+    data: {
+      organizationId: org.id,
+      name: names.groups[0],
+      managerUserId: manager1.id,
+      isActive: true,
+    },
+  });
+
+  const group2 = await prisma.group.create({
+    data: {
+      organizationId: org.id,
+      name: names.groups[1],
+      managerUserId: manager2.id,
+      isActive: true,
+    },
+  });
+
+  // חברויות בקבוצה 1 (מנהל + 3 משתמשים)
+  await prisma.groupMembership.create({
+    data: { organizationId: org.id, groupId: group1.id, userId: manager1.id, role: 'MANAGER', status: 'ACTIVE' },
+  });
+  await prisma.groupMembership.create({
+    data: { organizationId: org.id, groupId: group1.id, userId: users[0].id, role: 'MEMBER', status: 'ACTIVE' },
+  });
+  await prisma.groupMembership.create({
+    data: { organizationId: org.id, groupId: group1.id, userId: users[1].id, role: 'MEMBER', status: 'ACTIVE' },
+  });
+  await prisma.groupMembership.create({
+    data: { organizationId: org.id, groupId: group1.id, userId: users[4].id, role: 'MEMBER', status: 'ACTIVE' },
+  });
+
+  // חברויות בקבוצה 2 (מנהל + 2 משתמשים)
+  await prisma.groupMembership.create({
+    data: { organizationId: org.id, groupId: group2.id, userId: manager2.id, role: 'MANAGER', status: 'ACTIVE' },
+  });
+  await prisma.groupMembership.create({
+    data: { organizationId: org.id, groupId: group2.id, userId: users[2].id, role: 'MEMBER', status: 'ACTIVE' },
+  });
+  await prisma.groupMembership.create({
+    data: { organizationId: org.id, groupId: group2.id, userId: users[3].id, role: 'MEMBER', status: 'ACTIVE' },
+  });
+
+  // משפחות
+  const family1 = await prisma.family.create({
+    data: {
+      organizationId: org.id,
+      groupId: group1.id,
+      familyName: names.families[0],
+      contactName: 'איש קשר',
+      address: 'רחוב ביאליק 5',
+      contactPhone: '0521234567',
+      notes: 'אלרגיה לבוטנים',
+      status: 'active',
+    },
+  });
+
+  const family2 = await prisma.family.create({
+    data: {
+      organizationId: org.id,
+      groupId: group1.id,
+      familyName: names.families[1],
+      contactName: 'איש קשר',
+      address: 'שדרות רוטשילד 10',
+      contactPhone: '0522234567',
+      status: 'active',
+    },
+  });
+
+  const family3 = await prisma.family.create({
+    data: {
+      organizationId: org.id,
+      groupId: group2.id,
+      familyName: names.families[2],
+      contactName: 'איש קשר',
+      address: 'רחוב הנביאים 3',
+      contactPhone: '0523234567',
+      notes: 'יש לצלצל לפני הגעה',
+      status: 'active',
+    },
+  });
+
+  // הזמנות שבועיות
+  await prisma.weeklyOrder.create({
+    data: {
+      organizationId: org.id,
+      groupId: group1.id,
+      familyId: family1.id,
+      weekKey,
+      createdByUserId: manager1.id,
+      shoppingListJson: [
+        { item: 'לחם', quantity: 2, unit: 'יחידות' },
+        { item: 'חלב', quantity: 3, unit: 'ליטר' },
+      ],
+      status: 'COMPLETED',
+    },
+  });
+
+  await prisma.weeklyOrder.create({
+    data: {
+      organizationId: org.id,
+      groupId: group1.id,
+      familyId: family2.id,
+      weekKey,
+      createdByUserId: manager1.id,
+      shoppingListJson: [
+        { item: 'קמח', quantity: 1, unit: 'ק"ג' },
+      ],
+      status: 'DRAFT',
+    },
+  });
+
+  await prisma.weeklyOrder.create({
+    data: {
+      organizationId: org.id,
+      groupId: group2.id,
+      familyId: family3.id,
+      weekKey,
+      createdByUserId: manager2.id,
+      shoppingListJson: [
+        { item: 'אורז', quantity: 2, unit: 'ק"ג' },
+      ],
+      status: 'COMPLETED',
+    },
+  });
+
+  // מחלק שבועי
+  await prisma.weeklyDistributorAssignment.create({
+    data: {
+      organizationId: org.id,
+      groupId: group1.id,
+      weekKey,
+      assignedUserId: users[0].id,
+      assignedByUserId: manager1.id,
+    },
+  });
+
+  // תשלומים — users[0] שילם 3 חודשים, users[1] שילם 2, השאר לא שילמו
+  const payments = [];
+  for (const monthKey of [currentMonth, lastMonth, twoMonthsAgo]) {
+    const p = await prisma.payment.create({
+      data: {
+        organizationId: org.id,
+        userId: users[0].id,
+        amount: 150,
+        currency: 'ILS',
+        monthKey,
+        paymentDate: new Date(),
+        source: 'bank_transfer',
+        externalTransactionId: `txn-${orgData.slug}-${monthKey}-user0`,
+        status: 'COMPLETED',
+      },
+    });
+    payments.push(p);
+  }
+
+  for (const monthKey of [lastMonth, twoMonthsAgo]) {
+    await prisma.payment.create({
+      data: {
+        organizationId: org.id,
+        userId: users[1].id,
+        amount: 150,
+        currency: 'ILS',
+        monthKey,
+        paymentDate: new Date(),
+        source: 'credit_card',
+        externalTransactionId: `txn-${orgData.slug}-${monthKey}-user1`,
+        status: 'COMPLETED',
+      },
+    });
+  }
+
+  // סטטוס תשלום חודשי
+  await prisma.monthlyPaymentStatus.create({
+    data: { organizationId: org.id, userId: users[0].id, monthKey: currentMonth, isPaid: true, paidAt: new Date(), paymentId: payments[0].id, reminderCount: 0 },
+  });
+  await prisma.monthlyPaymentStatus.create({
+    data: { organizationId: org.id, userId: users[0].id, monthKey: lastMonth, isPaid: true, paidAt: new Date(), paymentId: payments[1].id, reminderCount: 0 },
+  });
+  await prisma.monthlyPaymentStatus.create({
+    data: { organizationId: org.id, userId: users[0].id, monthKey: twoMonthsAgo, isPaid: true, paidAt: new Date(), paymentId: payments[2].id, reminderCount: 0 },
+  });
+
+  // users[1] — לא שילם חודש נוכחי
+  await prisma.monthlyPaymentStatus.create({
+    data: { organizationId: org.id, userId: users[1].id, monthKey: currentMonth, isPaid: false, reminderCount: 1, lastReminderAt: new Date() },
+  });
+
+  // users[2..4] — לא שילמו חודש נוכחי
+  for (let i = 2; i < 5; i++) {
+    await prisma.monthlyPaymentStatus.create({
+      data: { organizationId: org.id, userId: users[i].id, monthKey: currentMonth, isPaid: false, reminderCount: 0 },
+    });
+  }
+
+  // תזכורות תשלום
+  await prisma.paymentReminder.create({
+    data: { organizationId: org.id, userId: users[1].id, monthKey: currentMonth, reminderNumber: 1, channel: 'PUSH', status: 'SENT', sentAt: new Date() },
+  });
+
+  // התראות
+  await prisma.notification.create({
+    data: {
+      organizationId: org.id,
+      userId: users[0].id,
+      type: 'PAYMENT_RECEIVED',
+      title: 'תשלום התקבל',
+      body: `תשלום חודשי עבור ${currentMonth} התקבל בהצלחה`,
+      channel: 'PUSH',
+      status: 'SENT',
+      sentAt: new Date(),
+    },
+  });
+
+  await prisma.notification.create({
+    data: {
+      organizationId: org.id,
+      userId: manager1.id,
+      type: 'ORDER_CREATED',
+      title: 'הזמנה שבועית',
+      body: `נדרש ליצור הזמנה שבועית עבור ${weekKey}`,
+      channel: 'PUSH',
+      status: 'READ',
+      sentAt: new Date(),
+    },
+  });
+
+  return { org, admin, manager1, manager2, users, group1, group2 };
+}
+
+async function main() {
+  console.log('מתחיל seed...');
+
+  // ניקוי נתונים קיימים (בסדר הפוך לתלויות)
+  console.log('מנקה נתונים קיימים...');
   await prisma.notification.deleteMany();
   await prisma.paymentReminder.deleteMany();
   await prisma.monthlyPaymentStatus.deleteMany();
@@ -61,9 +390,8 @@ async function main() {
   await prisma.user.deleteMany();
   await prisma.organization.deleteMany();
 
-  console.log('Creating SUPER_ADMIN user...');
-
-  // Create SUPER_ADMIN (no organization)
+  // יצירת סופר אדמין
+  console.log('יוצר סופר אדמין...');
   const superAdmin = await prisma.user.create({
     data: {
       phone: '0501234567',
@@ -75,623 +403,92 @@ async function main() {
       registrationCompleted: true,
     },
   });
+  console.log(`  סופר אדמין: ${superAdmin.phone}`);
 
-  console.log(`Created SUPER_ADMIN: ${superAdmin.phone}`);
-
-  console.log('Creating demo organization...');
-
-  // Create demo organization
-  const demoOrg = await prisma.organization.create({
-    data: {
-      name: 'עמותת הדגמה',
-      slug: 'demo-org',
+  // עמותה A — setupCompleted=false to test onboarding wizard
+  console.log('\nיוצר עמותה A...');
+  const orgA = await seedOrganization(
+    superAdmin.id,
+    {
+      name: 'עמותת חסד ואהבה',
+      slug: 'chesed-veahava',
       contactPhone: '025812345',
-      contactEmail: 'info@demo-org.org.il',
+      contactEmail: 'info@chesed.org.il',
       address: 'רחוב הרצל 1, תל אביב',
-      isActive: true,
-      setupCompleted: true,
-      createdBySuperAdminId: superAdmin.id,
-      settings: {
-        monthlyPaymentAmount: 150,
-        weeklyDistributionDay: 'THURSDAY',
-      },
+      setupCompleted: false,
     },
-  });
-
-  console.log(`Created organization: ${demoOrg.name}`);
-
-  console.log('Creating organization admin...');
-
-  // Create org ADMIN
-  const orgAdmin = await prisma.user.create({
-    data: {
-      organizationId: demoOrg.id,
-      phone: '0501234568',
-      fullName: 'ישראל מנהל',
-      email: 'admin@demo-org.org.il',
-      systemRole: 'ADMIN',
-      isActive: true,
-      registrationCompleted: true,
+    {
+      admin: '0501234568',
+      manager1: '0501234569',
+      manager2: '0501234570',
+      // הערה: 0501234571 קיים גם בעמותה B — הוכחה לייחודיות לפי עמותה
+      users: ['0501234571', '0501234572', '0501234573', '0501234574', '0501234575'],
     },
-  });
-
-  console.log('Creating group manager...');
-
-  // Group manager user
-  const groupManager = await prisma.user.create({
-    data: {
-      organizationId: demoOrg.id,
-      phone: '0501234569',
-      fullName: 'דוד מנהל קבוצה',
-      email: 'manager@demo-org.org.il',
-      systemRole: 'USER',
-      isActive: true,
-      registrationCompleted: true,
+    {
+      admin: 'ישראל מנהל',
+      manager1: 'דוד מנהל קבוצה',
+      manager2: 'שרה מנהלת קבוצה',
+      users: ['יוסף כהן', 'רחל לוי', 'משה ישראלי', 'מרים אברהם', 'יצחק שפירו'],
+      groups: ["קבוצה א'", "קבוצה ב'"],
+      families: ['משפחת כהן', 'משפחת לוי', 'משפחת ישראלי'],
     },
-  });
+  );
 
-  const groupManager2 = await prisma.user.create({
-    data: {
-      organizationId: demoOrg.id,
-      phone: '0501234570',
-      fullName: 'שרה מנהלת קבוצה',
-      email: 'manager2@demo-org.org.il',
-      systemRole: 'USER',
-      isActive: true,
-      registrationCompleted: true,
+  // עמותה B
+  console.log('\nיוצר עמותה B...');
+  const orgB = await seedOrganization(
+    superAdmin.id,
+    {
+      name: 'עמותת אור לעם',
+      slug: 'or-laam',
+      contactPhone: '039876543',
+      contactEmail: 'info@or-laam.org.il',
+      address: 'רחוב בן יהודה 20, ירושלים',
     },
-  });
-
-  console.log('Creating regular users...');
-
-  // Regular users
-  const user1 = await prisma.user.create({
-    data: {
-      organizationId: demoOrg.id,
-      phone: '0501234571',
-      fullName: 'יוסף כהן',
-      systemRole: 'USER',
-      isActive: true,
-      registrationCompleted: true,
+    {
+      admin: '0509876543',
+      manager1: '0509876544',
+      manager2: '0509876545',
+      // הערה: 0501234571 קיים גם בעמותה A — הוכחה לייחודיות לפי עמותה
+      users: ['0501234571', '0509876547', '0509876548', '0509876549', '0509876550'],
     },
-  });
-
-  const user2 = await prisma.user.create({
-    data: {
-      organizationId: demoOrg.id,
-      phone: '0501234572',
-      fullName: 'רחל לוי',
-      systemRole: 'USER',
-      isActive: true,
-      registrationCompleted: true,
+    {
+      admin: 'אברהם ניהול',
+      manager1: 'יעקב מנהל קבוצה',
+      manager2: 'לאה מנהלת קבוצה',
+      users: ['חיים דוד', 'דינה שמואל', 'נתן גולד', 'תמר רוזן', 'אלי ברק'],
+      groups: ["קבוצת צפון", "קבוצת דרום"],
+      families: ['משפחת דוד', 'משפחת שמואל', 'משפחת גולד'],
     },
-  });
+  );
 
-  const user3 = await prisma.user.create({
-    data: {
-      organizationId: demoOrg.id,
-      phone: '0501234573',
-      fullName: 'משה ישראלי',
-      systemRole: 'USER',
-      isActive: true,
-      registrationCompleted: true,
-    },
-  });
-
-  const user4 = await prisma.user.create({
-    data: {
-      organizationId: demoOrg.id,
-      phone: '0501234574',
-      fullName: 'מרים אברהם',
-      systemRole: 'USER',
-      isActive: true,
-      registrationCompleted: true,
-    },
-  });
-
-  const user5 = await prisma.user.create({
-    data: {
-      organizationId: demoOrg.id,
-      phone: '0501234575',
-      fullName: 'יצחק שפירו',
-      systemRole: 'USER',
-      isActive: true,
-      registrationCompleted: false, // Unpaid/inactive user
-    },
-  });
-
-  console.log('Creating groups...');
-
-  // Create groups
-  const group1 = await prisma.group.create({
-    data: {
-      organizationId: demoOrg.id,
-      name: 'קבוצה א\'',
-      managerUserId: groupManager.id,
-      isActive: true,
-    },
-  });
-
-  const group2 = await prisma.group.create({
-    data: {
-      organizationId: demoOrg.id,
-      name: 'קבוצה ב\'',
-      managerUserId: groupManager2.id,
-      isActive: true,
-    },
-  });
-
-  console.log('Creating group memberships...');
-
-  // Group 1 memberships
-  await prisma.groupMembership.create({
-    data: {
-      organizationId: demoOrg.id,
-      groupId: group1.id,
-      userId: groupManager.id,
-      status: 'ACTIVE',
-    },
-  });
-
-  await prisma.groupMembership.create({
-    data: {
-      organizationId: demoOrg.id,
-      groupId: group1.id,
-      userId: user1.id,
-      status: 'ACTIVE',
-    },
-  });
-
-  await prisma.groupMembership.create({
-    data: {
-      organizationId: demoOrg.id,
-      groupId: group1.id,
-      userId: user2.id,
-      status: 'ACTIVE',
-    },
-  });
-
-  await prisma.groupMembership.create({
-    data: {
-      organizationId: demoOrg.id,
-      groupId: group1.id,
-      userId: user5.id,
-      status: 'ACTIVE',
-    },
-  });
-
-  // Group 2 memberships
-  await prisma.groupMembership.create({
-    data: {
-      organizationId: demoOrg.id,
-      groupId: group2.id,
-      userId: groupManager2.id,
-      status: 'ACTIVE',
-    },
-  });
-
-  await prisma.groupMembership.create({
-    data: {
-      organizationId: demoOrg.id,
-      groupId: group2.id,
-      userId: user3.id,
-      status: 'ACTIVE',
-    },
-  });
-
-  await prisma.groupMembership.create({
-    data: {
-      organizationId: demoOrg.id,
-      groupId: group2.id,
-      userId: user4.id,
-      status: 'ACTIVE',
-    },
-  });
-
-  console.log('Creating families...');
-
-  const family1 = await prisma.family.create({
-    data: {
-      organizationId: demoOrg.id,
-      groupId: group1.id,
-      familyName: 'משפחת כהן',
-      contactName: 'יעקב כהן',
-      address: 'רחוב ביאליק 5, תל אביב',
-      contactPhone: '0521234567',
-      notes: 'אלרגיה לבוטנים',
-      status: 'active',
-    },
-  });
-
-  const family2 = await prisma.family.create({
-    data: {
-      organizationId: demoOrg.id,
-      groupId: group1.id,
-      familyName: 'משפחת לוי',
-      contactName: 'חנה לוי',
-      address: 'שדרות רוטשילד 10, תל אביב',
-      contactPhone: '0522234567',
-      status: 'active',
-    },
-  });
-
-  const family3 = await prisma.family.create({
-    data: {
-      organizationId: demoOrg.id,
-      groupId: group2.id,
-      familyName: 'משפחת ישראלי',
-      contactName: 'אברהם ישראלי',
-      address: 'רחוב הנביאים 3, ירושלים',
-      contactPhone: '0523234567',
-      notes: 'יש לצלצל לפני הגעה',
-      status: 'active',
-    },
-  });
-
-  const weekKey = getCurrentWeekKey();
-  console.log(`Creating weekly orders for week ${weekKey}...`);
-
-  // Weekly orders for current week
-  await prisma.weeklyOrder.create({
-    data: {
-      organizationId: demoOrg.id,
-      groupId: group1.id,
-      familyId: family1.id,
-      weekKey,
-      createdByUserId: groupManager.id,
-      shoppingListJson: [
-        { item: 'לחם', quantity: 2, unit: 'יחידות' },
-        { item: 'חלב', quantity: 3, unit: 'ליטר' },
-        { item: 'ביצים', quantity: 12, unit: 'יחידות' },
-      ],
-      status: 'COMPLETED',
-    },
-  });
-
-  await prisma.weeklyOrder.create({
-    data: {
-      organizationId: demoOrg.id,
-      groupId: group1.id,
-      familyId: family2.id,
-      weekKey,
-      createdByUserId: groupManager.id,
-      shoppingListJson: [
-        { item: 'קמח', quantity: 1, unit: 'ק"ג' },
-        { item: 'שמן', quantity: 1, unit: 'ליטר' },
-      ],
-      status: 'DRAFT',
-    },
-  });
-
-  await prisma.weeklyOrder.create({
-    data: {
-      organizationId: demoOrg.id,
-      groupId: group2.id,
-      familyId: family3.id,
-      weekKey,
-      createdByUserId: groupManager2.id,
-      shoppingListJson: [
-        { item: 'אורז', quantity: 2, unit: 'ק"ג' },
-        { item: 'פסטה', quantity: 3, unit: 'חבילות' },
-      ],
-      status: 'COMPLETED',
-    },
-  });
-
-  console.log('Creating weekly distributor assignment...');
-
-  // Weekly distributor for current week
-  await prisma.weeklyDistributorAssignment.create({
-    data: {
-      organizationId: demoOrg.id,
-      groupId: group1.id,
-      weekKey,
-      assignedUserId: user1.id,
-      assignedByUserId: groupManager.id,
-    },
-  });
-
-  console.log('Creating payments across 3 months...');
-
-  const currentMonth = getMonthKey(0);
-  const lastMonth = getMonthKey(1);
-  const twoMonthsAgo = getMonthKey(2);
-
-  // Payments for user1 - paid all 3 months
-  const payment1 = await prisma.payment.create({
-    data: {
-      organizationId: demoOrg.id,
-      userId: user1.id,
-      amount: 150,
-      currency: 'ILS',
-      monthKey: currentMonth,
-      paymentDate: new Date(),
-      source: 'bank_transfer',
-      externalTransactionId: `txn-${currentMonth}-user1`,
-      status: 'COMPLETED',
-    },
-  });
-
-  const payment2 = await prisma.payment.create({
-    data: {
-      organizationId: demoOrg.id,
-      userId: user1.id,
-      amount: 150,
-      currency: 'ILS',
-      monthKey: lastMonth,
-      paymentDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-      source: 'bank_transfer',
-      externalTransactionId: `txn-${lastMonth}-user1`,
-      status: 'COMPLETED',
-    },
-  });
-
-  const payment3 = await prisma.payment.create({
-    data: {
-      organizationId: demoOrg.id,
-      userId: user1.id,
-      amount: 150,
-      currency: 'ILS',
-      monthKey: twoMonthsAgo,
-      paymentDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
-      source: 'bank_transfer',
-      externalTransactionId: `txn-${twoMonthsAgo}-user1`,
-      status: 'COMPLETED',
-    },
-  });
-
-  // Payments for user2 - paid last 2 months, not current
-  const payment4 = await prisma.payment.create({
-    data: {
-      organizationId: demoOrg.id,
-      userId: user2.id,
-      amount: 150,
-      currency: 'ILS',
-      monthKey: lastMonth,
-      paymentDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-      source: 'credit_card',
-      externalTransactionId: `txn-${lastMonth}-user2`,
-      status: 'COMPLETED',
-    },
-  });
-
-  const payment5 = await prisma.payment.create({
-    data: {
-      organizationId: demoOrg.id,
-      userId: user2.id,
-      amount: 150,
-      currency: 'ILS',
-      monthKey: twoMonthsAgo,
-      paymentDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
-      source: 'credit_card',
-      externalTransactionId: `txn-${twoMonthsAgo}-user2`,
-      status: 'COMPLETED',
-    },
-  });
-
-  console.log('Creating monthly payment statuses...');
-
-  // Monthly payment statuses - user1
-  await prisma.monthlyPaymentStatus.create({
-    data: {
-      organizationId: demoOrg.id,
-      userId: user1.id,
-      monthKey: currentMonth,
-      isPaid: true,
-      paidAt: new Date(),
-      paymentId: payment1.id,
-      reminderCount: 0,
-    },
-  });
-
-  await prisma.monthlyPaymentStatus.create({
-    data: {
-      organizationId: demoOrg.id,
-      userId: user1.id,
-      monthKey: lastMonth,
-      isPaid: true,
-      paidAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-      paymentId: payment2.id,
-      reminderCount: 0,
-    },
-  });
-
-  await prisma.monthlyPaymentStatus.create({
-    data: {
-      organizationId: demoOrg.id,
-      userId: user1.id,
-      monthKey: twoMonthsAgo,
-      isPaid: true,
-      paidAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
-      paymentId: payment3.id,
-      reminderCount: 0,
-    },
-  });
-
-  // Monthly payment statuses - user2 (unpaid current month)
-  await prisma.monthlyPaymentStatus.create({
-    data: {
-      organizationId: demoOrg.id,
-      userId: user2.id,
-      monthKey: currentMonth,
-      isPaid: false,
-      reminderCount: 1,
-      lastReminderAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-    },
-  });
-
-  await prisma.monthlyPaymentStatus.create({
-    data: {
-      organizationId: demoOrg.id,
-      userId: user2.id,
-      monthKey: lastMonth,
-      isPaid: true,
-      paidAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-      paymentId: payment4.id,
-      reminderCount: 0,
-    },
-  });
-
-  await prisma.monthlyPaymentStatus.create({
-    data: {
-      organizationId: demoOrg.id,
-      userId: user2.id,
-      monthKey: twoMonthsAgo,
-      isPaid: true,
-      paidAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
-      paymentId: payment5.id,
-      reminderCount: 0,
-    },
-  });
-
-  // user3, user4, user5 - unpaid current month
-  await prisma.monthlyPaymentStatus.create({
-    data: {
-      organizationId: demoOrg.id,
-      userId: user3.id,
-      monthKey: currentMonth,
-      isPaid: false,
-      reminderCount: 2,
-      lastReminderAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-    },
-  });
-
-  await prisma.monthlyPaymentStatus.create({
-    data: {
-      organizationId: demoOrg.id,
-      userId: user4.id,
-      monthKey: currentMonth,
-      isPaid: false,
-      reminderCount: 0,
-    },
-  });
-
-  await prisma.monthlyPaymentStatus.create({
-    data: {
-      organizationId: demoOrg.id,
-      userId: user5.id,
-      monthKey: currentMonth,
-      isPaid: false,
-      reminderCount: 0,
-    },
-  });
-
-  console.log('Creating payment reminders...');
-
-  // Payment reminders
-  await prisma.paymentReminder.create({
-    data: {
-      organizationId: demoOrg.id,
-      userId: user2.id,
-      monthKey: currentMonth,
-      reminderNumber: 1,
-      channel: 'PUSH',
-      status: 'SENT',
-      sentAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-    },
-  });
-
-  await prisma.paymentReminder.create({
-    data: {
-      organizationId: demoOrg.id,
-      userId: user3.id,
-      monthKey: currentMonth,
-      reminderNumber: 1,
-      channel: 'PUSH',
-      status: 'SENT',
-      sentAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-    },
-  });
-
-  await prisma.paymentReminder.create({
-    data: {
-      organizationId: demoOrg.id,
-      userId: user3.id,
-      monthKey: currentMonth,
-      reminderNumber: 2,
-      channel: 'WHATSAPP',
-      status: 'SENT',
-      sentAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-    },
-  });
-
-  console.log('Creating notifications...');
-
-  // Notifications
-  await prisma.notification.create({
-    data: {
-      organizationId: demoOrg.id,
-      userId: user1.id,
-      type: 'PAYMENT_RECEIVED',
-      title: 'תשלום התקבל',
-      body: 'תשלום חודשי עבור ' + currentMonth + ' התקבל בהצלחה',
-      channel: 'PUSH',
-      status: 'SENT',
-      sentAt: new Date(),
-      metadataJson: { monthKey: currentMonth },
-    },
-  });
-
-  await prisma.notification.create({
-    data: {
-      organizationId: demoOrg.id,
-      userId: user2.id,
-      type: 'PAYMENT_DUE',
-      title: 'תזכורת תשלום',
-      body: 'תשלום חודשי עבור ' + currentMonth + ' עדיין לא שולם',
-      channel: 'PUSH',
-      status: 'SENT',
-      sentAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-      metadataJson: { monthKey: currentMonth },
-    },
-  });
-
-  await prisma.notification.create({
-    data: {
-      organizationId: demoOrg.id,
-      userId: groupManager.id,
-      type: 'ORDER_CREATED',
-      title: 'הזמנה שבועית',
-      body: 'נדרש ליצור הזמנה שבועית עבור ' + weekKey,
-      channel: 'PUSH',
-      status: 'READ',
-      sentAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      metadataJson: { weekKey },
-    },
-  });
-
-  await prisma.notification.create({
-    data: {
-      organizationId: demoOrg.id,
-      userId: user1.id,
-      type: 'DISTRIBUTION_STARTED',
-      title: 'אתה המחלק השבועי',
-      body: 'הוקצית כמחלק שבועי עבור ' + weekKey,
-      channel: 'PUSH',
-      status: 'SENT',
-      sentAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-      metadataJson: { weekKey, groupId: group1.id },
-    },
-  });
-
-  console.log('Seed completed successfully!');
+  console.log('\n========================================');
+  console.log('Seed הושלם בהצלחה!');
+  console.log('========================================');
   console.log('');
-  console.log('Summary:');
-  console.log(`  SUPER_ADMIN: ${superAdmin.phone} (${superAdmin.fullName})`);
-  console.log(`  Organization: ${demoOrg.name} (${demoOrg.slug})`);
-  console.log(`  Org ADMIN: ${orgAdmin.phone} (${orgAdmin.fullName})`);
-  console.log(`  Group Manager 1: ${groupManager.phone} (${groupManager.fullName})`);
-  console.log(`  Group Manager 2: ${groupManager2.phone} (${groupManager2.fullName})`);
-  console.log(`  Regular users: ${[user1, user2, user3, user4, user5].map(u => u.phone).join(', ')}`);
-  console.log(`  Groups: ${group1.name}, ${group2.name}`);
-  console.log(`  Families: ${family1.familyName}, ${family2.familyName}, ${family3.familyName}`);
-  console.log(`  Current week: ${weekKey}`);
-  console.log(`  Current month: ${currentMonth}`);
+  console.log('סיכום:');
+  console.log(`  סופר אדמין: ${superAdmin.phone} (${superAdmin.fullName})`);
+  console.log('');
+  console.log(`  עמותה A: ${orgA.org.name} (${orgA.org.slug})`);
+  console.log(`    אדמין: ${orgA.admin.phone} (${orgA.admin.fullName})`);
+  console.log(`    מנהל קבוצה 1: ${orgA.manager1.phone} (${orgA.manager1.fullName})`);
+  console.log(`    מנהל קבוצה 2: ${orgA.manager2.phone} (${orgA.manager2.fullName})`);
+  console.log(`    משתמשים: ${orgA.users.map(u => u.phone).join(', ')}`);
+  console.log('');
+  console.log(`  עמותה B: ${orgB.org.name} (${orgB.org.slug})`);
+  console.log(`    אדמין: ${orgB.admin.phone} (${orgB.admin.fullName})`);
+  console.log(`    מנהל קבוצה 1: ${orgB.manager1.phone} (${orgB.manager1.fullName})`);
+  console.log(`    מנהל קבוצה 2: ${orgB.manager2.phone} (${orgB.manager2.fullName})`);
+  console.log(`    משתמשים: ${orgB.users.map(u => u.phone).join(', ')}`);
+  console.log('');
+  console.log('  טלפון משותף (הוכחת ייחודיות לפי עמותה): 0501234571');
+  console.log(`  שבוע נוכחי: ${getCurrentWeekKey()}`);
+  console.log(`  חודש נוכחי: ${getMonthKey(0)}`);
 }
 
 main()
   .catch((e) => {
-    console.error('Seed error:', e);
+    console.error('שגיאת seed:', e);
     process.exit(1);
   })
   .finally(async () => {

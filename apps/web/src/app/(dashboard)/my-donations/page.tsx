@@ -98,7 +98,7 @@ export default function MyDonationsPage() {
 
   if (isLoading) {
     return (
-      <div className="p-8 space-y-6">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-6">
         <div className="card h-64 animate-pulse bg-surface-container" />
       </div>
     );
@@ -106,7 +106,7 @@ export default function MyDonationsPage() {
 
   if (error) {
     return (
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="rounded-lg bg-error-container px-6 py-4 text-on-error-container flex gap-3">
           <AlertCircle className="h-5 w-5 flex-shrink-0" />
           <span>שגיאה בטעינת היסטוריית תשלומים</span>
@@ -121,11 +121,11 @@ export default function MyDonationsPage() {
     payments?.filter((p) => p.status === 'pending').reduce((sum, p) => sum + p.amount, 0) || 0;
 
   return (
-    <div className="p-8 space-y-8 max-w-6xl">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 max-w-6xl">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-headline-lg font-headline mb-2">התרומות שלי</h1>
+          <h1 className="text-headline-md sm:text-headline-lg font-headline mb-1 sm:mb-2">התרומות שלי</h1>
           <p className="text-body-md text-on-surface-variant">היסטוריית תשלומים ותרומות</p>
         </div>
 

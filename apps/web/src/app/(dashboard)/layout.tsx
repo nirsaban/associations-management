@@ -1,7 +1,7 @@
 'use client';
 
 import React, { ReactNode, useEffect, useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/store/auth.store';
 import { useUIStore } from '@/store/ui.store';
 import { Menu, X, LogOut } from 'lucide-react';
@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { api } from '@/lib/api';
 
 const NAVIGATION = {
-  SUPER_ADMIN: [{ label: 'פלטפורמה', href: '/platform-secret/admins' }],
+  SUPER_ADMIN: [{ label: 'פלטפורמה', href: '/platform' }],
   ADMIN: [
     { label: 'בית', href: '/' },
     { label: 'דשבורד ניהול', href: '/admin' },
@@ -18,7 +18,9 @@ const NAVIGATION = {
     { label: 'קבוצות', href: '/admin/groups' },
     { label: 'משפחות', href: '/admin/families' },
     { label: 'תשלומים', href: '/payments' },
-    { label: 'ייבוא CSV', href: '/admin/csv-import' },
+    { label: 'ייבוא משתמשים', href: '/admin/csv-import' },
+    { label: 'ייבוא קבוצות', href: '/admin/groups-import' },
+    { label: 'ייבוא משפחות', href: '/admin/families-import' },
   ],
   USER: [
     { label: 'בית', href: '/' },
@@ -45,12 +47,31 @@ const NAVIGATION = {
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, isAuthenticated } = useAuthStore();
-  const { sidebarOpen, toggleSidebar } = useUIStore();
+  const { sidebarOpen, toggleSidebar, setSidebarOpen } = useUIStore();
   const { logout } = useAuth();
   const [isCheckingSetup, setIsCheckingSetup] = useState(true);
   const [isHydrated, setIsHydrated] = useState(false);
   const hasRedirectedRef = useRef(false);
+
+  // Close sidebar on route change (mobile)
+  useEffect(() => {
+    if (window.innerWidth < 768) {
+      setSidebarOpen(false);
+    }
+  }, [pathname, setSidebarOpen]);
+
+  // Close sidebar on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && sidebarOpen) {
+        setSidebarOpen(false);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [sidebarOpen, setSidebarOpen]);
 
   // Wait for Zustand to hydrate from localStorage
   useEffect(() => {
@@ -81,7 +102,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       // SUPER_ADMIN should go to platform area
       if (user.platformRole === 'SUPER_ADMIN') {
         hasRedirectedRef.current = true;
-        router.replace('/platform-secret/admins');
+        router.replace('/platform');
         return;
       }
 
@@ -151,11 +172,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               key={item.href}
               href={item.href}
               className="block px-4 py-3 rounded-md text-body-md transition-colors hover:bg-primary/10 active:bg-primary/20"
-              onClick={() => {
-                if (window.innerWidth < 768) {
-                  toggleSidebar();
-                }
-              }}
             >
               {item.label}
             </Link>
@@ -176,13 +192,16 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         {/* Header */}
-        <header className="border-b border-outline/30 bg-surface-container-low px-6 py-4 flex items-center justify-between md:justify-start">
+        <header className="border-b border-outline/30 bg-surface-container-low px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between md:justify-start">
           <button
             onClick={toggleSidebar}
-            className="md:hidden p-2 hover:bg-surface-container rounded-md transition-colors"
+            className="md:hidden p-2 hover:bg-surface-container rounded-md transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+            aria-label="תפריט"
           >
             {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
+          <span className="md:hidden text-title-sm font-headline">ניהול עמותות</span>
+          <div className="md:hidden w-10" />
         </header>
 
         {/* Main Area */}

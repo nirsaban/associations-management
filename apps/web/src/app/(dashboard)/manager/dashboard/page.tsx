@@ -46,8 +46,8 @@ export default function ManagerDashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="p-8 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {[1, 2, 3].map((i) => (
             <div key={i} className="card h-32 animate-pulse bg-surface-container" />
           ))}
@@ -58,7 +58,7 @@ export default function ManagerDashboardPage() {
 
   if (error) {
     return (
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="rounded-lg bg-error-container px-6 py-4 text-on-error-container flex gap-3">
           <AlertCircle className="h-5 w-5 flex-shrink-0" />
           <span>שגיאה בטעינת הדשבורד</span>
@@ -72,15 +72,15 @@ export default function ManagerDashboardPage() {
     : 0;
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-headline-lg font-headline mb-2">דשבורד מנהל קבוצה</h1>
-        <p className="text-body-md text-on-surface-variant">ניהול קבוצת {data?.group?.name}</p>
+        <h1 className="text-headline-md sm:text-headline-lg font-headline mb-1 sm:mb-2">דשבורד מנהל קבוצה</h1>
+        <p className="text-body-sm sm:text-body-md text-on-surface-variant">ניהול קבוצת {data?.group?.name}</p>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Members Card */}
         <div className="card-elevated">
           <div className="flex items-start justify-between mb-4">

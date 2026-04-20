@@ -55,8 +55,8 @@ export function UserDashboard() {
 
   if (isLoading) {
     return (
-      <div className="p-8 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="card h-48 animate-pulse bg-surface-container" />
           ))}
@@ -67,7 +67,7 @@ export function UserDashboard() {
 
   if (error) {
     return (
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="rounded-lg bg-error-container px-6 py-4 text-on-error-container flex gap-3">
           <AlertCircle className="h-5 w-5 flex-shrink-0" />
           <span>שגיאה בטעינת הדשבורד</span>
@@ -80,48 +80,48 @@ export function UserDashboard() {
   const isDue = payment?.dueDate && new Date(payment.dueDate) < new Date();
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-headline-lg font-headline mb-2">
+        <h1 className="text-headline-md sm:text-headline-lg font-headline mb-1 sm:mb-2">
           שלום, {context?.user?.fullName || 'משתמש'}
         </h1>
-        <p className="text-body-md text-on-surface-variant">ברוכים הבאים לדשבורד האישי שלך</p>
+        <p className="text-body-sm sm:text-body-md text-on-surface-variant">ברוכים הבאים לדשב��רד האישי שלך</p>
       </div>
 
       {/* Weekly Distributor Notice - High Priority */}
       {context?.weeklyDistributor?.isDistributorThisWeek && (
         <div className="card-elevated border-2 border-primary bg-primary-container/30">
-          <div className="flex items-start gap-4">
-            <div className="p-3 rounded-full bg-primary">
-              <TruckIcon className="h-8 w-8 text-on-primary" />
+          <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
+            <div className="p-2 sm:p-3 rounded-full bg-primary">
+              <TruckIcon className="h-6 w-6 sm:h-8 sm:w-8 text-on-primary" />
             </div>
-            <div className="flex-1">
-              <h2 className="text-headline-md font-headline text-primary mb-2">אתה המחלק השבועי</h2>
-              <p className="text-body-md text-on-surface-variant mb-4">
+            <div className="flex-1 w-full">
+              <h2 className="text-headline-sm sm:text-headline-md font-headline text-primary mb-1 sm:mb-2">את�� המחלק השבועי</h2>
+              <p className="text-body-sm sm:text-body-md text-on-surface-variant mb-3 sm:mb-4">
                 שובץ לך תפקיד חלוקה עבור קבוצת {context.weeklyDistributor.groupName} השבוע
               </p>
-              <div className="flex items-center gap-4 mb-4">
-                <div className="px-4 py-2 rounded-lg bg-surface-container">
+              <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
+                <div className="px-3 sm:px-4 py-2 rounded-lg bg-surface-container">
                   <p className="text-label-sm text-on-surface-variant">שבוע</p>
-                  <p className="text-body-md font-medium">{context.weeklyDistributor.weekKey}</p>
+                  <p className="text-body-sm sm:text-body-md font-medium">{context.weeklyDistributor.weekKey}</p>
                 </div>
-                <div className="px-4 py-2 rounded-lg bg-surface-container">
-                  <p className="text-label-sm text-on-surface-variant">משפחות</p>
-                  <p className="text-body-md font-medium">
+                <div className="px-3 sm:px-4 py-2 rounded-lg bg-surface-container">
+                  <p className="text-label-sm text-on-surface-variant">משפחו��</p>
+                  <p className="text-body-sm sm:text-body-md font-medium">
                     {context.weeklyDistributor.familyCount}
                   </p>
                 </div>
               </div>
-              <Link href="/distributor/current" className="btn-primary inline-block">
-                צפייה בפרטי החלוקה
+              <Link href="/distributor/current" className="btn-primary inline-block w-full sm:w-auto text-center">
+                צפייה בפר��י החלוקה
               </Link>
             </div>
           </div>
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         {/* Profile Summary Card */}
         <div className="card-elevated">
           <div className="flex items-start gap-4 mb-4">
@@ -290,8 +290,8 @@ export function UserDashboard() {
 
       {/* Quick Links */}
       <div>
-        <h2 className="text-headline-md font-headline mb-4">קישורים מהירים</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <h2 className="text-headline-sm sm:text-headline-md font-headline mb-3 sm:mb-4">קישור��ם מהירים</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           <Link href="/my-donations" className="card hover:shadow-lg transition-shadow">
             <CreditCard className="h-8 w-8 text-primary mb-3" />
             <h3 className="text-title-md font-medium mb-2">התרומות שלי</h3>

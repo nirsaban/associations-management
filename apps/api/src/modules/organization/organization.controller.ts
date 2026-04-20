@@ -15,6 +15,9 @@ import { Roles } from '@common/decorators/roles.decorator';
 import { CurrentUser, type CurrentUser as ICurrentUser } from '@common/decorators/current-user.decorator';
 import { OrganizationService } from './organization.service';
 import { SetupOrganizationDto } from './dto/setup-organization.dto';
+import { OnboardingStep1Dto } from './dto/onboarding-step1.dto';
+import { OnboardingStep2Dto } from './dto/onboarding-step2.dto';
+import { OnboardingStep3Dto } from './dto/onboarding-step3.dto';
 import { OrganizationResponseDto } from '@modules/platform/dto/organization-response.dto';
 
 @ApiTags('Organization')
@@ -25,7 +28,7 @@ export class OrganizationController {
   constructor(private readonly organizationService: OrganizationService) {}
 
   @Get('me')
-  @Roles('admin')
+  @Roles('ADMIN')
   @ApiOperation({
     summary: 'Get my organization',
     description: 'Get current user\'s organization details (ADMIN only)',
@@ -46,7 +49,7 @@ export class OrganizationController {
   }
 
   @Patch('me/setup')
-  @Roles('admin')
+  @Roles('ADMIN')
   @HttpCode(200)
   @ApiOperation({
     summary: 'Complete organization setup',
@@ -69,8 +72,74 @@ export class OrganizationController {
     return { data: organization };
   }
 
+  @Patch('me/onboarding/step-1')
+  @Roles('ADMIN')
+  @HttpCode(200)
+  @ApiOperation({
+    summary: 'Onboarding step 1 — organization details',
+    description: 'Save name, address, logo, description',
+  })
+  async onboardingStep1(
+    @CurrentUser() user: ICurrentUser,
+    @Body() dto: OnboardingStep1Dto,
+  ): Promise<{ data: OrganizationResponseDto }> {
+    if (!user.organizationId) {
+      throw new BadRequestException('User is not associated with an organization');
+    }
+    const organization = await this.organizationService.saveOnboardingStep1(
+      user.id,
+      user.organizationId,
+      dto,
+    );
+    return { data: organization };
+  }
+
+  @Patch('me/onboarding/step-2')
+  @Roles('ADMIN')
+  @HttpCode(200)
+  @ApiOperation({
+    summary: 'Onboarding step 2 — payment info',
+    description: 'Save payment link and description',
+  })
+  async onboardingStep2(
+    @CurrentUser() user: ICurrentUser,
+    @Body() dto: OnboardingStep2Dto,
+  ): Promise<{ data: OrganizationResponseDto }> {
+    if (!user.organizationId) {
+      throw new BadRequestException('User is not associated with an organization');
+    }
+    const organization = await this.organizationService.saveOnboardingStep2(
+      user.id,
+      user.organizationId,
+      dto,
+    );
+    return { data: organization };
+  }
+
+  @Patch('me/onboarding/step-3')
+  @Roles('ADMIN')
+  @HttpCode(200)
+  @ApiOperation({
+    summary: 'Onboarding step 3 — contact info (completes setup)',
+    description: 'Save contact details and set setupCompleted=true',
+  })
+  async onboardingStep3(
+    @CurrentUser() user: ICurrentUser,
+    @Body() dto: OnboardingStep3Dto,
+  ): Promise<{ data: OrganizationResponseDto }> {
+    if (!user.organizationId) {
+      throw new BadRequestException('User is not associated with an organization');
+    }
+    const organization = await this.organizationService.saveOnboardingStep3(
+      user.id,
+      user.organizationId,
+      dto,
+    );
+    return { data: organization };
+  }
+
   @Post('me/logo')
-  @Roles('admin')
+  @Roles('ADMIN')
   @ApiOperation({
     summary: 'Upload organization logo',
     description: 'Upload logo for current organization (ADMIN only). Expects logoUrl in body.',

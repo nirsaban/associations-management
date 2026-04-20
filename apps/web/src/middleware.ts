@@ -24,6 +24,7 @@ const PUBLIC_ROUTES = ['/login'];
 
 // Route prefixes only accessible to SUPER_ADMIN
 const PLATFORM_ROUTE_PREFIX = '/platform-secret';
+const PLATFORM_NEW_PREFIX = '/platform';
 
 // Route prefixes for the org setup wizard (ADMIN only)
 const SETUP_ROUTE_PREFIX = '/setup';
@@ -81,7 +82,7 @@ export function middleware(request: NextRequest) {
   if (isPublicRoute(pathname)) {
     // Redirect already-authenticated users away from /login
     if (isAuthenticated) {
-      const dest = isSuperAdmin ? '/platform-secret/admins' : '/';
+      const dest = isSuperAdmin ? '/platform' : '/';
       return NextResponse.redirect(new URL(dest, request.url));
     }
     return NextResponse.next();
@@ -93,17 +94,17 @@ export function middleware(request: NextRequest) {
   }
 
   // ── SUPER_ADMIN routing ────────────────────────────────────────────────────
-  // SUPER_ADMIN must stay in /platform-secret; everywhere else redirects them back.
+  // SUPER_ADMIN can access /platform-secret and /platform; everywhere else redirects them back.
   if (isSuperAdmin) {
-    if (!pathname.startsWith(PLATFORM_ROUTE_PREFIX)) {
-      return NextResponse.redirect(new URL('/platform-secret/admins', request.url));
+    if (!pathname.startsWith(PLATFORM_ROUTE_PREFIX) && !pathname.startsWith(PLATFORM_NEW_PREFIX)) {
+      return NextResponse.redirect(new URL('/platform', request.url));
     }
     return NextResponse.next();
   }
 
   // ── Regular users / admins ─────────────────────────────────────────────────
-  // They must NOT reach /platform-secret
-  if (pathname.startsWith(PLATFORM_ROUTE_PREFIX)) {
+  // They must NOT reach /platform-secret or /platform
+  if (pathname.startsWith(PLATFORM_ROUTE_PREFIX) || pathname.startsWith(PLATFORM_NEW_PREFIX)) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 

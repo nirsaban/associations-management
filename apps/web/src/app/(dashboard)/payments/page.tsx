@@ -100,7 +100,7 @@ export default function PaymentsPage() {
 
   if (!isAdmin) {
     return (
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="rounded-lg bg-error-container px-6 py-4 text-on-error-container">
           <p>גישה מוגבלת - דף זה מיועד למנהלים בלבד</p>
         </div>
@@ -110,7 +110,7 @@ export default function PaymentsPage() {
 
   if (error) {
     return (
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="rounded-lg bg-error-container px-6 py-4 text-on-error-container flex gap-3">
           <AlertCircle className="h-5 w-5 flex-shrink-0" />
           <span>שגיאה בטעינת התשלומים</span>
@@ -120,7 +120,7 @@ export default function PaymentsPage() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 lg:p-8">
       {/* Header */}
       <div className="mb-8 flex items-center justify-between gap-4">
         <div>

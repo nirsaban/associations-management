@@ -134,7 +134,7 @@ export default function AdminUsersPage() {
 
   if (user?.systemRole !== 'ADMIN') {
     return (
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="rounded-lg bg-error-container px-6 py-4 text-on-error-container">
           <p>גישה מוגבלת</p>
         </div>
@@ -144,7 +144,7 @@ export default function AdminUsersPage() {
 
   if (error) {
     return (
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="rounded-lg bg-error-container px-6 py-4 text-on-error-container flex gap-3">
           <AlertCircle className="h-5 w-5 flex-shrink-0" />
           <span>שגיאה בטעינת משתמשים</span>
@@ -154,12 +154,12 @@ export default function AdminUsersPage() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 lg:p-8">
       {/* Header */}
-      <div className="mb-8 flex items-center justify-between gap-4">
+      <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-headline-md font-headline mb-2">משתמשים</h1>
-          <p className="text-body-md text-on-surface-variant">
+          <h1 className="text-headline-sm sm:text-headline-md font-headline mb-1 sm:mb-2">משתמשים</h1>
+          <p className="text-body-sm sm:text-body-md text-on-surface-variant">
             ניהול משתמשים במערכת ({total} סה"כ)
           </p>
         </div>
@@ -168,7 +168,7 @@ export default function AdminUsersPage() {
             setShowCreateModal(true);
             setCreateError('');
           }}
-          className="btn-primary flex items-center gap-2"
+          className="btn-primary flex items-center justify-center gap-2 w-full sm:w-auto"
         >
           <Plus className="h-5 w-5" />
           הוסף משתמש
@@ -199,7 +199,56 @@ export default function AdminUsersPage() {
         </div>
       ) : (
         <>
-          <div className="overflow-x-auto rounded-lg border border-outline/30">
+          {/* Mobile cards */}
+          <div className="space-y-3 md:hidden">
+            {users.length === 0 ? (
+              <div className="text-center py-12 text-on-surface-variant">לא נמצאו משתמשים</div>
+            ) : (
+              users.map((u) => (
+                <div key={u.id} className="rounded-lg border border-outline/30 p-4 space-y-3">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-body-md font-medium">{u.fullName || '—'}</p>
+                      <p className="text-body-sm text-on-surface-variant" dir="ltr">{u.phone}</p>
+                    </div>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => openEditModal(u)}
+                        className="p-2 hover:bg-surface-container rounded-md text-secondary min-h-[44px] min-w-[44px] flex items-center justify-center"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => setDeletingUser(u)}
+                        className="p-2 hover:bg-surface-container rounded-md text-error min-h-[44px] min-w-[44px] flex items-center justify-center"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="inline-block px-3 py-1 rounded-full bg-primary-container/20 text-primary text-label-sm font-medium">
+                      {ROLE_LABELS[u.systemRole] || u.systemRole}
+                    </span>
+                    {u.isActive ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-success-container text-on-success-container text-label-sm">
+                        <CheckCircle className="h-3 w-3" />
+                        פעיל
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-error-container text-on-error-container text-label-sm">
+                        <XCircle className="h-3 w-3" />
+                        לא פעיל
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Desktop table */}
+          <div className="hidden md:block overflow-x-auto rounded-lg border border-outline/30">
             <table className="w-full">
               <thead className="border-b border-outline/30 bg-surface-container-low">
                 <tr>
@@ -278,22 +327,22 @@ export default function AdminUsersPage() {
           </div>
 
           {/* Pagination */}
-          <div className="mt-6 flex items-center justify-between">
+          <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
             <p className="text-body-sm text-on-surface-variant">
               עמוד {page} מתוך {totalPages} ({total} משתמשים)
             </p>
-            <div className="flex gap-2">
+            <div className="flex gap-2 w-full sm:w-auto">
               <button
                 onClick={() => setPage(Math.max(1, page - 1))}
                 disabled={page === 1}
-                className="btn-outline px-4 py-2 disabled:opacity-50"
+                className="btn-outline px-4 py-2 disabled:opacity-50 flex-1 sm:flex-none"
               >
                 הקודם
               </button>
               <button
                 onClick={() => setPage(Math.min(totalPages, page + 1))}
                 disabled={page >= totalPages}
-                className="btn-outline px-4 py-2 disabled:opacity-50"
+                className="btn-outline px-4 py-2 disabled:opacity-50 flex-1 sm:flex-none"
               >
                 הבא
               </button>
@@ -304,8 +353,8 @@ export default function AdminUsersPage() {
 
       {/* Create User Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-surface rounded-lg max-w-md w-full shadow-xl">
+        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+          <div className="bg-surface rounded-t-2xl sm:rounded-lg max-w-md w-full shadow-xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-outline/20">
               <h2 className="text-headline-sm font-headline">הוסף משתמש חדש</h2>
               <button
@@ -382,8 +431,8 @@ export default function AdminUsersPage() {
 
       {/* Edit User Modal */}
       {editingUser && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-surface rounded-lg max-w-md w-full shadow-xl">
+        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+          <div className="bg-surface rounded-t-2xl sm:rounded-lg max-w-md w-full shadow-xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-outline/20">
               <h2 className="text-headline-sm font-headline">עריכת משתמש</h2>
               <button
@@ -448,8 +497,8 @@ export default function AdminUsersPage() {
 
       {/* Delete Confirmation Modal */}
       {deletingUser && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-surface rounded-lg max-w-sm w-full shadow-xl p-6">
+        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+          <div className="bg-surface rounded-t-2xl sm:rounded-lg max-w-sm w-full shadow-xl p-6">
             <h2 className="text-headline-sm font-headline mb-4">מחיקת משתמש</h2>
             <p className="text-body-md text-on-surface-variant mb-6">
               האם אתה בטוח שברצונך למחוק את {deletingUser.fullName || deletingUser.phone}? פעולה זו

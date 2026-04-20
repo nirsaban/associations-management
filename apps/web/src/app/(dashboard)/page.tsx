@@ -21,7 +21,7 @@ export default function DashboardPage() {
   // SUPER_ADMIN redirect handled before any API call
   useEffect(() => {
     if (user?.platformRole === 'SUPER_ADMIN') {
-      router.replace('/platform-secret/admins');
+      router.replace('/platform');
     }
   }, [user, router]);
 
@@ -43,7 +43,7 @@ export default function DashboardPage() {
 
   if (!user) {
     return (
-      <div className="p-8 flex items-center justify-center">
+      <div className="p-4 sm:p-6 lg:p-8 flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-body-md text-on-surface-variant">טוען...</p>
@@ -54,7 +54,7 @@ export default function DashboardPage() {
 
   if (user.platformRole === 'SUPER_ADMIN') {
     return (
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <p className="text-body-md text-on-surface-variant">מנהל פלטפורמה - מפנה לממשק ניהול...</p>
       </div>
     );

@@ -11,7 +11,7 @@ export function ManagerDashboard() {
 
   if (isLoading) {
     return (
-      <div className="p-8 space-y-6">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-6">
         <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="card h-24 animate-pulse bg-surface-container" />
@@ -23,7 +23,7 @@ export function ManagerDashboard() {
 
   if (error) {
     return (
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="rounded-lg bg-error-container px-6 py-4 text-on-error-container flex gap-3">
           <AlertCircle className="h-5 w-5 flex-shrink-0" />
           <span>שגיאה בטעינת הדשבורד</span>
@@ -33,7 +33,7 @@ export function ManagerDashboard() {
   }
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
       {/* Header */}
       <div>
         <h1 className="text-headline-md font-headline mb-2">{data?.groupName || 'הקבוצה שלי'}</h1>

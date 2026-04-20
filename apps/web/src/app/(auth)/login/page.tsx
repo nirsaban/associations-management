@@ -6,6 +6,7 @@ import { useAuthStore } from '@/store/auth.store';
 import { PhoneForm } from './_components/PhoneForm';
 import { OrganizationSelection } from './_components/OrganizationSelection';
 import { OtpVerification } from './_components/OtpVerification';
+import { BiometryLogin } from './_components/BiometryLogin';
 
 type Organization = {
   id: string;
@@ -79,6 +80,7 @@ export default function LoginPage() {
                   הקלד את מספר הטלפון שלך כדי להתחיל
                 </p>
               </div>
+              <BiometryLogin onFallbackToOtp={() => { /* already on phone step */ }} />
               <PhoneForm onSuccess={handlePhoneSuccess} />
             </div>
           )}

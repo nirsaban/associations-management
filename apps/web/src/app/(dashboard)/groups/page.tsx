@@ -13,7 +13,7 @@ export default function GroupsPage() {
 
   if (isLoading) {
     return (
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="card h-20 animate-pulse bg-surface-container" />
@@ -25,7 +25,7 @@ export default function GroupsPage() {
 
   if (error) {
     return (
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="rounded-lg bg-error-container px-6 py-4 text-on-error-container flex gap-3">
           <AlertCircle className="h-5 w-5 flex-shrink-0" />
           <span>שגיאה בטעינת הקבוצות</span>
@@ -35,7 +35,7 @@ export default function GroupsPage() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-headline-md font-headline mb-2">קבוצות</h1>
@@ -56,7 +56,7 @@ export default function GroupsPage() {
           <p className="text-body-sm text-on-surface-variant">התחל ביצירת קבוצה חדשה</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {groups.map((group) => (
             <Link
               key={group.id}
