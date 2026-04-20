@@ -1,0 +1,83 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: amutot-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-amutot}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-amutot_db}
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5433:5432"
+    networks:
+      - miltech-association-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-amutot} -d ${POSTGRES_DB:-amutot_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    image: ghcr.io/nirsaban/amutot-backend:${IMAGE_TAG:-latest}
+    container_name: amutot-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      GREEN_API_INSTANCE: ${GREEN_API_INSTANCE}
+      GREEN_API_TOKEN: ${GREEN_API_TOKEN}
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY}
+      VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:admin@amutot.cloud}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - miltech-association-net
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  frontend:
+    image: ghcr.io/nirsaban/amutot-frontend:${IMAGE_TAG:-latest}
+    container_name: amutot-frontend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      NEXT_PUBLIC_API_URL: /api
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - miltech-association-net
+
+  nginx:
+    image: nginx:alpine
+    container_name: amutot-nginx
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:3100:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - miltech-association-net
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  miltech-association-net:
+    driver: bridge

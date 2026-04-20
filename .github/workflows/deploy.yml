@@ -1,0 +1,108 @@
+name: Build & Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  BACKEND_IMAGE: ghcr.io/${{ github.repository_owner }}/amutot-backend
+  FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/amutot-frontend
+
+jobs:
+  build-backend:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push backend
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile.backend
+          push: true
+          tags: |
+            ${{ env.BACKEND_IMAGE }}:latest
+            ${{ env.BACKEND_IMAGE }}:${{ github.sha }}
+
+  build-frontend:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile.frontend
+          push: true
+          tags: |
+            ${{ env.FRONTEND_IMAGE }}:latest
+            ${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [build-backend, build-frontend]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          known_hosts: unnecessary
+          config: |
+            Host production
+              HostName ${{ secrets.DEPLOY_SSH_HOST }}
+              User ${{ secrets.DEPLOY_SSH_USER }}
+              StrictHostKeyChecking no
+
+      - name: Copy compose and nginx config to server
+        run: |
+          scp docker-compose.prod.yml production:/opt/miltech-association/docker-compose.prod.yml
+          scp docker/nginx.conf production:/opt/miltech-association/nginx.conf
+
+      - name: Deploy on server
+        run: |
+          ssh production << 'ENDSSH'
+            cd /opt/miltech-association
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d
+            echo "Waiting for backend to be healthy..."
+            sleep 15
+            docker compose -f docker-compose.prod.yml exec -T backend npx prisma migrate deploy --schema=./prisma/schema.prisma || true
+            docker image prune -f --filter "label!=com.docker.compose.project=miluim" --filter "label!=com.docker.compose.project=evolution-api"
+          ENDSSH
+
+      - name: Health check
+        run: |
+          sleep 10
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://${{ secrets.DEPLOY_SSH_HOST }}:3100/health || echo "000")
+          if [ "$STATUS" != "200" ]; then
+            echo "Health check failed with status $STATUS"
+            ssh production "cd /opt/miltech-association && docker compose -f docker-compose.prod.yml logs --tail=50"
+            exit 1
+          fi
+          echo "Health check passed!"

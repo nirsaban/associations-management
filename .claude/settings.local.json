@@ -67,7 +67,8 @@
       "Bash(find /Users/Nir.Saban/Documents/Claude/Projects/amutot/apps/web/src/app -name \"_components\" -type d -exec find {} -type f \\\\;)",
       "Bash(node:*)",
       "Bash(brew install:*)",
-      "Bash(sshpass:*)"
+      "Bash(sshpass:*)",
+      "Bash(chmod +x /Users/Nir.Saban/Documents/Claude/Projects/amutot/deploy/server-bootstrap.sh)"
     ]
   }
 }
