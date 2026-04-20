@@ -376,3 +376,11 @@ html[dir='rtl'] input[type='search'] {
 html[dir='rtl'] .icon-flip-rtl {
   transform: scaleX(-1);
 }
+
+/* ============================================================
+   SAFE AREA — bottom padding for notched phones (PWA)
+   ============================================================ */
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}

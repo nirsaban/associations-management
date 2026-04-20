@@ -64,7 +64,10 @@
       "Bash(node -e 'const { PrismaClient } = require\\('\\\\''@prisma/client'\\\\''\\); const p = new PrismaClient\\(\\); p.user.findMany\\({where:{phone:{contains:'\\\\''501234571'\\\\''}},select:{phone:true,organizationId:true}}\\).then\\(r => {console.log\\(JSON.stringify\\(r\\)\\);p.$disconnect\\(\\)}\\)')",
       "Bash(node -e ':*)",
       "Bash(npm install:*)",
-      "Bash(find /Users/Nir.Saban/Documents/Claude/Projects/amutot/apps/web/src/app -name \"_components\" -type d -exec find {} -type f \\\\;)"
+      "Bash(find /Users/Nir.Saban/Documents/Claude/Projects/amutot/apps/web/src/app -name \"_components\" -type d -exec find {} -type f \\\\;)",
+      "Bash(node:*)",
+      "Bash(brew install:*)",
+      "Bash(sshpass:*)"
     ]
   }
 }

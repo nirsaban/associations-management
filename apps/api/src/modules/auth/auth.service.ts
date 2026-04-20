@@ -34,8 +34,16 @@ export class AuthService {
     private readonly greenApiService: GreenApiService,
   ) {}
 
+  private normalizePhoneToLocal(phone: string): string {
+    let trimmed = phone.trim().replace(/\s+/g, '').replace(/-/g, '');
+    if (/^[5-9]\d{7,8}$/.test(trimmed)) trimmed = '0' + trimmed;
+    if (trimmed.startsWith('+972')) return '0' + trimmed.slice(4);
+    if (trimmed.startsWith('972')) return '0' + trimmed.slice(3);
+    return trimmed;
+  }
+
   async login(loginDto: LoginDto): Promise<LoginResponseDto> {
-    const { phone } = loginDto;
+    const phone = this.normalizePhoneToLocal(loginDto.phone);
 
     this.logger.log(`Login attempt for phone: ${this.maskPhoneNumber(phone)}`);
 
@@ -115,7 +123,8 @@ export class AuthService {
   }
 
   async verifyOtp(verifyOtpDto: VerifyOtpDto): Promise<TokenResponseDto> {
-    const { phone, otp, organizationId, sessionId } = verifyOtpDto;
+    const phone = this.normalizePhoneToLocal(verifyOtpDto.phone);
+    const { otp, organizationId, sessionId } = verifyOtpDto;
 
     this.logger.log(`OTP verification for phone: ${this.maskPhoneNumber(phone)}`);
 

@@ -13,19 +13,18 @@ export class GreenApiService {
   private readonly logger = new Logger(GreenApiService.name);
   private readonly instanceId: string;
   private readonly token: string;
-  private readonly baseUrl: string | null;
+  private readonly apiUrl: string;
   private readonly enabled: boolean;
 
   constructor(private readonly configService: ConfigService) {
     this.instanceId = this.configService.get<string>('GREEN_API_INSTANCE_ID') || '';
     this.token = this.configService.get<string>('GREEN_API_TOKEN') || '';
+    this.apiUrl = this.configService.get<string>('GREEN_API_URL') || '';
     this.enabled = this.configService.get<string>('GREEN_API_ENABLED') === 'true';
 
-    if (this.enabled && this.instanceId && this.token) {
-      this.baseUrl = `https://api.green-api.com/waInstance${this.instanceId}`;
+    if (this.enabled && this.instanceId && this.token && this.apiUrl) {
       this.logger.log('Green API service initialized');
     } else {
-      this.baseUrl = null;
       this.logger.warn('Green API not configured - OTP will be logged to console only');
     }
   }
@@ -39,7 +38,7 @@ export class GreenApiService {
     const message = `קוד האימות שלך: ${otp}\n\nהקוד תקף ל-5 דקות.\n\n🔐 ניהול עמותות`;
 
     // If Green API is not enabled, just log the OTP
-    if (!this.enabled) {
+    if (!this.enabled || !this.apiUrl) {
       this.logger.log(`[DEV MODE] OTP for ${this.maskPhone(phone)}: ${otp}`);
       return;
     }
@@ -48,7 +47,7 @@ export class GreenApiService {
       // Format phone for WhatsApp: remove leading 0, add 972 (Israel country code)
       const formattedPhone = this.formatPhoneForWhatsApp(phone);
 
-      const endpoint = `${this.baseUrl}/sendMessage/${this.token}`;
+      const endpoint = `${this.apiUrl}/waInstance${this.instanceId}/sendMessage/${this.token}`;
 
       const response = await axios.post(endpoint, {
         chatId: `${formattedPhone}@c.us`, // WhatsApp chat ID format
@@ -74,15 +73,21 @@ export class GreenApiService {
 
   /**
    * Format Israeli phone number for WhatsApp
-   * @param phone Israeli phone (05XXXXXXXX)
-   * @returns WhatsApp format (972XXXXXXXXX)
+   * @param phone Israeli phone (05XXXXXXXX or 050-1234567)
+   * @returns WhatsApp format (972XXXXXXXXX) — no +, no dashes
    */
   private formatPhoneForWhatsApp(phone: string): string {
+    // Strip any dashes, spaces, or plus sign
+    let cleaned = phone.replace(/[-\s+]/g, '');
     // Remove leading 0 and add Israel country code 972
-    if (phone.startsWith('0')) {
-      return `972${phone.substring(1)}`;
+    if (cleaned.startsWith('0')) {
+      return `972${cleaned.substring(1)}`;
     }
-    return phone;
+    // If already starts with 972, return as-is
+    if (cleaned.startsWith('972')) {
+      return cleaned;
+    }
+    return cleaned;
   }
 
   /**

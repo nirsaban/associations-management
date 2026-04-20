@@ -8,9 +8,9 @@ function normalizePhone(phone: string): string {
   if (/^[5-9]\d{7,8}$/.test(trimmed)) {
     trimmed = '0' + trimmed;
   }
-  if (trimmed.startsWith('+972')) return trimmed;
-  if (trimmed.startsWith('972')) return '+' + trimmed;
-  if (trimmed.startsWith('0')) return '+972' + trimmed.slice(1);
+  // Always store in 0-prefix format
+  if (trimmed.startsWith('+972')) return '0' + trimmed.slice(4);
+  if (trimmed.startsWith('972')) return '0' + trimmed.slice(3);
   return trimmed;
 }
 

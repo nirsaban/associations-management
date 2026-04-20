@@ -10,16 +10,19 @@ interface PushNotificationStepProps {
 export function PushNotificationStep({ onComplete }: PushNotificationStepProps) {
   const [status, setStatus] = useState<'loading' | 'ready' | 'requesting' | 'denied' | 'unsupported' | 'done'>('loading');
   const [error, setError] = useState<string | null>(null);
+  const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
+    // Detect desktop (no touch support + wide screen)
+    const desktop = !('ontouchstart' in window) && window.innerWidth >= 1024;
+    setIsDesktop(desktop);
+
     async function check() {
       if (!isPushSupported()) {
-        // Device doesn't support push — skip this step
         setStatus('unsupported');
         return;
       }
 
-      // Already subscribed?
       const subscribed = await isAlreadySubscribed();
       if (subscribed) {
         setStatus('done');
@@ -95,9 +98,11 @@ export function PushNotificationStep({ onComplete }: PushNotificationStepProps) 
         <p className="text-body-md text-on-surface-variant mt-2">
           כדי לקבל עדכונים חשובים על הזמנות, תשלומים וחלוקות — יש להפעיל התראות.
         </p>
-        <p className="text-body-sm text-on-surface-variant mt-1">
-          שלב זה הוא חובה.
-        </p>
+        {!isDesktop && (
+          <p className="text-body-sm text-on-surface-variant mt-1">
+            שלב זה הוא חובה.
+          </p>
+        )}
       </div>
 
       {status === 'denied' && (
@@ -122,6 +127,15 @@ export function PushNotificationStep({ onComplete }: PushNotificationStepProps) 
       >
         {status === 'requesting' ? 'מפעיל...' : 'הפעל התראות'}
       </button>
+
+      {isDesktop && (
+        <button
+          onClick={onComplete}
+          className="w-full py-2.5 text-body-md text-on-surface-variant hover:text-on-surface transition-colors"
+        >
+          דלג — אפעיל מהנייד מאוחר יותר
+        </button>
+      )}
     </div>
   );
 }

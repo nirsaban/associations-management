@@ -3,45 +3,75 @@
 import React, { ReactNode, useEffect, useState, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/store/auth.store';
-import { useUIStore } from '@/store/ui.store';
-import { Menu, X, LogOut } from 'lucide-react';
+import { Menu, LogOut, Home, Users, CreditCard, Upload, Bell, User, Truck, ShoppingCart } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 
+// Full navigation items per role
 const NAVIGATION = {
-  SUPER_ADMIN: [{ label: 'פלטפורמה', href: '/platform' }],
+  SUPER_ADMIN: [{ label: 'פלטפורמה', href: '/platform', icon: Home }],
   ADMIN: [
-    { label: 'בית', href: '/' },
-    { label: 'דשבורד ניהול', href: '/admin' },
-    { label: 'משתמשים', href: '/admin/users' },
-    { label: 'קבוצות', href: '/admin/groups' },
-    { label: 'משפחות', href: '/admin/families' },
-    { label: 'תשלומים', href: '/payments' },
-    { label: 'ייבוא משתמשים', href: '/admin/csv-import' },
-    { label: 'ייבוא קבוצות', href: '/admin/groups-import' },
-    { label: 'ייבוא משפחות', href: '/admin/families-import' },
+    { label: 'בית', href: '/', icon: Home },
+    { label: 'דשבורד ניהול', href: '/admin', icon: CreditCard },
+    { label: 'משתמשים', href: '/admin/users', icon: Users },
+    { label: 'קבוצות', href: '/admin/groups', icon: Users },
+    { label: 'משפחות', href: '/admin/families', icon: Home },
+    { label: 'תשלומים', href: '/payments', icon: CreditCard },
+    { label: 'ייבוא משתמשים', href: '/admin/csv-import', icon: Upload },
+    { label: 'ייבוא קבוצות', href: '/admin/groups-import', icon: Upload },
+    { label: 'ייבוא משפחות', href: '/admin/families-import', icon: Upload },
   ],
   USER: [
-    { label: 'בית', href: '/' },
-    { label: 'הקבוצה שלי', href: '/my-group' },
-    { label: 'התרומות שלי', href: '/my-donations' },
-    { label: 'התראות', href: '/notifications' },
-    { label: 'הפרופיל שלי', href: '/profile' },
+    { label: 'בית', href: '/', icon: Home },
+    { label: 'הקבוצה שלי', href: '/my-group', icon: Users },
+    { label: 'התרומות שלי', href: '/my-donations', icon: CreditCard },
+    { label: 'התראות', href: '/notifications', icon: Bell },
+    { label: 'הפרופיל שלי', href: '/profile', icon: User },
   ],
   GROUP_MANAGER: [
-    { label: 'בית', href: '/' },
-    { label: 'דשבורד מנהל', href: '/manager/dashboard' },
-    { label: 'הזמנות שבועיות', href: '/manager/weekly-orders' },
-    { label: 'משפחות', href: '/manager/families' },
-    { label: 'חברי קבוצה', href: '/manager/members' },
-    { label: 'הקבוצה שלי', href: '/my-group' },
-    { label: 'התראות', href: '/notifications' },
+    { label: 'בית', href: '/', icon: Home },
+    { label: 'דשבורד מנהל', href: '/manager/dashboard', icon: CreditCard },
+    { label: 'הזמנות שבועיות', href: '/manager/weekly-orders', icon: ShoppingCart },
+    { label: 'משפחות', href: '/manager/families', icon: Home },
+    { label: 'חברי קבוצה', href: '/manager/members', icon: Users },
+    { label: 'הקבוצה שלי', href: '/my-group', icon: Users },
+    { label: 'התראות', href: '/notifications', icon: Bell },
   ],
   WEEKLY_DISTRIBUTOR: [
-    { label: 'בית', href: '/' },
-    { label: 'חלוקה שבועית', href: '/distributor/current' },
-    { label: 'התראות', href: '/notifications' },
+    { label: 'בית', href: '/', icon: Home },
+    { label: 'חלוקה שבועית', href: '/distributor/current', icon: Truck },
+    { label: 'התראות', href: '/notifications', icon: Bell },
+  ],
+};
+
+// Bottom nav shows max 5 priority items on mobile
+const BOTTOM_NAV = {
+  ADMIN: [
+    { label: 'בית', href: '/', icon: Home },
+    { label: 'דשבורד', href: '/admin', icon: CreditCard },
+    { label: 'משתמשים', href: '/admin/users', icon: Users },
+    { label: 'קבוצות', href: '/admin/groups', icon: Users },
+    { label: 'עוד', href: '__more__', icon: Menu },
+  ],
+  USER: [
+    { label: 'בית', href: '/', icon: Home },
+    { label: 'קבוצה', href: '/my-group', icon: Users },
+    { label: 'תרומות', href: '/my-donations', icon: CreditCard },
+    { label: 'התראות', href: '/notifications', icon: Bell },
+    { label: 'פרופיל', href: '/profile', icon: User },
+  ],
+  GROUP_MANAGER: [
+    { label: 'בית', href: '/', icon: Home },
+    { label: 'דשבורד', href: '/manager/dashboard', icon: CreditCard },
+    { label: 'הזמנות', href: '/manager/weekly-orders', icon: ShoppingCart },
+    { label: 'חברים', href: '/manager/members', icon: Users },
+    { label: 'עוד', href: '__more__', icon: Menu },
+  ],
+  WEEKLY_DISTRIBUTOR: [
+    { label: 'בית', href: '/', icon: Home },
+    { label: 'חלוקה', href: '/distributor/current', icon: Truck },
+    { label: 'התראות', href: '/notifications', icon: Bell },
   ],
 };
 
@@ -49,36 +79,31 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const { user, isAuthenticated } = useAuthStore();
-  const { sidebarOpen, toggleSidebar, setSidebarOpen } = useUIStore();
   const { logout } = useAuth();
   const [isCheckingSetup, setIsCheckingSetup] = useState(true);
   const [isHydrated, setIsHydrated] = useState(false);
   const hasRedirectedRef = useRef(false);
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
 
-  // Close sidebar on route change (mobile)
+  // Close more menu on route change
   useEffect(() => {
-    if (window.innerWidth < 768) {
-      setSidebarOpen(false);
-    }
-  }, [pathname, setSidebarOpen]);
+    setMoreMenuOpen(false);
+  }, [pathname]);
 
-  // Close sidebar on Escape key
+  // Close more menu on Escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && sidebarOpen) {
-        setSidebarOpen(false);
-      }
+      if (e.key === 'Escape') setMoreMenuOpen(false);
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [sidebarOpen, setSidebarOpen]);
+  }, []);
 
   // Wait for Zustand to hydrate from localStorage
   useEffect(() => {
     const unsub = useAuthStore.persist.onFinishHydration(() => {
       setIsHydrated(true);
     });
-    // If already hydrated (e.g. on client-side navigation)
     if (useAuthStore.persist.hasHydrated()) {
       setIsHydrated(true);
     }
@@ -99,14 +124,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         return;
       }
 
-      // SUPER_ADMIN should go to platform area
       if (user.platformRole === 'SUPER_ADMIN') {
         hasRedirectedRef.current = true;
         router.replace('/platform');
         return;
       }
 
-      // ADMIN users must complete setup wizard first
       if (user.systemRole === 'ADMIN' && user.organizationId) {
         try {
           const response = await api.get(`/organization/me`);
@@ -148,40 +171,48 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   // Determine navigation based on role
   let navKey: keyof typeof NAVIGATION = 'USER';
   if (user?.systemRole === 'ADMIN') navKey = 'ADMIN';
-  // Note: GROUP_MANAGER and WEEKLY_DISTRIBUTOR are contextual roles
-  // The homepage context will handle showing manager/distributor dashboards
-  // For navigation, we show USER nav by default (they can navigate to manager pages from dashboard cards)
   const navItems = NAVIGATION[navKey] ?? NAVIGATION.USER;
+  const bottomNavItems = BOTTOM_NAV[navKey as keyof typeof BOTTOM_NAV] ?? BOTTOM_NAV.USER;
+
+  const isActive = (href: string) => {
+    if (href === '/') return pathname === '/';
+    return pathname.startsWith(href);
+  };
 
   return (
     <div className="flex h-screen bg-surface" dir="rtl">
-      {/* Sidebar */}
-      <aside
-        className={`${
-          sidebarOpen ? 'translate-x-0' : 'translate-x-full'
-        } fixed end-0 top-0 z-40 h-full w-64 border-s border-outline/30 bg-surface-container-low transition-transform duration-300 overflow-y-auto md:relative md:translate-x-0`}
-      >
-        <div className="sticky top-0 border-b border-outline/30 bg-surface-container-low px-6 py-6">
+      {/* Desktop Sidebar — hidden on mobile */}
+      <aside className="hidden md:flex md:flex-col md:w-64 border-s border-outline/30 bg-surface-container-low">
+        <div className="border-b border-outline/30 px-6 py-5">
           <h1 className="text-headline-sm font-headline">ניהול עמותות</h1>
           <p className="text-label-sm text-on-surface-variant mt-1">{user?.name || user?.phone}</p>
         </div>
 
-        <nav className="px-4 py-6 space-y-1">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="block px-4 py-3 rounded-md text-body-md transition-colors hover:bg-primary/10 active:bg-primary/20"
-            >
-              {item.label}
-            </Link>
-          ))}
+        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-body-md transition-colors ${
+                  active
+                    ? 'bg-primary/10 text-primary font-medium'
+                    : 'text-on-surface hover:bg-surface-container'
+                }`}
+              >
+                <Icon className="h-5 w-5 flex-shrink-0" />
+                {item.label}
+              </Link>
+            );
+          })}
         </nav>
 
-        <div className="absolute bottom-0 start-0 end-0 border-t border-outline/30 bg-surface-container-low px-4 py-6">
+        <div className="border-t border-outline/30 px-3 py-4">
           <button
             onClick={logout}
-            className="flex w-full items-center justify-center gap-2 rounded-md px-4 py-3 text-body-md text-error hover:bg-error/10 transition-colors"
+            className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-body-md text-error hover:bg-error/10 transition-colors"
           >
             <LogOut className="h-5 w-5" />
             התנתק
@@ -191,26 +222,93 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-        {/* Header */}
-        <header className="border-b border-outline/30 bg-surface-container-low px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between md:justify-start">
+        {/* Top Header — mobile */}
+        <header className="md:hidden border-b border-outline/30 bg-surface-container-low px-4 py-3 flex items-center justify-between">
+          <h1 className="text-title-sm font-headline">ניהול עמותות</h1>
           <button
-            onClick={toggleSidebar}
-            className="md:hidden p-2 hover:bg-surface-container rounded-md transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
-            aria-label="תפריט"
+            onClick={logout}
+            className="p-2 rounded-md text-error hover:bg-error/10 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+            aria-label="התנתק"
           >
-            {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            <LogOut className="h-5 w-5" />
           </button>
-          <span className="md:hidden text-title-sm font-headline">ניהול עמותות</span>
-          <div className="md:hidden w-10" />
         </header>
 
         {/* Main Area */}
-        <main className="flex-1 overflow-auto">{children}</main>
+        <main className="flex-1 overflow-auto pb-16 md:pb-0">{children}</main>
       </div>
 
-      {/* Mobile overlay */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-30 bg-black/50 md:hidden" onClick={toggleSidebar} />
+      {/* Mobile Bottom Navigation */}
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-surface-container-low border-t border-outline/30 safe-area-bottom">
+        <div className="flex items-center justify-around h-16">
+          {bottomNavItems.map((item) => {
+            const Icon = item.icon;
+            if (item.href === '__more__') {
+              return (
+                <button
+                  key="more"
+                  onClick={() => setMoreMenuOpen(!moreMenuOpen)}
+                  className={`flex flex-col items-center justify-center gap-0.5 px-2 py-1 min-w-[64px] rounded-md transition-colors ${
+                    moreMenuOpen ? 'text-primary' : 'text-on-surface-variant'
+                  }`}
+                >
+                  <Icon className="h-5 w-5" />
+                  <span className="text-[10px] font-medium">{item.label}</span>
+                </button>
+              );
+            }
+            const active = isActive(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex flex-col items-center justify-center gap-0.5 px-2 py-1 min-w-[64px] rounded-md transition-colors ${
+                  active ? 'text-primary' : 'text-on-surface-variant'
+                }`}
+              >
+                <div className={`p-1 rounded-full transition-colors ${active ? 'bg-primary/10' : ''}`}>
+                  <Icon className="h-5 w-5" />
+                </div>
+                <span className="text-[10px] font-medium">{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
+
+      {/* "More" menu — slides up from bottom nav on mobile */}
+      {moreMenuOpen && (
+        <>
+          <div
+            className="md:hidden fixed inset-0 z-30 bg-black/50"
+            onClick={() => setMoreMenuOpen(false)}
+          />
+          <div className="md:hidden fixed bottom-16 inset-x-0 z-40 bg-surface-container-lowest rounded-t-2xl shadow-lg border-t border-outline/30 max-h-[60vh] overflow-y-auto safe-area-bottom">
+            <div className="p-2">
+              <div className="w-10 h-1 bg-outline/30 rounded-full mx-auto mb-3" />
+              <nav className="space-y-0.5">
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  const active = isActive(item.href);
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`flex items-center gap-3 px-4 py-3 rounded-lg text-body-md transition-colors ${
+                        active
+                          ? 'bg-primary/10 text-primary font-medium'
+                          : 'text-on-surface hover:bg-surface-container'
+                      }`}
+                    >
+                      <Icon className="h-5 w-5 flex-shrink-0" />
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

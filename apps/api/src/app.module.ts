@@ -32,7 +32,11 @@ import { ActivationModule } from '@modules/activation/activation.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '../../.env',
+      envFilePath: [
+        '.env',
+        'apps/api/.env',
+        '../../.env',
+      ],
     }),
     ThrottlerModule.forRoot([
       {
