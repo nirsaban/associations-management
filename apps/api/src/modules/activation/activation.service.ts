@@ -6,12 +6,10 @@ import {
   verifyRegistrationResponse,
   generateAuthenticationOptions,
   verifyAuthenticationResponse,
+  type RegistrationResponseJSON,
+  type AuthenticationResponseJSON,
+  type AuthenticatorTransportFuture,
 } from '@simplewebauthn/server';
-import type {
-  RegistrationResponseJSON,
-  AuthenticationResponseJSON,
-  AuthenticatorTransportFuture,
-} from '@simplewebauthn/server/script/deps';
 import { PushSubscribeDto } from './dto/push-subscribe.dto';
 import { WebauthnRegisterVerifyDto } from './dto/webauthn-register.dto';
 import { WebauthnAuthenticateOptionsDto, WebauthnAuthenticateVerifyDto } from './dto/webauthn-authenticate.dto';
@@ -253,7 +251,7 @@ export class ActivationService {
         expectedRPID: getRpId(),
         credential: {
           id: credential.credentialId,
-          publicKey: credential.publicKey,
+          publicKey: new Uint8Array(credential.publicKey),
           counter: Number(credential.counter),
           transports: credential.transports as AuthenticatorTransportFuture[],
         },

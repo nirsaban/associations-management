@@ -6,6 +6,16 @@ export const API_ROUTES = {
     REFRESH: '/auth/refresh',
     LOGOUT: '/auth/logout',
   },
+  ACTIVATION: {
+    PUSH_SUBSCRIBE: '/activation/push/subscribe',
+    PUSH_UNSUBSCRIBE: '/activation/push/unsubscribe',
+    VAPID_PUBLIC_KEY: '/activation/push/vapid-public-key',
+    WEBAUTHN_REGISTER_OPTIONS: '/activation/webauthn/register/options',
+    WEBAUTHN_REGISTER_VERIFY: '/activation/webauthn/register/verify',
+    WEBAUTHN_AUTH_OPTIONS: '/activation/webauthn/authenticate/options',
+    WEBAUTHN_AUTH_VERIFY: '/activation/webauthn/authenticate/verify',
+    COMPLETE: '/activation/complete',
+  },
   ORGANIZATION: {
     ME: '/organization/me',
     SETUP: '/organization/me/setup',

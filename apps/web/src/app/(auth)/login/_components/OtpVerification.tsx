@@ -62,8 +62,23 @@ export function OtpVerification({
     try {
       await verifyOtp(phone, data.otp, sessionId, organizationId);
 
-      // Determine landing page based on role
+      // Determine landing page based on role and activation status
       const { user } = useAuthStore.getState();
+
+      // Check activation status from /auth/me
+      try {
+        const { default: api } = await import('@/lib/api');
+        const meRes = await api.get('/auth/me');
+        const meData = meRes.data.data;
+
+        if (!meData.activationCompleted) {
+          console.log('[OTP] Activation not completed, redirecting to activation flow');
+          router.replace('/activation');
+          return;
+        }
+      } catch {
+        // If /auth/me fails, proceed to normal flow
+      }
 
       if (user?.platformRole === 'SUPER_ADMIN') {
         console.log('[OTP] SUPER_ADMIN logged in, going to platform');

@@ -9,7 +9,7 @@ interface BiometryLoginProps {
   onFallbackToOtp: () => void;
 }
 
-export function BiometryLogin({ onFallbackToOtp }: BiometryLoginProps) {
+export function BiometryLogin({ onFallbackToOtp: _onFallbackToOtp }: BiometryLoginProps) {
   const router = useRouter();
   const { setUser, setTokens } = useAuthStore();
   const [supported, setSupported] = useState(false);
@@ -22,13 +22,14 @@ export function BiometryLogin({ onFallbackToOtp }: BiometryLoginProps) {
       const isSupported = await isWebAuthnSupported();
       setSupported(isSupported);
 
-      // Check if there's a saved phone for biometry
+      // Check if there's a saved phone for biometry login
       const phone = localStorage.getItem('amutot_biometry_phone');
       if (phone) setSavedPhone(phone);
     }
     check();
   }, []);
 
+  // Don't render anything if biometry is not available or no saved phone
   if (!supported || !savedPhone) {
     return null;
   }
@@ -46,6 +47,18 @@ export function BiometryLogin({ onFallbackToOtp }: BiometryLoginProps) {
       // Set cookie for middleware
       const secure = window.location.protocol === 'https:';
       document.cookie = `auth_token=${result.accessToken}; path=/; max-age=3600; SameSite=Strict${secure ? '; Secure' : ''}`;
+
+      // Check activation status
+      try {
+        const { default: api } = await import('@/lib/api');
+        const meRes = await api.get('/auth/me');
+        if (!meRes.data.data.activationCompleted) {
+          router.replace('/activation');
+          return;
+        }
+      } catch {
+        // Proceed to normal flow on error
+      }
 
       // Navigate based on role
       const user = result.user as Record<string, unknown>;
@@ -93,13 +106,6 @@ export function BiometryLogin({ onFallbackToOtp }: BiometryLoginProps) {
           <span className="bg-surface px-4 text-body-sm text-on-surface-variant">או</span>
         </div>
       </div>
-
-      <button
-        onClick={onFallbackToOtp}
-        className="btn-ghost w-full py-3 text-title-md"
-      >
-        התחברות עם קוד חד-פעמי
-      </button>
     </div>
   );
 }

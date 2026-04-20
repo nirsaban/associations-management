@@ -39,9 +39,10 @@ export async function subscribeToPush(): Promise<boolean> {
   const registration = await waitForServiceWorker();
 
   // Subscribe
+  const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
   const subscription = await registration.pushManager.subscribe({
     userVisibleOnly: true,
-    applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+    applicationServerKey: applicationServerKey.buffer as ArrayBuffer,
   });
 
   const subJson = subscription.toJSON();

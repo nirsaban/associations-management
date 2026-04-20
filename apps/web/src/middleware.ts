@@ -22,6 +22,9 @@ import type { NextRequest } from 'next/server';
 // Routes that never require authentication
 const PUBLIC_ROUTES = ['/login'];
 
+// Routes that require authentication but are not role-restricted
+const ACTIVATION_ROUTE = '/activation';
+
 // Route prefixes only accessible to SUPER_ADMIN
 const PLATFORM_ROUTE_PREFIX = '/platform-secret';
 const PLATFORM_NEW_PREFIX = '/platform';
@@ -91,6 +94,11 @@ export function middleware(request: NextRequest) {
   // ── Unauthenticated ────────────────────────────────────────────────────────
   if (!isAuthenticated) {
     return NextResponse.redirect(new URL('/login', request.url));
+  }
+
+  // ── Activation flow — all roles allowed ──────────────────────────────────
+  if (pathname.startsWith(ACTIVATION_ROUTE)) {
+    return NextResponse.next();
   }
 
   // ── SUPER_ADMIN routing ────────────────────────────────────────────────────

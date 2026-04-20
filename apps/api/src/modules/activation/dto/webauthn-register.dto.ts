@@ -5,7 +5,7 @@ export class WebauthnRegisterVerifyDto {
   @IsObject()
   @IsNotEmpty()
   @ApiProperty({ description: 'WebAuthn attestation response from browser' })
-  attestation: Record<string, unknown>;
+  attestation!: Record<string, unknown>;
 
   @IsString()
   @IsOptional()

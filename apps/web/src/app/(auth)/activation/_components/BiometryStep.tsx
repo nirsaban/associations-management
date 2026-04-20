@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { isWebAuthnSupported, registerWebAuthn, getDeviceName } from '@/lib/webauthn';
+import { useAuthStore } from '@/store/auth.store';
 
 interface BiometryStepProps {
   onComplete: () => void;
@@ -9,6 +10,7 @@ interface BiometryStepProps {
 }
 
 export function BiometryStep({ onComplete, onSkip }: BiometryStepProps) {
+  const { user } = useAuthStore();
   const [supported, setSupported] = useState<boolean | null>(null);
   const [status, setStatus] = useState<'checking' | 'ready' | 'registering' | 'done' | 'error'>('checking');
   const [error, setError] = useState<string | null>(null);
@@ -41,6 +43,10 @@ export function BiometryStep({ onComplete, onSkip }: BiometryStepProps) {
     try {
       const deviceName = getDeviceName();
       await registerWebAuthn(deviceName);
+      // Save phone for future biometry login
+      if (user?.phone) {
+        localStorage.setItem('amutot_biometry_phone', user.phone);
+      }
       setStatus('done');
       setTimeout(onComplete, 800);
     } catch (err) {

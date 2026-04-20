@@ -5,24 +5,24 @@ class PushKeys {
   @IsString()
   @IsNotEmpty()
   @ApiProperty()
-  p256dh: string;
+  p256dh!: string;
 
   @IsString()
   @IsNotEmpty()
   @ApiProperty()
-  auth: string;
+  auth!: string;
 }
 
 export class PushSubscribeDto {
   @IsString()
   @IsNotEmpty()
   @ApiProperty({ description: 'Push subscription endpoint URL' })
-  endpoint: string;
+  endpoint!: string;
 
   @IsObject()
   @IsNotEmpty()
   @ApiProperty({ type: PushKeys })
-  keys: PushKeys;
+  keys!: PushKeys;
 
   @IsString()
   @IsOptional()
