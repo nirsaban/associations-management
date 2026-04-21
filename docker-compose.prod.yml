@@ -28,8 +28,11 @@ services:
       PORT: "3000"
       DATABASE_URL: ${DATABASE_URL}
       JWT_SECRET: ${JWT_SECRET}
-      GREEN_API_INSTANCE: ${GREEN_API_INSTANCE}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      GREEN_API_URL: ${GREEN_API_URL}
+      GREEN_API_INSTANCE_ID: ${GREEN_API_INSTANCE_ID}
       GREEN_API_TOKEN: ${GREEN_API_TOKEN}
+      GREEN_API_ENABLED: ${GREEN_API_ENABLED:-true}
       VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY}
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY}
       VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:admin@amutot.cloud}
@@ -39,7 +42,7 @@ services:
     networks:
       - miltech-association-net
     healthcheck:
-      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:3000/api/v1').then(r => process.exit(0)).catch(() => process.exit(1))\""]
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3000/', r => process.exit(0)).on('error', () => process.exit(1))\""]
       interval: 10s
       timeout: 5s
       retries: 5

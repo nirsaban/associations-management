@@ -95,10 +95,12 @@ jobs:
       - name: Health check
         run: |
           sleep 20
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 http://${{ secrets.DEPLOY_SSH_HOST }}:3100/health || echo "000")
-          if [ "$STATUS" != "200" ]; then
-            echo "Health check failed with status $STATUS"
-            ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_SSH_USER }}@${{ secrets.DEPLOY_SSH_HOST }} "cd /opt/miltech-association && docker compose -f docker-compose.prod.yml logs --tail=50"
-            exit 1
-          fi
-          echo "Health check passed!"
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_SSH_USER }}@${{ secrets.DEPLOY_SSH_HOST }} '
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 http://localhost:3100/)
+            echo "Health check status: $STATUS"
+            if [ "$STATUS" != "200" ]; then
+              cd /opt/miltech-association && docker compose -f docker-compose.prod.yml logs --tail=30
+              exit 1
+            fi
+            echo "Health check passed!"
+          '
