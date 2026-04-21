@@ -83,4 +83,4 @@ services:
 
 networks:
   miltech-association-net:
-    driver: bridge
+    external: true
