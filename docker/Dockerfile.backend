@@ -15,31 +15,24 @@ COPY apps/api/ apps/api/
 RUN pnpm --filter api prisma:generate
 RUN pnpm --filter api build
 
-# ---- Stage 2: Production deps only ----
-FROM node:20-alpine AS prod-deps
-RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
-WORKDIR /app
+# Use pnpm deploy to create a standalone directory with all resolved deps
+RUN pnpm --filter api deploy --prod /app/deployed
 
-COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
-COPY apps/api/package.json apps/api/package.json
-COPY packages/ packages/
+# Copy built dist and prisma into the deployed directory
+RUN cp -r apps/api/dist /app/deployed/dist
+RUN cp -r prisma /app/deployed/prisma
+RUN cp -r node_modules/.pnpm/@prisma+client*/node_modules/.prisma /app/deployed/node_modules/.prisma 2>/dev/null || true
 
-RUN pnpm install --frozen-lockfile --prod
-# Flatten node_modules for the api package
-RUN cp -rL node_modules node_modules_flat 2>/dev/null || cp -r node_modules node_modules_flat
-
-# ---- Stage 3: Runtime ----
+# ---- Stage 2: Runtime ----
 FROM node:20-alpine AS runner
 RUN apk add --no-cache dumb-init
 WORKDIR /app
 
 ENV NODE_ENV=production
 
-COPY --from=builder /app/apps/api/dist ./dist
-COPY --from=prod-deps /app/node_modules_flat ./node_modules
-COPY --from=builder /app/node_modules/.pnpm/@prisma+client*/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/.pnpm/@prisma+client*/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/deployed/node_modules ./node_modules
+COPY --from=builder /app/deployed/dist ./dist
+COPY --from=builder /app/deployed/prisma ./prisma
 
 EXPOSE 3000
 
