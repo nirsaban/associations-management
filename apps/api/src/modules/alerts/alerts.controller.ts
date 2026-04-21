@@ -50,7 +50,7 @@ export class AlertsController {
   ): Promise<{ data: Alert }> {
     const alert = await this.alertsService.createAlert(
       user.organizationId,
-      user.id,
+      user.id || user.sub,
       dto,
     );
     return { data: alert };

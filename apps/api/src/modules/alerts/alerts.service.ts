@@ -59,7 +59,6 @@ export class AlertsService {
   ): Promise<AlertWithPublisher> {
     const audience = dto.audience ?? AlertAudience.ALL_USERS;
 
-    // Create the alert record
     const alert = await this.prisma.alert.create({
       data: {
         organizationId,
@@ -76,22 +75,26 @@ export class AlertsService {
       },
     });
 
-    // Resolve target subscriptions
-    const subscriptions = await this.resolveSubscriptions(organizationId, audience);
+    // Push notification fan-out is non-critical — never fail the request
+    try {
+      const subscriptions = await this.resolveSubscriptions(organizationId, audience);
 
-    // Update recipientCount synchronously (before fan-out)
-    await this.prisma.alert.update({
-      where: { id: alert.id },
-      data: { recipientCount: subscriptions.length },
-    });
+      await this.prisma.alert.update({
+        where: { id: alert.id },
+        data: { recipientCount: subscriptions.length },
+      });
 
-    // Fire push fan-out asynchronously — do not block the response
-    this.sendPushNotificationsInBackground(alert.id, subscriptions, {
-      type: 'alert',
-      title: dto.title,
-      body: dto.body,
-      url: '/manager',
-    });
+      if (subscriptions.length > 0) {
+        this.sendPushNotificationsInBackground(alert.id, subscriptions, {
+          type: 'alert',
+          title: dto.title,
+          body: dto.body,
+          url: '/manager',
+        });
+      }
+    } catch (err) {
+      this.logger.warn(`Push fan-out failed for alert ${alert.id}, alert was still created`, (err as Error).message);
+    }
 
     return alert;
   }

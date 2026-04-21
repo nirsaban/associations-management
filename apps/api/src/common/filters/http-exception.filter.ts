@@ -14,36 +14,43 @@ interface ErrorResponse {
   statusCode: number;
 }
 
-@Catch(HttpException)
+@Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(HttpExceptionFilter.name);
 
-  catch(exception: HttpException, host: ArgumentsHost): void {
+  catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    const status = exception.getStatus();
-    const exceptionResponse = exception.getResponse();
 
-    this.logger.error(`HTTP Exception: ${status}`, exception.stack);
+    if (exception instanceof HttpException) {
+      const status = exception.getStatus();
+      const exceptionResponse = exception.getResponse();
 
-    let message: string;
-    let error: string;
+      this.logger.error(`HTTP Exception: ${status}`, exception.stack);
 
-    if (typeof exceptionResponse === 'object' && exceptionResponse !== null) {
-      const exObj = exceptionResponse as Record<string, unknown>;
-      message = (exObj.message as string) || exception.message;
-      error = (exObj.error as string) || HttpStatus[status];
-    } else {
-      message = exception.message;
-      error = HttpStatus[status] || 'Unknown Error';
+      let message: string;
+      let error: string;
+
+      if (typeof exceptionResponse === 'object' && exceptionResponse !== null) {
+        const exObj = exceptionResponse as Record<string, unknown>;
+        message = (exObj.message as string) || exception.message;
+        error = (exObj.error as string) || HttpStatus[status];
+      } else {
+        message = exception.message;
+        error = HttpStatus[status] || 'Unknown Error';
+      }
+
+      response.status(status).json({ error, message, statusCode: status } satisfies ErrorResponse);
+      return;
     }
 
-    const errorResponse: ErrorResponse = {
-      error,
-      message,
-      statusCode: status,
-    };
+    const err = exception instanceof Error ? exception : new Error(String(exception));
+    this.logger.error(`Unhandled Exception: ${err.message}`, err.stack);
 
-    response.status(status).json(errorResponse);
+    response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+      error: 'Internal Server Error',
+      message: 'שגיאה פנימית בשרת',
+      statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+    } satisfies ErrorResponse);
   }
 }
