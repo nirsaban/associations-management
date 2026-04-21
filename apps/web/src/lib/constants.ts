@@ -66,6 +66,25 @@ export const API_ROUTES = {
     MANAGER: '/dashboard/manager',
     USER: '/dashboard/user',
   },
+  MANAGER: {
+    GROUP: '/manager/group',
+    WEEKLY_STATUS: '/manager/group/weekly-status',
+    FAMILIES: '/manager/group/families',
+    FAMILY_ORDER: (familyId: string) => `/manager/group/families/${familyId}/weekly-order`,
+    FAMILY_UPDATE: (familyId: string) => `/manager/group/families/${familyId}`,
+    MEMBERS_PAYMENT: '/manager/group/members-and-payment-status',
+    DISTRIBUTOR_WORKLOAD: '/manager/group/distributor-workload',
+    DISTRIBUTOR_ASSIGN: '/manager/group/weekly-distributor',
+    REVENUE: '/manager/group/revenue',
+    DONATION_INFO: '/manager/donation-info',
+    MY_PAYMENTS: '/manager/my-payments',
+  },
+  ALERTS: {
+    ME: '/me/alerts',
+    ADMIN_LIST: '/admin/alerts',
+    ADMIN_CREATE: '/admin/alerts',
+    ADMIN_DELETE: (id: string) => `/admin/alerts/${id}`,
+  },
 };
 
 // Role Labels in Hebrew

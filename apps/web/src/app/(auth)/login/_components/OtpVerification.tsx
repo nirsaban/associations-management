@@ -63,33 +63,41 @@ export function OtpVerification({
       await verifyOtp(phone, data.otp, sessionId, organizationId);
 
       // Determine landing page based on role and activation status
-      const { user } = useAuthStore.getState();
+      const { user, setUser } = useAuthStore.getState();
 
-      // Check activation status from /auth/me
+      // Enrich user with group manager flag from /auth/me
+      let meData: Record<string, unknown> | null = null;
       try {
         const { default: api } = await import('@/lib/api');
         const meRes = await api.get('/auth/me');
-        const meData = meRes.data.data;
+        meData = meRes.data.data;
 
-        if (!meData.activationCompleted) {
-          console.log('[OTP] Activation not completed, redirecting to activation flow');
+        if (!meData?.activationCompleted) {
           router.replace('/activation');
           return;
+        }
+
+        // Persist group info into auth store
+        if (user && meData) {
+          setUser({
+            ...user,
+            isGroupManager: !!meData.isGroupManager,
+            managedGroupId: (meData.managedGroupId as string) ?? null,
+            groupMembershipGroupId: (meData.groupMembershipGroupId as string) ?? null,
+          });
         }
       } catch {
         // If /auth/me fails, proceed to normal flow
       }
 
       if (user?.platformRole === 'SUPER_ADMIN') {
-        console.log('[OTP] SUPER_ADMIN logged in, going to platform');
         router.replace('/platform');
+      } else if (meData?.isGroupManager) {
+        router.replace('/manager/dashboard');
       } else if (user?.systemRole === 'ADMIN') {
-        console.log('[OTP] ADMIN logged in, checking setup status...');
-        // Will be handled by dashboard layout
         router.replace('/');
       } else {
-        console.log('[OTP] USER logged in, going to dashboard');
-        router.replace('/');
+        router.replace('/user/dashboard');
       }
     } catch (err) {
       setError('קוד OTP שגוי. אנא נסה שוב.');

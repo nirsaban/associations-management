@@ -12,6 +12,9 @@ export interface User {
   platformRole?: PlatformRole; // Only set for SUPER_ADMIN
   systemRole: SystemRole;
   organizationId: string | null; // Null for SUPER_ADMIN
+  isGroupManager?: boolean; // true if user has GroupMembership.role=MANAGER
+  managedGroupId?: string | null;
+  groupMembershipGroupId?: string | null; // group the user belongs to (any role)
   createdAt: string;
 }
 

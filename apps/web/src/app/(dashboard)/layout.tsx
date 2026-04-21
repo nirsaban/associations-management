@@ -3,7 +3,7 @@
 import React, { ReactNode, useEffect, useState, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/store/auth.store';
-import { Menu, LogOut, Home, Users, CreditCard, Upload, Bell, User, Truck, ShoppingCart } from 'lucide-react';
+import { Menu, LogOut, Home, Users, CreditCard, Upload, Bell, Truck, ShoppingCart, Heart } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import Link from 'next/link';
 import { api } from '@/lib/api';
@@ -21,21 +21,22 @@ const NAVIGATION = {
     { label: 'ייבוא משתמשים', href: '/admin/csv-import', icon: Upload },
     { label: 'ייבוא קבוצות', href: '/admin/groups-import', icon: Upload },
     { label: 'ייבוא משפחות', href: '/admin/families-import', icon: Upload },
+    { label: 'התראות', href: '/admin/alerts', icon: Bell },
   ],
   USER: [
-    { label: 'בית', href: '/', icon: Home },
-    { label: 'הקבוצה שלי', href: '/my-group', icon: Users },
-    { label: 'התרומות שלי', href: '/my-donations', icon: CreditCard },
+    { label: 'דף הבית', href: '/user/dashboard', icon: Home },
+    { label: 'הקבוצה שלי', href: '/user/my-group', icon: Users },
+    { label: 'המשפחות שלי', href: '/user/families', icon: Heart },
+    { label: 'התרומות שלי', href: '/user/my-donations', icon: CreditCard },
     { label: 'התראות', href: '/notifications', icon: Bell },
-    { label: 'הפרופיל שלי', href: '/profile', icon: User },
   ],
   GROUP_MANAGER: [
-    { label: 'בית', href: '/', icon: Home },
-    { label: 'דשבורד מנהל', href: '/manager/dashboard', icon: CreditCard },
+    { label: 'דף הבית', href: '/manager/dashboard', icon: Home },
+    { label: 'הקבוצה שלי', href: '/manager/my-group', icon: Users },
+    { label: 'המשפחות שלי', href: '/manager/families', icon: Heart },
+    { label: 'התרומות שלי', href: '/manager/my-donations', icon: CreditCard },
     { label: 'הזמנות שבועיות', href: '/manager/weekly-orders', icon: ShoppingCart },
-    { label: 'משפחות', href: '/manager/families', icon: Home },
-    { label: 'חברי קבוצה', href: '/manager/members', icon: Users },
-    { label: 'הקבוצה שלי', href: '/my-group', icon: Users },
+    { label: 'מחלק שבועי', href: '/manager/weekly-distributor', icon: Truck },
     { label: 'התראות', href: '/notifications', icon: Bell },
   ],
   WEEKLY_DISTRIBUTOR: [
@@ -55,17 +56,17 @@ const BOTTOM_NAV = {
     { label: 'עוד', href: '__more__', icon: Menu },
   ],
   USER: [
-    { label: 'בית', href: '/', icon: Home },
-    { label: 'קבוצה', href: '/my-group', icon: Users },
-    { label: 'תרומות', href: '/my-donations', icon: CreditCard },
-    { label: 'התראות', href: '/notifications', icon: Bell },
-    { label: 'פרופיל', href: '/profile', icon: User },
+    { label: 'בית', href: '/user/dashboard', icon: Home },
+    { label: 'קבוצה', href: '/user/my-group', icon: Users },
+    { label: 'משפחות', href: '/user/families', icon: Heart },
+    { label: 'תרומות', href: '/user/my-donations', icon: CreditCard },
+    { label: 'עוד', href: '__more__', icon: Menu },
   ],
   GROUP_MANAGER: [
-    { label: 'בית', href: '/', icon: Home },
-    { label: 'דשבורד', href: '/manager/dashboard', icon: CreditCard },
-    { label: 'הזמנות', href: '/manager/weekly-orders', icon: ShoppingCart },
-    { label: 'חברים', href: '/manager/members', icon: Users },
+    { label: 'בית', href: '/manager/dashboard', icon: Home },
+    { label: 'קבוצה', href: '/manager/my-group', icon: Users },
+    { label: 'משפחות', href: '/manager/families', icon: Heart },
+    { label: 'תרומות', href: '/manager/my-donations', icon: CreditCard },
     { label: 'עוד', href: '__more__', icon: Menu },
   ],
   WEEKLY_DISTRIBUTOR: [
@@ -171,6 +172,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   // Determine navigation based on role
   let navKey: keyof typeof NAVIGATION = 'USER';
   if (user?.systemRole === 'ADMIN') navKey = 'ADMIN';
+  else if (user?.isGroupManager) navKey = 'GROUP_MANAGER';
   const navItems = NAVIGATION[navKey] ?? NAVIGATION.USER;
   const bottomNavItems = BOTTOM_NAV[navKey as keyof typeof BOTTOM_NAV] ?? BOTTOM_NAV.USER;
 

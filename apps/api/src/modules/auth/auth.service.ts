@@ -301,12 +301,21 @@ export class AuthService {
             status: true,
           },
         },
+        groupMemberships: {
+          select: { groupId: true, role: true },
+        },
       },
     });
 
     if (!user || user.deletedAt || !user.isActive) {
       throw new UnauthorizedException('User not found or inactive');
     }
+
+    const managerMembership = user.groupMemberships.find((m) => m.role === 'MANAGER');
+    const anyMembership = user.groupMemberships[0] ?? null;
+    const isGroupManager = !!managerMembership;
+    const managedGroupId = managerMembership?.groupId ?? null;
+    const groupMembershipGroupId = anyMembership?.groupId ?? null;
 
     return {
       id: user.id,
@@ -319,6 +328,9 @@ export class AuthService {
       organization: user.organization,
       registrationCompleted: user.registrationCompleted,
       activationCompleted: user.activationCompleted,
+      isGroupManager,
+      managedGroupId,
+      groupMembershipGroupId,
       createdAt: user.createdAt,
     };
   }

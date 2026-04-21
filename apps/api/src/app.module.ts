@@ -27,6 +27,7 @@ import { HomepageModule } from '@modules/homepage/homepage.module';
 import { ManagerModule } from '@modules/manager/manager.module';
 import { AdminModule } from '@modules/admin/admin.module';
 import { ActivationModule } from '@modules/activation/activation.module';
+import { AlertsModule } from '@modules/alerts/alerts.module';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { ActivationModule } from '@modules/activation/activation.module';
     ManagerModule,
     AdminModule,
     ActivationModule,
+    AlertsModule,
   ],
   providers: [
     {

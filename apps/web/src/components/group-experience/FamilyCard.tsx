@@ -5,54 +5,63 @@ import {
   Home,
   Phone,
   MapPin,
-  AlertCircle,
+  Users,
+  Baby,
+  FileText,
   ChevronDown,
   ChevronUp,
   Edit,
   Check,
   X,
-  Users,
-  Baby,
-  FileText,
+  AlertCircle,
 } from 'lucide-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '@/lib/api';
-import { useAuthStore } from '@/store/auth.store';
 import { useToast } from '@/components/ui/Toast';
 
-interface Family {
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface FamilyData {
   id: string;
   familyName: string;
-  address: string;
-  contactPhone: string;
-  notes?: string;
-  childrenMinorCount: number;
-  totalMemberCount: number;
+  contactPhone?: string | null;
+  address?: string | null;
+  childrenMinorCount?: number | null;
+  totalMemberCount?: number | null;
+  notes?: string | null;
+}
+
+interface FamilyCardProps {
+  family: FamilyData;
+  editable?: boolean;
+  onSave?: (familyId: string, data: Record<string, unknown>) => Promise<void>;
 }
 
 type EditableField = 'contactPhone' | 'childrenMinorCount' | 'totalMemberCount' | 'address' | 'notes';
+
+// ─── Validation ───────────────────────────────────────────────────────────────
 
 const ISRAELI_PHONE_RE = /^(0|\+972)\d{8,9}$/;
 
 function validateField(
   field: EditableField,
   value: string,
-  family: Family,
+  family: FamilyData,
 ): string | null {
   if (field === 'contactPhone') {
-    if (!ISRAELI_PHONE_RE.test(value.trim())) {
+    if (value.trim() && !ISRAELI_PHONE_RE.test(value.trim())) {
       return 'מספר טלפון לא תקין. יש להזין מספר ישראלי (למשל 0501234567)';
     }
   }
   if (field === 'childrenMinorCount') {
     const n = parseInt(value, 10);
     if (isNaN(n) || n < 0) return 'יש להזין מספר שאינו שלילי';
-    if (n > family.totalMemberCount) return 'מספר ילדים לא יכול לעלות על סך חברי המשפחה';
+    const total = family.totalMemberCount ?? 0;
+    if (n > total) return 'מספר ילדים לא יכול לעלות על סך חברי המשפחה';
   }
   if (field === 'totalMemberCount') {
     const n = parseInt(value, 10);
     if (isNaN(n) || n < 0) return 'יש להזין מספר שאינו שלילי';
-    if (n < family.childrenMinorCount) return 'סך חברים לא יכול להיות קטן ממספר הילדים';
+    const children = family.childrenMinorCount ?? 0;
+    if (n < children) return 'סך חברים לא יכול להיות קטן ממספר הילדים';
   }
   return null;
 }
@@ -75,10 +84,13 @@ function castValue(field: EditableField, raw: string): unknown {
   return raw.trim();
 }
 
+// ─── InlineField ─────────────────────────────────────────────────────────────
+
 interface InlineFieldProps {
   field: EditableField;
   value: string;
-  family: Family;
+  family: FamilyData;
+  editable: boolean;
   isEditing: boolean;
   onStartEdit: () => void;
   onCancel: () => void;
@@ -91,6 +103,7 @@ function InlineField({
   field,
   value,
   family,
+  editable,
   isEditing,
   onStartEdit,
   onCancel,
@@ -162,7 +175,7 @@ function InlineField({
 
           {error && (
             <p className="text-label-sm text-error flex items-center gap-1">
-              <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+              <AlertCircle className="h-3.5 w-3.5 shrink-0" />
               {error}
             </p>
           )}
@@ -192,47 +205,50 @@ function InlineField({
         </div>
       ) : (
         <div className="flex items-start justify-between gap-2 group">
-          <span
-            className="text-body-md flex-1"
-            dir={isPhone ? 'ltr' : 'rtl'}
-          >
+          <span className="text-body-md flex-1" dir={isPhone ? 'ltr' : 'rtl'}>
             {value || <span className="text-on-surface-variant italic">לא הוזן</span>}
           </span>
-          <button
-            type="button"
-            onClick={onStartEdit}
-            className="btn-ghost px-2 py-1 text-label-sm flex items-center gap-1 opacity-0 group-hover:opacity-100 focus:opacity-100 flex-shrink-0"
-          >
-            <Edit className="h-3.5 w-3.5" />
-            ערוך
-          </button>
+          {editable && (
+            <button
+              type="button"
+              onClick={onStartEdit}
+              className="btn-ghost px-2 py-1 text-label-sm flex items-center gap-1 opacity-0 group-hover:opacity-100 focus:opacity-100 shrink-0"
+            >
+              <Edit className="h-3.5 w-3.5" />
+              ערוך
+            </button>
+          )}
         </div>
       )}
     </div>
   );
 }
 
-interface FamilyCardProps {
-  family: Family;
-  onSaveField: (familyId: string, field: EditableField, value: string) => void;
-  isSaving: boolean;
-}
+// ─── FamilyCard ───────────────────────────────────────────────────────────────
 
-function FamilyCard({ family, onSaveField, isSaving }: FamilyCardProps) {
+export function FamilyCard({ family, editable = false, onSave }: FamilyCardProps) {
+  const { showToast } = useToast();
   const [expanded, setExpanded] = useState(false);
   const [editingField, setEditingField] = useState<EditableField | null>(null);
-
-  function startEdit(field: EditableField) {
-    setEditingField(field);
-  }
+  const [isSaving, setIsSaving] = useState(false);
 
   function cancelEdit() {
     setEditingField(null);
   }
 
-  function saveField(field: EditableField, value: string) {
-    onSaveField(family.id, field, value);
-    setEditingField(null);
+  async function saveField(field: EditableField, rawValue: string) {
+    if (!onSave) return;
+    const value = castValue(field, rawValue);
+    setIsSaving(true);
+    try {
+      await onSave(family.id, { [field]: value });
+      showToast('נשמר', 'success');
+    } catch {
+      showToast('שגיאה בשמירה', 'error');
+    } finally {
+      setIsSaving(false);
+      setEditingField(null);
+    }
   }
 
   return (
@@ -243,39 +259,43 @@ function FamilyCard({ family, onSaveField, isSaving }: FamilyCardProps) {
         onClick={() => setExpanded((prev) => !prev)}
         className="flex items-center gap-3 p-5 w-full text-start hover:bg-surface-variant/30 transition-colors"
       >
-        <div className="p-2 rounded-full bg-primary/10 flex-shrink-0">
+        <div className="p-2 rounded-full bg-primary/10 shrink-0">
           <Home className="h-5 w-5 text-primary" />
         </div>
 
         <div className="flex-1 min-w-0">
           <p className="text-title-md font-medium">{family.familyName}</p>
-          <p className="text-body-sm text-on-surface-variant" dir="ltr">
-            {family.contactPhone || '—'}
-          </p>
+          {family.contactPhone && (
+            <p className="text-body-sm text-on-surface-variant" dir="ltr">
+              {family.contactPhone}
+            </p>
+          )}
           {family.address && (
             <p className="text-body-sm text-on-surface-variant truncate">{family.address}</p>
           )}
         </div>
 
-        <div className="flex-shrink-0 text-on-surface-variant">
+        <div className="shrink-0 text-on-surface-variant">
           {expanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
         </div>
       </button>
 
-      {/* Expanded edit area */}
+      {/* Expanded area */}
       {expanded && (
         <div className="px-5 pb-5 pt-1 flex flex-col gap-5 border-t border-outline/20">
-          {/* Family name — read only */}
+          {/* Family name — always read-only */}
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2 text-label-sm text-on-surface-variant">
               <Home className="h-4 w-4" />
               <span>שם משפחה</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="text-body-md font-medium">{family.familyName}</span>
-              <span className="text-label-sm text-on-surface-variant italic">
-                לעריכת שם יש לפנות לאדמין
-              </span>
+              {editable && (
+                <span className="text-label-sm text-on-surface-variant italic">
+                  לעריכת שם יש לפנות לאדמין
+                </span>
+              )}
             </div>
           </div>
 
@@ -283,8 +303,9 @@ function FamilyCard({ family, onSaveField, isSaving }: FamilyCardProps) {
             field="contactPhone"
             value={family.contactPhone ?? ''}
             family={family}
+            editable={editable}
             isEditing={editingField === 'contactPhone'}
-            onStartEdit={() => startEdit('contactPhone')}
+            onStartEdit={() => setEditingField('contactPhone')}
             onCancel={cancelEdit}
             onSave={saveField}
             isSaving={isSaving}
@@ -295,8 +316,9 @@ function FamilyCard({ family, onSaveField, isSaving }: FamilyCardProps) {
             field="address"
             value={family.address ?? ''}
             family={family}
+            editable={editable}
             isEditing={editingField === 'address'}
-            onStartEdit={() => startEdit('address')}
+            onStartEdit={() => setEditingField('address')}
             onCancel={cancelEdit}
             onSave={saveField}
             isSaving={isSaving}
@@ -307,8 +329,9 @@ function FamilyCard({ family, onSaveField, isSaving }: FamilyCardProps) {
             field="childrenMinorCount"
             value={String(family.childrenMinorCount ?? 0)}
             family={family}
+            editable={editable}
             isEditing={editingField === 'childrenMinorCount'}
-            onStartEdit={() => startEdit('childrenMinorCount')}
+            onStartEdit={() => setEditingField('childrenMinorCount')}
             onCancel={cancelEdit}
             onSave={saveField}
             isSaving={isSaving}
@@ -319,8 +342,9 @@ function FamilyCard({ family, onSaveField, isSaving }: FamilyCardProps) {
             field="totalMemberCount"
             value={String(family.totalMemberCount ?? 0)}
             family={family}
+            editable={editable}
             isEditing={editingField === 'totalMemberCount'}
-            onStartEdit={() => startEdit('totalMemberCount')}
+            onStartEdit={() => setEditingField('totalMemberCount')}
             onCancel={cancelEdit}
             onSave={saveField}
             isSaving={isSaving}
@@ -331,126 +355,14 @@ function FamilyCard({ family, onSaveField, isSaving }: FamilyCardProps) {
             field="notes"
             value={family.notes ?? ''}
             family={family}
+            editable={editable}
             isEditing={editingField === 'notes'}
-            onStartEdit={() => startEdit('notes')}
+            onStartEdit={() => setEditingField('notes')}
             onCancel={cancelEdit}
             onSave={saveField}
             isSaving={isSaving}
             icon={<FileText className="h-4 w-4" />}
           />
-        </div>
-      )}
-    </div>
-  );
-}
-
-export default function ManagerFamiliesPage() {
-  const { user } = useAuthStore();
-  const queryClient = useQueryClient();
-  const { showToast } = useToast();
-
-  const {
-    data: families,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ['manager-families'],
-    queryFn: async () => {
-      const response = await api.get<{ data: Family[] }>('/manager/group/families');
-      return response.data.data;
-    },
-    enabled: !!user,
-  });
-
-  const updateFamily = useMutation({
-    mutationFn: async ({
-      familyId,
-      data,
-    }: {
-      familyId: string;
-      data: Record<string, unknown>;
-    }) => {
-      const response = await api.patch(`/manager/group/families/${familyId}`, data);
-      return response.data;
-    },
-    onMutate: async ({ familyId, data }) => {
-      await queryClient.cancelQueries({ queryKey: ['manager-families'] });
-      const previous = queryClient.getQueryData<Family[]>(['manager-families']);
-      queryClient.setQueryData<Family[]>(['manager-families'], (old) =>
-        old
-          ? old.map((f) => (f.id === familyId ? { ...f, ...data } : f))
-          : old,
-      );
-      return { previous };
-    },
-    onError: (_err, _vars, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(['manager-families'], context.previous);
-      }
-      showToast('שגיאה בשמירה', 'error');
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['manager-families'] });
-      showToast('נשמר', 'success');
-    },
-  });
-
-  function handleSaveField(familyId: string, field: EditableField, rawValue: string) {
-    const value = castValue(field, rawValue);
-    updateFamily.mutate({ familyId, data: { [field]: value } });
-  }
-
-  if (isLoading) {
-    return (
-      <div className="p-4 sm:p-6 lg:p-8 space-y-4">
-        <div className="h-10 w-48 rounded-lg bg-surface-container animate-pulse" />
-        <div className="h-5 w-72 rounded-md bg-surface-container animate-pulse" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-          {[1, 2, 3, 4].map((n) => (
-            <div key={n} className="card-elevated h-24 animate-pulse bg-surface-container" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="p-4 sm:p-6 lg:p-8">
-        <div className="rounded-lg bg-error-container px-6 py-4 text-on-error-container flex gap-3 items-center">
-          <AlertCircle className="h-5 w-5 flex-shrink-0" />
-          <span>שגיאה בטעינת רשימת המשפחות. אנא נסה שוב.</span>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-5xl">
-      {/* Header */}
-      <div>
-        <h1 className="text-headline-md sm:text-headline-lg font-headline mb-1">המשפחות שלי</h1>
-        <p className="text-body-md text-on-surface-variant">
-          משפחות תחת ניהול הקבוצה שלך
-        </p>
-      </div>
-
-      {/* Families grid */}
-      {!families || families.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
-          <Home className="h-16 w-16 text-on-surface-variant/30" />
-          <p className="text-body-lg text-on-surface-variant">אין משפחות בקבוצה</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {families.map((family) => (
-            <FamilyCard
-              key={family.id}
-              family={family}
-              onSaveField={handleSaveField}
-              isSaving={updateFamily.isPending}
-            />
-          ))}
         </div>
       )}
     </div>

@@ -48,13 +48,27 @@ export function BiometryLogin({ onFallbackToOtp: _onFallbackToOtp }: BiometryLog
       const secure = window.location.protocol === 'https:';
       document.cookie = `auth_token=${result.accessToken}; path=/; max-age=3600; SameSite=Strict${secure ? '; Secure' : ''}`;
 
-      // Check activation status
+      // Check activation status + group manager flag
+      let meData: Record<string, unknown> | null = null;
       try {
         const { default: api } = await import('@/lib/api');
         const meRes = await api.get('/auth/me');
-        if (!meRes.data.data.activationCompleted) {
+        meData = meRes.data.data;
+        if (!meData?.activationCompleted) {
           router.replace('/activation');
           return;
+        }
+        // Persist group info into auth store
+        if (meData) {
+          const current = useAuthStore.getState().user;
+          if (current) {
+            useAuthStore.getState().setUser({
+              ...current,
+              isGroupManager: !!meData.isGroupManager,
+              managedGroupId: (meData.managedGroupId as string) ?? null,
+              groupMembershipGroupId: (meData.groupMembershipGroupId as string) ?? null,
+            });
+          }
         }
       } catch {
         // Proceed to normal flow on error
@@ -64,8 +78,10 @@ export function BiometryLogin({ onFallbackToOtp: _onFallbackToOtp }: BiometryLog
       const user = result.user as Record<string, unknown>;
       if (user.platformRole === 'SUPER_ADMIN') {
         router.replace('/platform');
+      } else if (meData?.isGroupManager) {
+        router.replace('/manager/dashboard');
       } else {
-        router.replace('/');
+        router.replace('/user/dashboard');
       }
     } catch {
       setError('זיהוי ביומטרי נכשל');

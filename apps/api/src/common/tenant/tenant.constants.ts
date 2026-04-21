@@ -12,6 +12,8 @@ export const TENANT_SCOPED_MODELS = [
   'PaymentReminder',
   'Notification',
   'PushSubscription',
+  'Alert',
+  'WeeklyFamilyDelivery',
 ] as const;
 
 // מודלים שלא מסוננים לפי שוכר

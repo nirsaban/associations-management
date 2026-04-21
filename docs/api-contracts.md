@@ -430,6 +430,175 @@ Assign weekly distributor for the group.
 
 ---
 
+### GET /api/v1/manager/group/weekly-status?weekKey=YYYY-WNN
+Get comprehensive weekly operational status for the managed group.
+
+**Auth:** JwtAuthGuard (manager verified by managerUserId on Group)
+
+**Query Params:**
+- `weekKey` (optional): Defaults to current ISO week
+
+**Response:**
+```json
+{
+  "data": {
+    "weekStart": "ISO date string (Monday of the week)",
+    "families": [
+      { "id": "string", "familyName": "string", "contactPhone": "string|null", "hasOrder": boolean, "orderId": "string|null" }
+    ],
+    "ordersFilledCount": number,
+    "ordersTotalCount": number,
+    "ordersAllFilled": boolean,
+    "distributor": {
+      "assigned": boolean,
+      "userId": "string",
+      "fullName": "string",
+      "phone": "string"
+    },
+    "lastThreeDistributors": [
+      { "weekStart": "ISO date string", "userId": "string", "fullName": "string" }
+    ]
+  }
+}
+```
+
+**Errors:** 401, 403
+
+---
+
+### PATCH /api/v1/manager/group/families/:familyId
+Update allowed family metadata.
+
+**Auth:** JwtAuthGuard (family must belong to manager's group)
+
+**Request:**
+```json
+{
+  "contactPhone": "0501234567",
+  "childrenMinorCount": 2,
+  "totalMemberCount": 4,
+  "address": "string",
+  "notes": "string"
+}
+```
+All fields optional. FORBIDDEN: name, organizationId, groupId.
+Validation: childrenMinorCount <= totalMemberCount (cross-field, enforced in service).
+
+**Response:** `{ "data": { ...updatedFamily } }`
+
+**Errors:** 400 (invalid phone, minor count > total), 401, 403, 404
+
+---
+
+### GET /api/v1/manager/group/families/:familyId/weekly-order?weekKey=YYYY-WNN
+Get the weekly order for a specific family and week.
+
+**Auth:** JwtAuthGuard (family must belong to manager's group)
+
+**Query Params:**
+- `weekKey` (optional): Defaults to current ISO week
+
+**Response (order exists):**
+```json
+{
+  "data": {
+    "exists": true,
+    "family": { "id": "string", "familyName": "string", "contactPhone": "string|null" },
+    "order": { "id": "string", "weekKey": "string", "shoppingListJson": {}, "notes": "string|null", "status": "string", "createdAt": "ISO", "updatedAt": "ISO" }
+  }
+}
+```
+**Response (no order):** `{ "data": { "exists": false, "family": { ... } } }`
+
+**Errors:** 401, 403, 404
+
+---
+
+### PUT /api/v1/manager/group/families/:familyId/weekly-order
+Upsert the weekly order for a family.
+
+**Auth:** JwtAuthGuard (family must belong to manager's group)
+
+**Request:**
+```json
+{ "content": "string (min 1 char)", "weekKey": "YYYY-WNN (optional)" }
+```
+Stored as `{ "text": content }` in shoppingListJson. Sets status to COMPLETED.
+
+**Response:** `{ "data": { ...weeklyOrder } }`
+
+**Errors:** 400 (empty content), 401, 403, 404
+
+---
+
+### GET /api/v1/manager/group/members-and-payment-status
+Get members with full payment info for the current month.
+
+**Auth:** JwtAuthGuard (manager verified)
+
+**Response:**
+```json
+{
+  "data": [
+    {
+      "userId": "string",
+      "fullName": "string",
+      "phone": "string",
+      "isDonor": true,
+      "paidThisMonth": boolean,
+      "currentMonthPaymentDate": "ISO date | null"
+    }
+  ]
+}
+```
+Sorted: unpaid first, then by name.
+
+**Errors:** 401, 403
+
+---
+
+### GET /api/v1/manager/group/distributor-workload
+Get per-member distributor workload stats for last 52 weeks.
+
+**Auth:** JwtAuthGuard (manager verified)
+
+**Response:**
+```json
+{
+  "data": {
+    "members": [
+      { "userId": "string", "fullName": "string", "timesAsDistributor": number, "lastAsDistributor": "weekKey|null" }
+    ],
+    "highest": { "userId": "string", "fullName": "string", "timesAsDistributor": number },
+    "lowest": { "userId": "string", "fullName": "string", "timesAsDistributor": number }
+  }
+}
+```
+
+**Errors:** 401, 403
+
+---
+
+### GET /api/v1/manager/group/revenue
+Get group revenue aggregation.
+
+**Auth:** JwtAuthGuard (manager verified)
+
+**Response:**
+```json
+{
+  "data": {
+    "thisMonth": { "amount": number, "currency": "ILS", "paidCount": number, "unpaidCount": number },
+    "thisYear": { "amount": number, "byMonth": [{ "month": 1, "amount": number }, ...] }
+  }
+}
+```
+Only COMPLETED payments counted. Members scoped to this group.
+
+**Errors:** 401, 403
+
+---
+
 ## Admin Routes
 
 All admin routes require `JwtAuthGuard` + `RolesGuard(['ADMIN'])`.
@@ -769,3 +938,128 @@ Should test:
 - Weekly order uniqueness constraints
 - Audit log creation on webhooks
 - Role-based access control
+
+---
+
+## Alerts Module
+
+### Alerts — POST /admin/alerts
+Method: POST
+Path: /api/v1/admin/alerts
+Auth: JwtAuthGuard + RolesGuard (ADMIN)
+Request: `{ title: string, body: string, audience?: AlertAudience (ALL_USERS|GROUP_MANAGERS), expiresAt?: string (ISO 8601) }`
+Response: `{ data: Alert }`
+Notes: Creates alert, resolves target push subscriptions, fires push fan-out asynchronously (non-blocking). recipientCount set before response; deliveredCount updated after fan-out completes.
+Errors: 400 (validation), 401, 403
+
+### Alerts — GET /admin/alerts
+Method: GET
+Path: /api/v1/admin/alerts?page=1&limit=20
+Auth: JwtAuthGuard + RolesGuard (ADMIN)
+Request: query params page, limit
+Response: `{ data: Alert[], meta: { total: number, page: number, limit: number } }`
+Notes: Ordered by publishedAt desc. Includes publishedBy user name.
+Errors: 401, 403
+
+### Alerts — DELETE /admin/alerts/:id
+Method: DELETE
+Path: /api/v1/admin/alerts/:id
+Auth: JwtAuthGuard + RolesGuard (ADMIN)
+Request: path param id
+Response: 204 No Content
+Notes: Hard delete. Alert model has no soft-delete by design.
+Errors: 401, 403, 404 (alert not found in org)
+
+### Alerts — GET /me/alerts
+Method: GET
+Path: /api/v1/me/alerts?limit=10
+Auth: JwtAuthGuard (any authenticated user)
+Request: query param limit (default 10)
+Response: `{ data: Alert[] }`
+Notes: Group managers receive ALL_USERS + GROUP_MANAGERS alerts. Regular users receive ALL_USERS only. Expired alerts (expiresAt <= now) are excluded.
+
+---
+
+## User Experience — Regular User Endpoints
+
+### User Experience — GET /me/weekly-distribution
+Method: GET
+Path: /api/v1/me/weekly-distribution
+Auth: JwtAuthGuard
+Request: none
+Response (not distributor): `{ data: { isDistributor: false } }`
+Response (distributor):
+```json
+{
+  "data": {
+    "isDistributor": true,
+    "assignmentId": "string",
+    "weekStart": "ISO date string (Monday of current week)",
+    "groupName": "string",
+    "families": [
+      {
+        "id": "string",
+        "name": "string",
+        "contactPhone": "string | null",
+        "address": "string | null",
+        "weeklyOrderContent": "string | null",
+        "delivered": false,
+        "deliveredAt": "ISO date string | null"
+      }
+    ],
+    "totalCount": "number",
+    "deliveredCount": "number"
+  }
+}
+```
+Errors: 401
+
+### User Experience — PUT /me/weekly-distribution/families/:familyId
+Method: PUT
+Path: /api/v1/me/weekly-distribution/families/:familyId
+Auth: JwtAuthGuard
+Request: `{ delivered: boolean }`
+Response:
+```json
+{
+  "data": {
+    "id": "string",
+    "familyId": "string",
+    "delivered": "boolean",
+    "deliveredAt": "ISO date string | null"
+  }
+}
+```
+Errors: 401, 403 (אינך המחלק השבועי), 404 (משפחה לא נמצאה בקבוצה)
+
+### User Experience — GET /me/group-view
+Method: GET
+Path: /api/v1/me/group-view
+Auth: JwtAuthGuard
+Request: none
+Response:
+```json
+{
+  "data": {
+    "group": { "id": "string", "name": "string" },
+    "members": [
+      { "userId": "string", "fullName": "string", "paidThisMonth": "boolean" }
+    ],
+    "currentDistributor": { "userId": "string", "fullName": "string", "phone": "string" } | null,
+    "families": [
+      {
+        "id": "string",
+        "name": "string",
+        "contactPhone": "string | null",
+        "address": "string | null",
+        "childrenMinorCount": "number | null",
+        "totalMemberCount": "number | null",
+        "notes": "string | null"
+      }
+    ]
+  }
+}
+```
+Notes: No revenue or workload data — those are manager-only. Any group member (MEMBER or MANAGER role) can access this.
+Errors: 401, 403 (אינך חבר בקבוצה), 404 (קבוצה לא נמצאה)
+Errors: 401

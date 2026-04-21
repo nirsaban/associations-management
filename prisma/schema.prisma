@@ -103,6 +103,11 @@ enum WebhookEventStatus {
   SKIPPED
 }
 
+enum AlertAudience {
+  ALL_USERS
+  GROUP_MANAGERS
+}
+
 // ============================================================================
 // ORGANIZATION & USERS
 // ============================================================================
@@ -143,6 +148,8 @@ model Organization {
   notifications           Notification[]
   pushSubscriptions       PushSubscription[]
   webhookEvents           WebhookEvent[]
+  alerts                  Alert[]
+  weeklyFamilyDeliveries  WeeklyFamilyDelivery[]
 
   @@index([createdAt])
   @@index([status])
@@ -173,13 +180,15 @@ model User {
   groupMemberships          GroupMembership[]
   webauthnCredentials       WebauthnCredential[]
   weeklyOrdersCreated       WeeklyOrder[]               @relation("OrderCreatedBy")
-  weeklyDistributorAssignment WeeklyDistributorAssignment? @relation("AssignedDistributor")
+  weeklyDistributorAssignments WeeklyDistributorAssignment[] @relation("AssignedDistributor")
   weeklyDistributorAssignedBy WeeklyDistributorAssignment[] @relation("AssignedBy")
   payments                  Payment[]
   monthlyPaymentStatuses    MonthlyPaymentStatus[]
   paymentReminders          PaymentReminder[]
   notifications             Notification[]
   pushSubscriptions         PushSubscription[]
+  alertsPublished           Alert[]             @relation("AlertsPublishedBy")
+  deliveriesMarked          WeeklyFamilyDelivery[] @relation("DeliveriesMarkedBy")
 
   @@unique([organizationId, phone])
   @@index([organizationId])
@@ -266,6 +275,7 @@ model Family {
   organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   group        Group?         @relation(fields: [groupId], references: [id], onDelete: SetNull)
   weeklyOrders WeeklyOrder[]
+  deliveries   WeeklyFamilyDelivery[]
 
   @@unique([organizationId, familyName])
   @@index([organizationId])
@@ -312,7 +322,7 @@ model WeeklyDistributorAssignment {
   organizationId String
   groupId        String
   weekKey        String @db.VarChar(10) // Format: "2026-W16"
-  assignedUserId String @unique
+  assignedUserId String
   assignedByUserId String?
 
   createdAt DateTime @default(now())
@@ -323,11 +333,36 @@ model WeeklyDistributorAssignment {
   assignedUser User         @relation("AssignedDistributor", fields: [assignedUserId], references: [id], onDelete: Cascade)
   assignedBy   User?        @relation("AssignedBy", fields: [assignedByUserId], references: [id], onDelete: SetNull)
 
+  deliveries   WeeklyFamilyDelivery[]
+
   @@unique([groupId, weekKey])
   @@index([organizationId])
   @@index([groupId])
   @@index([weekKey])
   @@map("weekly_distributor_assignments")
+}
+
+model WeeklyFamilyDelivery {
+  id                           String   @id @default(cuid())
+  organizationId               String
+  weeklyDistributorAssignmentId String
+  familyId                     String
+  delivered                    Boolean  @default(false)
+  deliveredAt                  DateTime?
+  markedByUserId               String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization                 Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  weeklyDistributorAssignment  WeeklyDistributorAssignment @relation(fields: [weeklyDistributorAssignmentId], references: [id], onDelete: Cascade)
+  family                       Family                      @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  markedByUser                 User                        @relation("DeliveriesMarkedBy", fields: [markedByUserId], references: [id])
+
+  @@unique([weeklyDistributorAssignmentId, familyId])
+  @@index([organizationId, weeklyDistributorAssignmentId])
+  @@index([familyId])
+  @@map("weekly_family_deliveries")
 }
 
 // ============================================================================
@@ -505,6 +540,32 @@ model WebauthnCredential {
 
   @@index([userId])
   @@map("webauthn_credentials")
+}
+
+// ============================================================================
+// ALERTS
+// ============================================================================
+
+model Alert {
+  id              String         @id @default(cuid())
+  organizationId  String
+  title           String         @db.VarChar(255)
+  body            String         @db.Text
+  audience        AlertAudience  @default(ALL_USERS)
+  publishedById   String
+  deliveredCount  Int            @default(0)
+  recipientCount  Int            @default(0)
+  publishedAt     DateTime       @default(now())
+  expiresAt       DateTime?
+
+  createdAt       DateTime       @default(now())
+
+  organization    Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  publishedBy     User           @relation("AlertsPublishedBy", fields: [publishedById], references: [id])
+
+  @@index([organizationId, audience, publishedAt])
+  @@index([organizationId])
+  @@map("alerts")
 }
 
 // ============================================================================

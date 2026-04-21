@@ -47,19 +47,26 @@ A single user can simultaneously be `REGULAR_USER` + `GROUP_MEMBER` + `GROUP_MAN
 | View all payments in own org | ✅ | ✅ | ❌ | ❌ | ❌ |
 | View reminder history for any user in own org | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Monitor weekly completion across all groups | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Publish alert to ALL_USERS | ❌ | ✅ | ❌ | ❌ | ❌ |
+| Publish alert to GROUP_MANAGERS | ❌ | ✅ | ❌ | ❌ | ❌ |
+| Delete alerts | ❌ | ✅ | ❌ | ❌ | ❌ |
+| View alerts (own audience) | ❌ | ✅ | ✅ | ✅ | ✅ |
 
 ## Group management (within own group only)
 
 | Capability | SUPER_ADMIN | ADMIN | GROUP_MANAGER | GROUP_MEMBER | REGULAR_USER |
 |---|:-:|:-:|:-:|:-:|:-:|
-| View own group dashboard | ✅ | ✅ | ✅ | ❌ | ❌ |
-| View group members | ✅ | ✅ | ✅ | 🟡 (1) | ❌ |
-| View group families | ✅ | ✅ | ✅ | ❌ | ❌ |
+| View own group dashboard | ✅ | ✅ | ✅ | ✅ (read-only) | ❌ |
+| View group members | ✅ | ✅ | ✅ | ✅ (read-only) | ❌ |
+| View group families (read-only) | ✅ | ✅ | ✅ | ✅ | ❌ |
 | Fill weekly order per family | ✅ | ✅ | ✅ (own group) | ❌ | ❌ |
 | Update weekly order per family | ✅ | ✅ | ✅ (own group) | ❌ | ❌ |
 | Assign weekly distributor | ✅ | ✅ | ✅ (own group) | ❌ | ❌ |
-| View paid/unpaid status of members in own group | ❌ (2) | ✅ | ✅ (own group) | ❌ | ❌ |
+| View paid/unpaid status of members in own group | ❌ (2) | ✅ | ✅ (own group) | ✅ (own group, read-only) | ❌ |
 | View families outside own group | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Edit family metadata (limited fields) in own group | ❌ | ✅ | ✅ (own group) | ❌ | ❌ |
+| View distributor workload stats | ❌ | ✅ | ✅ (own group) | ❌ | ❌ |
+| View group revenue | ❌ | ✅ | ✅ (own group) | ❌ | ❌ |
 
 Notes:
 1. Group members may see basic group context (name, members list) — no operational data.
@@ -72,6 +79,7 @@ Notes:
 | See "you are this week's distributor" card | ✅ | ❌ |
 | See relevant families with addresses + contacts | ✅ | ❌ |
 | See weekly order details per family (read-only) | ✅ | ❌ |
+| Mark per-family delivery ("סמן כחולק") | ✅ | ❌ |
 | Modify weekly orders | ❌ | ❌ |
 | Assign another distributor | ❌ | ❌ |
 

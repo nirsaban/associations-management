@@ -68,7 +68,13 @@
       "Bash(node:*)",
       "Bash(brew install:*)",
       "Bash(sshpass:*)",
-      "Bash(chmod +x /Users/Nir.Saban/Documents/Claude/Projects/amutot/deploy/server-bootstrap.sh)"
+      "Bash(chmod +x /Users/Nir.Saban/Documents/Claude/Projects/amutot/deploy/server-bootstrap.sh)",
+      "Bash(git commit:*)",
+      "Bash(openssl rand:*)",
+      "Bash(npx web-push:*)",
+      "Bash(git push:*)",
+      "Bash(gh run:*)",
+      "Bash(PGPASSWORD=postgres psql:*)"
     ]
   }
 }

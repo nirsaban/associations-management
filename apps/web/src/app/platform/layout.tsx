@@ -18,6 +18,7 @@ export default function PlatformLayout({ children }: { children: ReactNode }) {
   const { user, isAuthenticated, logout } = useAuthStore();
   const hasCheckedRef = useRef(false);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
     const unsub = useAuthStore.persist.onFinishHydration(() => {
@@ -49,16 +50,6 @@ export default function PlatformLayout({ children }: { children: ReactNode }) {
     hasCheckedRef.current = true;
   }, [isAuthenticated, user, isHydrated, router]);
 
-  if (!isHydrated || !isAuthenticated || user?.platformRole !== 'SUPER_ADMIN') {
-    return (
-      <div className="flex h-screen items-center justify-center bg-surface">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
-
   // Close mobile nav on route change
   useEffect(() => {
     setMobileNavOpen(false);
@@ -72,6 +63,14 @@ export default function PlatformLayout({ children }: { children: ReactNode }) {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  if (!isHydrated || !isAuthenticated || user?.platformRole !== 'SUPER_ADMIN') {
+    return (
+      <div className="flex h-screen items-center justify-center bg-surface">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   const handleLogout = () => {
     logout();
