@@ -1,11 +1,12 @@
 'use client';
 
-import React from 'react';
-import { Users, Home, CreditCard, AlertCircle, Bell, Upload } from 'lucide-react';
+import React, { useState } from 'react';
+import { Users, Home, CreditCard, AlertCircle, Bell, Upload, Send, Trash2, X } from 'lucide-react';
 import Link from 'next/link';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
+import { useToast } from '@/components/ui/Toast';
 
 interface AdminDashboardData {
   stats: {
@@ -34,8 +35,27 @@ interface AdminDashboardData {
   };
 }
 
+type AlertAudience = 'ALL_USERS' | 'GROUP_MANAGERS';
+
+interface Alert {
+  id: string;
+  title: string;
+  body: string;
+  audience: AlertAudience;
+  createdAt: string;
+  deliveredCount: number;
+  recipientCount: number;
+}
+
+const AUDIENCE_LABELS: Record<AlertAudience, string> = {
+  ALL_USERS: 'כל המשתמשים',
+  GROUP_MANAGERS: 'מנהלי קבוצה',
+};
+
 export default function AdminDashboardPage() {
   const { user } = useAuthStore();
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['admin-dashboard', user?.id],
@@ -45,6 +65,52 @@ export default function AdminDashboardPage() {
     },
     enabled: !!user,
   });
+
+  // Alerts / Publish Messages
+  const [showAlertForm, setShowAlertForm] = useState(false);
+  const [alertForm, setAlertForm] = useState({ title: '', body: '', audience: 'ALL_USERS' as AlertAudience });
+
+  const { data: alertsData } = useQuery<{ data: Alert[] }>({
+    queryKey: ['admin', 'alerts', 'recent'],
+    queryFn: async () => {
+      const { data } = await api.get('/admin/alerts', { params: { page: 1, limit: 5 } });
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const createAlertMutation = useMutation({
+    mutationFn: async (payload: { title: string; body: string; audience: AlertAudience }) => {
+      const { data } = await api.post('/admin/alerts', payload);
+      return data;
+    },
+    onSuccess: () => {
+      showToast('ההודעה פורסמה בהצלחה', 'success');
+      setShowAlertForm(false);
+      setAlertForm({ title: '', body: '', audience: 'ALL_USERS' });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'alerts'] });
+    },
+    onError: () => {
+      showToast('שגיאה בפרסום ההודעה', 'error');
+    },
+  });
+
+  const deleteAlertMutation = useMutation({
+    mutationFn: async (id: string) => { await api.delete(`/admin/alerts/${id}`); },
+    onSuccess: () => {
+      showToast('ההודעה נמחקה', 'success');
+      queryClient.invalidateQueries({ queryKey: ['admin', 'alerts'] });
+    },
+    onError: () => {
+      showToast('שגיאה במחיקת ההודעה', 'error');
+    },
+  });
+
+  function handlePublish(e: React.FormEvent) {
+    e.preventDefault();
+    if (!alertForm.title.trim() || !alertForm.body.trim()) return;
+    createAlertMutation.mutate({ title: alertForm.title.trim(), body: alertForm.body.trim(), audience: alertForm.audience });
+  }
 
   if (isLoading) {
     return (
@@ -170,6 +236,140 @@ export default function AdminDashboardPage() {
             </p>
           </div>
         </div>
+      </div>
+
+      {/* Publish Messages Section */}
+      <div className="card-elevated">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-title-lg font-medium flex items-center gap-3">
+            <Bell className="h-6 w-6 text-tertiary" />
+            פרסום הודעות
+          </h2>
+          <div className="flex items-center gap-2">
+            <Link href="/admin/alerts" className="btn-outline btn-sm">
+              כל ההודעות
+            </Link>
+            {!showAlertForm && (
+              <button
+                type="button"
+                onClick={() => setShowAlertForm(true)}
+                className="btn-primary btn-sm flex items-center gap-1"
+              >
+                <Send className="h-4 w-4" />
+                הודעה חדשה
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Inline Create Form */}
+        {showAlertForm && (
+          <form onSubmit={handlePublish} className="mb-6 p-4 rounded-lg bg-surface-container space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-title-sm font-medium">הודעה חדשה</p>
+              <button
+                type="button"
+                onClick={() => setShowAlertForm(false)}
+                className="btn-ghost p-1 rounded-full"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <input
+              type="text"
+              placeholder="כותרת ההודעה"
+              value={alertForm.title}
+              onChange={(e) => setAlertForm((f) => ({ ...f, title: e.target.value }))}
+              className="w-full rounded-lg border border-outline px-3 py-2 text-body-md bg-surface focus:outline-none focus:ring-2 focus:ring-primary/50"
+            />
+            <textarea
+              rows={3}
+              placeholder="תוכן ההודעה..."
+              value={alertForm.body}
+              onChange={(e) => setAlertForm((f) => ({ ...f, body: e.target.value }))}
+              className="w-full rounded-lg border border-outline px-3 py-2 text-body-md bg-surface focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+            />
+            <div className="flex items-center gap-4">
+              <span className="text-label-md text-on-surface-variant">קהל יעד:</span>
+              {(['ALL_USERS', 'GROUP_MANAGERS'] as AlertAudience[]).map((opt) => (
+                <label key={opt} className="flex items-center gap-1.5 cursor-pointer select-none">
+                  <input
+                    type="radio"
+                    name="audience"
+                    value={opt}
+                    checked={alertForm.audience === opt}
+                    onChange={() => setAlertForm((f) => ({ ...f, audience: opt }))}
+                    className="accent-primary"
+                  />
+                  <span className="text-body-sm">{AUDIENCE_LABELS[opt]}</span>
+                </label>
+              ))}
+            </div>
+            <div className="flex gap-2 pt-1">
+              <button
+                type="submit"
+                disabled={createAlertMutation.isPending || !alertForm.title.trim() || !alertForm.body.trim()}
+                className="btn-primary btn-sm flex items-center gap-1"
+              >
+                <Send className="h-4 w-4" />
+                {createAlertMutation.isPending ? 'שולח...' : 'פרסם'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowAlertForm(false)}
+                className="btn-outline btn-sm"
+              >
+                ביטול
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* Recent Alerts List */}
+        {alertsData?.data && alertsData.data.length > 0 ? (
+          <div className="space-y-2">
+            {alertsData.data.map((alert) => (
+              <div
+                key={alert.id}
+                className="p-3 rounded-lg bg-surface-container flex items-start justify-between gap-3"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="text-body-md font-medium truncate">{alert.title}</p>
+                    <span
+                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium shrink-0 ${
+                        alert.audience === 'ALL_USERS'
+                          ? 'bg-primary/10 text-primary'
+                          : 'bg-tertiary/10 text-tertiary'
+                      }`}
+                    >
+                      {AUDIENCE_LABELS[alert.audience]}
+                    </span>
+                  </div>
+                  <p className="text-body-sm text-on-surface-variant line-clamp-1">{alert.body}</p>
+                  <p className="text-label-sm text-on-surface-variant mt-1">
+                    נשלח: {alert.deliveredCount}/{alert.recipientCount}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (window.confirm('האם למחוק הודעה זו?')) deleteAlertMutation.mutate(alert.id);
+                  }}
+                  disabled={deleteAlertMutation.isPending}
+                  className="btn-ghost p-1.5 rounded-lg text-error hover:bg-error/10 transition-colors shrink-0"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-8 text-on-surface-variant">
+            <Bell className="w-10 h-10 opacity-20 mb-2" />
+            <p className="text-body-sm">אין הודעות שפורסמו</p>
+          </div>
+        )}
       </div>
 
       {/* Weekly Status */}
