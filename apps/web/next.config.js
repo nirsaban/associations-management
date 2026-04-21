@@ -35,10 +35,6 @@ const nextConfig = {
       },
     ];
   },
-  i18n: {
-    locales: ['he'],
-    defaultLocale: 'he',
-  },
   compress: true,
   swcMinify: true,
 };
