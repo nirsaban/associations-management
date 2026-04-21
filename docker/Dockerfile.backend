@@ -18,10 +18,11 @@ RUN pnpm --filter api build
 # Use pnpm deploy to create a standalone directory with all resolved deps
 RUN pnpm --filter api deploy --prod /app/deployed
 
-# Copy built dist and prisma into the deployed directory
+# Copy built dist and prisma schema, then regenerate prisma client in deployed dir
 RUN cp -r apps/api/dist /app/deployed/dist
 RUN cp -r prisma /app/deployed/prisma
-RUN cp -r node_modules/.pnpm/@prisma+client*/node_modules/.prisma /app/deployed/node_modules/.prisma 2>/dev/null || true
+WORKDIR /app/deployed
+RUN npx prisma generate --schema=./prisma/schema.prisma
 
 # ---- Stage 2: Runtime ----
 FROM node:20-alpine AS runner
