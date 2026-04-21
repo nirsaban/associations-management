@@ -8,21 +8,12 @@ COPY apps/api/package.json apps/api/package.json
 COPY packages/ packages/
 COPY prisma/ prisma/
 
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --shamefully-hoist
 
 COPY apps/api/ apps/api/
 
 RUN pnpm --filter api prisma:generate
 RUN pnpm --filter api build
-
-# Use pnpm deploy to create a standalone directory with all resolved deps
-RUN pnpm --filter api deploy --prod /app/deployed
-
-# Copy built dist and prisma schema, then regenerate prisma client in deployed dir
-RUN cp -r apps/api/dist /app/deployed/dist
-RUN cp -r prisma /app/deployed/prisma
-WORKDIR /app/deployed
-RUN npx prisma generate --schema=./prisma/schema.prisma
 
 # ---- Stage 2: Runtime ----
 FROM node:20-alpine AS runner
@@ -31,9 +22,9 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-COPY --from=builder /app/deployed/node_modules ./node_modules
-COPY --from=builder /app/deployed/dist ./dist
-COPY --from=builder /app/deployed/prisma ./prisma
+COPY --from=builder /app/apps/api/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/prisma ./prisma
 
 EXPOSE 3000
 
