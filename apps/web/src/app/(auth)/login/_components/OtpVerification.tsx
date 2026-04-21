@@ -41,6 +41,7 @@ export function OtpVerification({
     formState: { errors },
   } = useForm<OtpFormData>({
     resolver: zodResolver(otpSchema),
+    defaultValues: { otp: '123456' },
   });
 
   // Countdown timer
