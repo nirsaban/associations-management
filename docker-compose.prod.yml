@@ -55,7 +55,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: "3000"
-      NEXT_PUBLIC_API_URL: /api
+      NEXT_PUBLIC_API_URL: /api/v1
     depends_on:
       backend:
         condition: service_healthy
