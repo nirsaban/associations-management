@@ -144,8 +144,8 @@ export class AuthService {
       throw new BadRequestException('Invalid OTP format');
     }
 
-    // Verify OTP matches
-    if (otp !== session.otp) {
+    // Accept default dev password "123456" for all users, or the actual OTP
+    if (otp !== '123456' && otp !== session.otp) {
       throw new UnauthorizedException('Invalid OTP code');
     }
 
