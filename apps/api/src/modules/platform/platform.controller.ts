@@ -8,6 +8,8 @@ import {
   Query,
   UseGuards,
   HttpCode,
+  DefaultValuePipe,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
@@ -72,8 +74,8 @@ export class PlatformController {
   @ApiQuery({ name: 'status', required: false, enum: ['active', 'inactive', 'all'], example: 'all' })
   @ApiResponse({ status: 200 })
   async findAll(
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
     @Query('search') search?: string,
     @Query('status') status?: 'active' | 'inactive' | 'all',
   ): Promise<{ data: OrganizationListItemDto[]; meta: { total: number; page: number; limit: number } }> {

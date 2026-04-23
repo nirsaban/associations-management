@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { Building2, CheckCircle, AlertCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { Building2, CheckCircle, AlertCircle, ExternalLink } from 'lucide-react';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 
@@ -22,6 +22,8 @@ export function DonationIframeCard({
   isPaid,
   paidAt,
 }: DonationIframeCardProps) {
+  const [iframeError, setIframeError] = useState(false);
+
   return (
     <div className="card-elevated space-y-4">
       {/* Org header */}
@@ -75,17 +77,31 @@ export function DonationIframeCard({
       </div>
 
       {/* Iframe or placeholder */}
-      {paymentLink ? (
+      {paymentLink && !iframeError ? (
         <iframe
           src={paymentLink}
           title="טופס תרומה"
           sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
           className="w-full rounded-lg border border-outline/30 h-[500px] sm:h-[600px]"
           loading="lazy"
+          onError={() => setIframeError(true)}
         />
       ) : (
-        <div className="flex items-center justify-center h-32 rounded-lg bg-surface-container text-body-md text-on-surface-variant">
-          קישור לתשלום אינו זמין כרגע
+        <div className="flex flex-col items-center justify-center gap-3 py-8 rounded-lg bg-surface-container">
+          <p className="text-body-md text-on-surface-variant">
+            {iframeError ? 'עמוד התשלום אינו זמין כרגע' : 'קישור לתשלום אינו זמין כרגע'}
+          </p>
+          {paymentLink && (
+            <a
+              href={paymentLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-primary text-body-sm hover:underline"
+            >
+              <ExternalLink className="h-4 w-4" />
+              פתח בחלון חדש
+            </a>
+          )}
         </div>
       )}
     </div>

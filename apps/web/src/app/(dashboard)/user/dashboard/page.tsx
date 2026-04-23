@@ -51,6 +51,22 @@ interface GroupView {
   currentDistributor: GroupViewCurrentDistributor | null;
 }
 
+function formatOrderContent(content: string): string {
+  try {
+    const items = JSON.parse(content);
+    if (Array.isArray(items)) {
+      return items
+        .map((i: { item?: string; quantity?: number; unit?: string }) =>
+          `${i.item ?? ''} ${i.quantity ?? ''} ${i.unit ?? ''}`.trim()
+        )
+        .join('\n');
+    }
+  } catch {
+    // Not JSON — return as-is
+  }
+  return content;
+}
+
 interface DonationInfoData {
   paymentLink: string;
   paymentDescription: string;
@@ -143,7 +159,7 @@ function FamilyDeliveryCard({
             תוכן הזמנה שבועית
           </p>
           <p className="text-body-sm text-on-surface leading-relaxed whitespace-pre-wrap">
-            {family.weeklyOrderContent}
+            {formatOrderContent(family.weeklyOrderContent)}
           </p>
         </div>
       )}

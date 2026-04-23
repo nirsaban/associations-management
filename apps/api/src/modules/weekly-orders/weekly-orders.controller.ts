@@ -52,10 +52,15 @@ export class WeeklyOrdersController {
   async findAll(
     @CurrentUser() user: ICurrentUser,
     @Query('week') week?: string,
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
   ): Promise<object> {
-    return this.weeklyOrdersService.findAll(user.organizationId, week, page, limit);
+    return this.weeklyOrdersService.findAll(
+      user.organizationId,
+      week,
+      Number(page) || 1,
+      Number(limit) || 10,
+    );
   }
 
   @Get(':id')

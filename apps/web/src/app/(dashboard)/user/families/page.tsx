@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
-import { AlertCircle, Home } from 'lucide-react';
+import { Home } from 'lucide-react';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import { FamilyCard } from '@/components/group-experience';
@@ -52,7 +52,6 @@ function PageSkeleton() {
 
 export default function UserFamiliesPage() {
   const { user } = useAuthStore();
-  const hasGroup = !!user?.groupMembershipGroupId;
 
   const groupViewQuery = useQuery({
     queryKey: ['user-group-view'],
@@ -60,11 +59,14 @@ export default function UserFamiliesPage() {
       const res = await api.get<{ data: GroupView }>('/me/group-view');
       return res.data.data;
     },
-    enabled: !!user && hasGroup,
+    enabled: !!user,
+    retry: false,
   });
 
-  // No group
-  if (!hasGroup) {
+  if (groupViewQuery.isLoading) return <PageSkeleton />;
+
+  // No group — API returned error or no data
+  if (groupViewQuery.isError || !groupViewQuery.data) {
     return (
       <div className="p-4 sm:p-6 lg:p-8 flex flex-col items-center justify-center min-h-[40vh] gap-4 text-center">
         <Home className="h-16 w-16 text-on-surface-variant/30" />
@@ -75,19 +77,6 @@ export default function UserFamiliesPage() {
         >
           חזור לדף הבית
         </Link>
-      </div>
-    );
-  }
-
-  if (groupViewQuery.isLoading) return <PageSkeleton />;
-
-  if (groupViewQuery.isError) {
-    return (
-      <div className="p-4 sm:p-6 lg:p-8">
-        <div className="rounded-lg bg-error-container text-on-error-container px-5 py-4 flex items-center gap-3">
-          <AlertCircle className="h-5 w-5 shrink-0" />
-          <span className="text-body-md">שגיאה בטעינת רשימת המשפחות</span>
-        </div>
       </div>
     );
   }

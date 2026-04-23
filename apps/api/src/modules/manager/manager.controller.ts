@@ -20,7 +20,7 @@ import {
   UpdateFamilyDto,
   UpsertWeeklyOrderDto,
 } from './dto';
-import { CreateWeeklyOrderDto } from '@modules/weekly-orders/dto/create-weekly-order.dto';
+import { ManagerCreateWeeklyOrderDto } from '@modules/weekly-orders/dto/create-weekly-order.dto';
 import { UpdateWeeklyOrderDto } from '@modules/weekly-orders/dto/update-weekly-order.dto';
 import { AssignDistributorDto } from '@modules/weekly-distributors/dto/assign-distributor.dto';
 
@@ -151,7 +151,7 @@ export class ManagerController {
   async createWeeklyOrder(
     @CurrentUser() user: ICurrentUser,
     @Param('familyId') familyId: string,
-    @Body() dto: CreateWeeklyOrderDto,
+    @Body() dto: ManagerCreateWeeklyOrderDto,
   ): Promise<{ data: Record<string, unknown> }> {
     return this.managerService.createWeeklyOrder(
       user.id,

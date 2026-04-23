@@ -59,7 +59,7 @@ function Skeleton({ className }: { className?: string }) {
 }
 
 function mapMethodToHebrew(method?: string): string {
-  switch (method) {
+  switch (method?.toUpperCase()) {
     case 'CREDIT_CARD':
       return 'כרטיס אשראי';
     case 'BANK_TRANSFER':

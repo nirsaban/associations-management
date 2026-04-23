@@ -12,8 +12,8 @@ export class CreateUserDto {
   fullName!: string;
 
   @ApiProperty({
-    description: 'Phone number in international format',
-    example: '+972501234567',
+    description: 'Phone number in Israeli format',
+    example: '0501234567',
   })
   @IsString()
   @IsNotEmpty()
@@ -21,15 +21,6 @@ export class CreateUserDto {
     message: 'Phone must be Israeli format: 0XXXXXXXXX or +972XXXXXXXXX',
   })
   phone!: string;
-
-  @ApiProperty({
-    description: 'User system role',
-    enum: ['admin', 'manager', 'user', 'distributor'],
-    example: 'user',
-  })
-  @IsString()
-  @IsNotEmpty()
-  systemRole: string = 'user';
 
   @ApiProperty({
     description: 'User email address',

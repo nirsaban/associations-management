@@ -17,6 +17,10 @@ function normalizePhone(phone: string): string {
   return trimmed;
 }
 
+function stripHtml(input: string): string {
+  return input.replace(/<[^>]*>/g, '').trim();
+}
+
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
@@ -27,14 +31,15 @@ export class UsersService {
     this.logger.log(`Creating user for organization ${organizationId}`);
 
     const phone = normalizePhone(createUserDto.phone);
+    const fullName = stripHtml(createUserDto.fullName);
 
-    // Phone is globally unique — check across all organizations
+    // Phone is unique within an organization (not globally)
     const existingByPhone = await this.prisma.user.findFirst({
-      where: { phone, deletedAt: null },
+      where: { phone, organizationId, deletedAt: null },
     });
 
     if (existingByPhone) {
-      throw new ConflictException('משתמש עם מספר טלפון זה כבר קיים במערכת');
+      throw new ConflictException('משתמש עם מספר טלפון זה כבר קיים בעמותה');
     }
 
     // Email uniqueness within org only
@@ -51,9 +56,9 @@ export class UsersService {
       data: {
         organizationId,
         email: createUserDto.email ?? null,
-        fullName: createUserDto.fullName,
+        fullName,
         phone,
-        systemRole: (createUserDto.systemRole?.toUpperCase() as SystemRole) ?? SystemRole.USER,
+        systemRole: SystemRole.USER,
       },
     });
 
@@ -130,17 +135,6 @@ export class UsersService {
       throw new NotFoundException('משתמש לא נמצא');
     }
 
-    const phone = updateUserDto.phone ? normalizePhone(updateUserDto.phone) : undefined;
-
-    if (phone && phone !== user.phone) {
-      const existing = await this.prisma.user.findFirst({
-        where: { phone, id: { not: id }, deletedAt: null },
-      });
-      if (existing) {
-        throw new ConflictException('מספר טלפון זה כבר בשימוש');
-      }
-    }
-
     if (updateUserDto.email && updateUserDto.email !== user.email) {
       const existing = await this.prisma.user.findFirst({
         where: {
@@ -155,15 +149,16 @@ export class UsersService {
       }
     }
 
+    const fullName = updateUserDto.fullName !== undefined
+      ? stripHtml(updateUserDto.fullName)
+      : undefined;
+
     const updated = await this.prisma.user.update({
       where: { id },
       data: {
-        ...(updateUserDto.fullName !== undefined && { fullName: updateUserDto.fullName }),
-        ...(phone !== undefined && { phone }),
+        ...(fullName !== undefined && { fullName }),
         ...(updateUserDto.email !== undefined && { email: updateUserDto.email }),
-        ...(updateUserDto.systemRole !== undefined && {
-          systemRole: updateUserDto.systemRole.toUpperCase() as SystemRole,
-        }),
+        ...(updateUserDto.isActive !== undefined && { isActive: updateUserDto.isActive }),
       },
     });
 

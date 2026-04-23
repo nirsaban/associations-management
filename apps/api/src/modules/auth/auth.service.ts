@@ -27,6 +27,7 @@ interface UserSession {
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
   private readonly sessions = new Map<string, UserSession>();
+  private readonly revokedTokens = new Map<string, number>(); // token -> expiry timestamp
 
   constructor(
     private readonly prisma: PrismaService,
@@ -154,8 +155,11 @@ export class AuthService {
       throw new BadRequestException('Invalid OTP format');
     }
 
-    // Accept default dev password "123456" only in non-production environments
-    const isDevBypass = process.env.NODE_ENV !== 'production' && otp === '123456';
+    // Accept default dev password "123456" only when explicitly enabled
+    const isDevBypass =
+      process.env.ALLOW_DEV_OTP === 'true' &&
+      process.env.NODE_ENV !== 'production' &&
+      otp === '123456';
     if (!isDevBypass && otp !== session.otp) {
       throw new UnauthorizedException('Invalid OTP code');
     }
@@ -383,6 +387,26 @@ export class AuthService {
         createdAt: user.createdAt.toISOString(),
       },
     };
+  }
+
+  revokeToken(token: string): void {
+    try {
+      const payload = this.jwtService.decode(token) as { exp?: number } | null;
+      const expiry = payload?.exp ?? Math.floor(Date.now() / 1000) + 3600;
+      this.revokedTokens.set(token, expiry);
+      // Clean up expired entries
+      const now = Math.floor(Date.now() / 1000);
+      for (const [t, exp] of this.revokedTokens) {
+        if (exp < now) this.revokedTokens.delete(t);
+      }
+    } catch {
+      // If decode fails, still revoke with 1-hour expiry
+      this.revokedTokens.set(token, Math.floor(Date.now() / 1000) + 3600);
+    }
+  }
+
+  isTokenRevoked(token: string): boolean {
+    return this.revokedTokens.has(token);
   }
 
   private maskPhoneNumber(phone: string): string {

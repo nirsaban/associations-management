@@ -325,6 +325,7 @@ export default function ManagerMyGroupPage() {
   const paidPercent =
     totalMembersForPercent > 0 ? Math.round((paidCount / totalMembersForPercent) * 100) : 0;
 
+  // Aggregate group revenue — managers see totals but NOT per-member amounts (see members/page.tsx)
   const thisMonthAmount = revenue?.thisMonth?.amount ?? 0;
   const thisYearAmount = revenue?.thisYear?.amount ?? 0;
   const currency = revenue?.thisMonth?.currency ?? 'ILS';

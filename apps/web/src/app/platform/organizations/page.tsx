@@ -80,12 +80,39 @@ function StatusToggleButton({
   );
 }
 
+const ITEMS_PER_PAGE = 20;
+
 export default function OrganizationsListPage() {
   const router = useRouter();
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [page, setPage] = useState(1);
+
+  // Debounce search input
+  useState(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(timer);
+  });
+
+  // Reset page when filters change
+  const handleSearchChange = (val: string) => {
+    setSearch(val);
+    setPage(1);
+    // Debounce
+    setTimeout(() => setDebouncedSearch(val), 300);
+  };
+
+  const handleStatusChange = (val: 'all' | 'active' | 'inactive') => {
+    setStatusFilter(val);
+    setPage(1);
+  };
+
   const { data, isLoading, isError, refetch } = useOrganizations({
-    page: 1,
-    limit: 100,
-    status: 'all',
+    page,
+    limit: ITEMS_PER_PAGE,
+    status: statusFilter,
+    search: debouncedSearch || undefined,
   });
 
   if (isLoading) {
@@ -109,6 +136,8 @@ export default function OrganizationsListPage() {
 
   const orgs = data?.data || [];
 
+  const totalPages = data?.meta ? Math.ceil(data.meta.total / ITEMS_PER_PAGE) : 1;
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6 gap-4">
@@ -119,6 +148,28 @@ export default function OrganizationsListPage() {
         >
           + עמותה חדשה
         </Link>
+      </div>
+
+      {/* Search & Filter */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-4">
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => handleSearchChange(e.target.value)}
+          placeholder="חיפוש לפי שם או slug..."
+          className="flex-1 rounded-lg border border-outline-variant px-3 py-2 text-body-md bg-surface-container-lowest outline-none focus:border-primary transition-colors"
+          dir="rtl"
+        />
+        <select
+          value={statusFilter}
+          onChange={(e) => handleStatusChange(e.target.value as 'all' | 'active' | 'inactive')}
+          className="rounded-lg border border-outline-variant px-3 py-2 text-body-md bg-surface-container-lowest outline-none focus:border-primary transition-colors"
+          dir="rtl"
+        >
+          <option value="all">כל הסטטוסים</option>
+          <option value="active">פעילות</option>
+          <option value="inactive">לא פעילות</option>
+        </select>
       </div>
 
       {orgs.length === 0 ? (
@@ -236,6 +287,29 @@ export default function OrganizationsListPage() {
               </table>
             </div>
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-6">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1}
+                className="px-3 py-1.5 rounded-lg text-label-md border border-outline-variant hover:bg-surface-container-low transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                הקודם
+              </button>
+              <span className="text-body-sm text-on-surface-variant px-3">
+                עמוד {page} מתוך {totalPages}
+              </span>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+                className="px-3 py-1.5 rounded-lg text-label-md border border-outline-variant hover:bg-surface-container-low transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                הבא
+              </button>
+            </div>
+          )}
         </>
       )}
     </div>

@@ -25,10 +25,12 @@ export class PlatformService {
     dto: CreateOrganizationWithAdminDto,
     superAdminId: string,
   ): Promise<{ organization: OrganizationResponseDto; admin: { id: string; fullName: string; phone: string } }> {
-    this.logger.log(`Creating organization "${dto.organization.name}" with first admin`);
+    const sanitizedName = this.sanitizeInput(dto.organization.name);
+    this.logger.log(`Creating organization "${sanitizedName}" with first admin`);
 
     const slug = dto.organization.slug;
     const normalizedPhone = this.normalizePhone(dto.firstAdmin.phone);
+    const sanitizedAdminName = this.sanitizeInput(dto.firstAdmin.fullName);
 
     // Check slug uniqueness
     const existingOrg = await this.prisma.organization.findUnique({
@@ -49,11 +51,11 @@ export class PlatformService {
     const result = await this.prisma.$transaction(async (tx) => {
       const organization = await tx.organization.create({
         data: {
-          name: dto.organization.name,
+          name: sanitizedName,
           slug,
           contactPhone: dto.organization.contactPhone,
           contactEmail: dto.organization.contactEmail,
-          address: dto.organization.address,
+          address: dto.organization.address ? this.sanitizeInput(dto.organization.address) : undefined,
           status: 'ACTIVE',
           setupCompleted: false,
           createdBySuperAdminId: superAdminId,
@@ -64,7 +66,7 @@ export class PlatformService {
         data: {
           organizationId: organization.id,
           phone: normalizedPhone,
-          fullName: dto.firstAdmin.fullName,
+          fullName: sanitizedAdminName,
           systemRole: 'ADMIN',
           isActive: true,
           registrationCompleted: false,
@@ -88,9 +90,10 @@ export class PlatformService {
    * Create a new organization (legacy endpoint)
    */
   async createOrganization(createOrganizationDto: CreateOrganizationDto): Promise<OrganizationResponseDto> {
-    this.logger.log(`Creating new organization: ${createOrganizationDto.name}`);
+    const sanitizedName = this.sanitizeInput(createOrganizationDto.name);
+    this.logger.log(`Creating new organization: ${sanitizedName}`);
 
-    const slug = createOrganizationDto.slug || this.generateSlug(createOrganizationDto.name);
+    const slug = createOrganizationDto.slug || this.generateSlug(sanitizedName);
 
     const existing = await this.prisma.organization.findUnique({
       where: { slug },
@@ -102,7 +105,7 @@ export class PlatformService {
 
     const organization = await this.prisma.organization.create({
       data: {
-        name: createOrganizationDto.name,
+        name: sanitizedName,
         slug,
         contactEmail: createOrganizationDto.contactEmail,
         contactPhone: createOrganizationDto.contactPhone,
@@ -448,6 +451,13 @@ export class PlatformService {
     return dto;
   }
 
+  /**
+   * Strip HTML tags from user input to prevent stored XSS
+   */
+  private sanitizeInput(input: string): string {
+    return input.replace(/<[^>]*>/g, '').trim();
+  }
+
   // ─── Private helpers ──────────────────────────────────────────────────
 
   private async getUnpaidCountsByOrg(
@@ -589,12 +599,16 @@ export class PlatformService {
   }
 
   private mapToDto(organization: Record<string, unknown>): OrganizationResponseDto {
+    const contactEmail = (organization.contactEmail as string) || undefined;
+    const contactPhone = (organization.contactPhone as string) || undefined;
     return {
       id: organization.id as string,
       name: organization.name as string,
       slug: organization.slug as string,
-      email: (organization.contactEmail as string) || undefined,
-      phone: (organization.contactPhone as string) || undefined,
+      email: contactEmail,
+      phone: contactPhone,
+      contactEmail,
+      contactPhone,
       address: (organization.address as string) || undefined,
       logoUrl: (organization.logoUrl as string) || undefined,
       status: organization.status as string,

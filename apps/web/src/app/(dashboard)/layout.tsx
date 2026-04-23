@@ -3,7 +3,7 @@
 import React, { ReactNode, useEffect, useState, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/store/auth.store';
-import { Menu, LogOut, Home, Users, CreditCard, Upload, Bell, Truck, ShoppingCart, Heart } from 'lucide-react';
+import { Menu, LogOut, Home, Users, CreditCard, Upload, Bell, Truck, ShoppingCart, Heart, UserCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import Link from 'next/link';
 import { api } from '@/lib/api';
@@ -29,6 +29,7 @@ const NAVIGATION = {
     { label: 'המשפחות שלי', href: '/user/families', icon: Heart },
     { label: 'התרומות שלי', href: '/user/my-donations', icon: CreditCard },
     { label: 'התראות', href: '/notifications', icon: Bell },
+    { label: 'פרופיל', href: '/profile', icon: UserCircle },
   ],
   GROUP_MANAGER: [
     { label: 'דף הבית', href: '/manager/dashboard', icon: Home },
@@ -152,13 +153,34 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         }
       }
 
+      // Guard: prevent users from accessing routes above their role
       if (myId === checkIdRef.current) {
+        const currentPath = window.location.pathname;
+        const role = currentUser.systemRole;
+        const isGroupManager = currentUser.isGroupManager;
+
+        if (currentPath.startsWith('/admin') && role !== 'ADMIN') {
+          hasRedirectedRef.current = true;
+          router.replace(isGroupManager ? '/manager/dashboard' : '/user/dashboard');
+          return;
+        }
+        if (currentPath.startsWith('/manager') && role !== 'ADMIN' && !isGroupManager) {
+          hasRedirectedRef.current = true;
+          router.replace('/user/dashboard');
+          return;
+        }
+        if (currentPath.startsWith('/platform') && currentUser.platformRole !== 'SUPER_ADMIN') {
+          hasRedirectedRef.current = true;
+          router.replace(role === 'ADMIN' ? '/admin' : '/user/dashboard');
+          return;
+        }
+
         setIsCheckingSetup(false);
       }
     };
 
     checkAndRedirect();
-  }, [isAuthenticated, isHydrated, router]);
+  }, [isAuthenticated, isHydrated, router, pathname]);
 
   if (!isHydrated || !isAuthenticated || isCheckingSetup) {
     return (

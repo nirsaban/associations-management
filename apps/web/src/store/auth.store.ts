@@ -74,3 +74,30 @@ export const useAuthStore = create<AuthStore>()(
     },
   ),
 );
+
+// Sync auth state across browser tabs via storage events.
+// When another tab logs in/out, this tab picks up the change and reloads
+// to prevent stale UI from a different user's session.
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (event) => {
+    if (event.key !== 'auth-store') return;
+
+    const currentUser = useAuthStore.getState().user;
+    let newUser: User | null = null;
+
+    try {
+      const parsed = JSON.parse(event.newValue ?? '{}');
+      newUser = parsed?.state?.user ?? null;
+    } catch {
+      // Corrupted storage — treat as logout
+    }
+
+    const currentId = currentUser?.id ?? null;
+    const newId = newUser?.id ?? null;
+
+    // Different user or logged out from another tab — reload to sync
+    if (currentId !== newId) {
+      window.location.reload();
+    }
+  });
+}

@@ -4,6 +4,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsEmail,
+  IsDefined,
   Matches,
   MaxLength,
   ValidateNested,
@@ -69,11 +70,13 @@ export class FirstAdminDataDto {
 
 export class CreateOrganizationWithAdminDto {
   @ApiProperty({ description: 'פרטי העמותה', type: OrganizationDataDto })
+  @IsDefined({ message: 'פרטי העמותה הם שדה חובה' })
   @ValidateNested()
   @Type(() => OrganizationDataDto)
   organization!: OrganizationDataDto;
 
   @ApiProperty({ description: 'פרטי המנהל הראשון', type: FirstAdminDataDto })
+  @IsDefined({ message: 'פרטי המנהל הראשון הם שדה חובה' })
   @ValidateNested()
   @Type(() => FirstAdminDataDto)
   firstAdmin!: FirstAdminDataDto;

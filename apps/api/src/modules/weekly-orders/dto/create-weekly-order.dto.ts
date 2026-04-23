@@ -51,3 +51,35 @@ export class CreateWeeklyOrderDto {
   @IsOptional()
   notes?: string;
 }
+
+/**
+ * DTO for manager weekly order creation.
+ * groupId and familyId come from URL params and user context,
+ * so only body-specific fields are validated here.
+ */
+export class ManagerCreateWeeklyOrderDto {
+  @ApiProperty({
+    description: 'Week key (ISO week format: 2026-W16)',
+    example: '2026-W16',
+  })
+  @IsString()
+  @IsNotEmpty()
+  weekKey!: string;
+
+  @ApiProperty({
+    description: 'Order items (JSON)',
+    type: 'array',
+    required: false,
+  })
+  @IsOptional()
+  @IsArray()
+  items?: unknown[];
+
+  @ApiProperty({
+    description: 'Special notes',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  notes?: string;
+}

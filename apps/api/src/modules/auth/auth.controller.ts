@@ -1,7 +1,8 @@
-import { Controller, Post, Get, Body, HttpCode, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Body, HttpCode, UseGuards, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { CurrentUser, type CurrentUser as ICurrentUser } from '@common/decorators/current-user.decorator';
+import { Request } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { LoginResponseDto } from './dto/login-response.dto';
@@ -98,7 +99,11 @@ export class AuthController {
     description: 'התנתקות מהמערכת',
   })
   @ApiResponse({ status: 200, description: 'Logged out successfully' })
-  async logout(): Promise<{ data: { success: boolean } }> {
+  async logout(@Req() req: Request): Promise<{ data: { success: boolean } }> {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (token) {
+      this.authService.revokeToken(token);
+    }
     return { data: { success: true } };
   }
 }

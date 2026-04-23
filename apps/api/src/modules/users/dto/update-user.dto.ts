@@ -1,4 +1,4 @@
-import { IsEmail, IsString, IsOptional, MinLength } from 'class-validator';
+import { IsEmail, IsString, IsOptional, IsBoolean, MinLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateUserDto {
@@ -12,27 +12,18 @@ export class UpdateUserDto {
   fullName?: string;
 
   @ApiProperty({
-    description: 'Phone number',
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  phone?: string;
-
-  @ApiProperty({
-    description: 'User system role',
-    enum: ['admin', 'manager', 'user', 'distributor'],
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  systemRole?: string;
-
-  @ApiProperty({
     description: 'User email address',
     required: false,
   })
   @IsEmail()
   @IsOptional()
   email?: string;
+
+  @ApiProperty({
+    description: 'Whether the user is active',
+    required: false,
+  })
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean;
 }

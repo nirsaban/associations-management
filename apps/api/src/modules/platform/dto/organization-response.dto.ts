@@ -16,6 +16,12 @@ export class OrganizationResponseDto {
   @ApiPropertyOptional({ example: '025812345' })
   phone?: string;
 
+  @ApiPropertyOptional({ example: 'info@tzedaka.org.il', description: 'Alias for email (consistent naming)' })
+  contactEmail?: string;
+
+  @ApiPropertyOptional({ example: '025812345', description: 'Alias for phone (consistent naming)' })
+  contactPhone?: string;
+
   @ApiPropertyOptional({ example: 'רחוב הרב קוק 15, ירושלים' })
   address?: string;
 

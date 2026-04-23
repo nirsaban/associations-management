@@ -48,6 +48,14 @@ export default function LoginPage() {
     requiresOrgSelection: boolean,
     orgs?: Organization[],
   ) => {
+    // Clear any stale auth state from a previous session before proceeding
+    // This prevents multi-tab conflicts where old tokens persist
+    const { logout } = useAuthStore.getState();
+    logout();
+    if (typeof document !== 'undefined') {
+      document.cookie = 'auth_token=; path=/; max-age=0; SameSite=Strict';
+    }
+
     setPhone(phoneNumber);
     setSessionId(session);
 

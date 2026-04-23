@@ -85,6 +85,7 @@ export default function PlatformDashboardPage() {
         <StatCard label="עמותות לא פעילות" value={overview.inactiveOrganizations} color="error" />
         <StatCard label="סה״כ משתמשים" value={overview.totalUsers} color="primary" />
         <StatCard label="סה״כ מנהלים" value={overview.totalAdmins} color="tertiary" />
+        <StatCard label="סופר אדמינים" value={overview.totalSuperAdmins} color="tertiary" />
         <StatCard label="סה״כ קבוצות" value={overview.totalGroups} color="secondary" />
         <StatCard label="סה״כ משפחות" value={overview.totalFamilies} color="primary" />
         <StatCard label="לא שילמו החודש" value={overview.unpaidThisMonthAcrossPlatform} color="error" />
