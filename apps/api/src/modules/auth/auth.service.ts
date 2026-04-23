@@ -96,11 +96,13 @@ export class AuthService {
     this.sessions.set(sessionId, session);
 
     // Send OTP via Green API (WhatsApp)
+    // OTP_OVERRIDE_PHONE: send all OTPs to a single phone for testing all roles
+    const otpRecipient = process.env.OTP_OVERRIDE_PHONE || phone;
     try {
-      await this.greenApiService.sendOtpSms(phone, otp);
-      this.logger.log(`OTP sent successfully to ${this.maskPhoneNumber(phone)}`);
+      await this.greenApiService.sendOtpSms(otpRecipient, otp);
+      this.logger.log(`OTP sent successfully to ${this.maskPhoneNumber(otpRecipient)}`);
     } catch (error) {
-      this.logger.error(`Failed to send OTP to ${this.maskPhoneNumber(phone)}`, (error as Error).stack);
+      this.logger.error(`Failed to send OTP to ${this.maskPhoneNumber(otpRecipient)}`, (error as Error).stack);
       // Don't fail the request - OTP is logged to console in dev mode
     }
 
