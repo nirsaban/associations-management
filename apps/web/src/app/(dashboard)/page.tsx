@@ -20,13 +20,14 @@ export default function RootRedirectPage() {
   const redirectedRef = useRef(false);
 
   // Fetch /auth/me to resolve group manager status
-  const { data: meData } = useQuery({
+  const { data: meData, isError: meError } = useQuery({
     queryKey: ['auth-me-role', user?.id],
     queryFn: async () => {
       const res = await api.get<{ data: MeData }>('/auth/me');
       return res.data.data;
     },
     enabled: !!user && user.platformRole !== 'SUPER_ADMIN',
+    retry: 1,
   });
 
   useEffect(() => {
@@ -39,8 +40,8 @@ export default function RootRedirectPage() {
       return;
     }
 
-    // Wait for meData to resolve for non-admin users
-    if (meData === undefined && user.systemRole !== 'ADMIN') return;
+    // Wait for meData to resolve for non-admin users, but don't wait forever on error
+    if (meData === undefined && !meError && user.systemRole !== 'ADMIN') return;
 
     // 2. Group Manager → /manager/dashboard
     if (meData?.isGroupManager || user.isGroupManager) {
@@ -59,7 +60,7 @@ export default function RootRedirectPage() {
     // 4. Regular user → /user/dashboard
     redirectedRef.current = true;
     router.replace('/user/dashboard');
-  }, [user, meData, router]);
+  }, [user, meData, meError, router]);
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 flex items-center justify-center min-h-[50vh]">

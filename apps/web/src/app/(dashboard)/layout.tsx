@@ -84,6 +84,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [isCheckingSetup, setIsCheckingSetup] = useState(true);
   const [isHydrated, setIsHydrated] = useState(false);
   const hasRedirectedRef = useRef(false);
+  const checkIdRef = useRef(0);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
 
   // Close more menu on route change
@@ -116,27 +117,32 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       return;
     }
 
-    let isMounted = true;
+    // Use a monotonic counter so only the latest invocation writes state.
+    const myId = ++checkIdRef.current;
 
     const checkAndRedirect = async () => {
-      if (!isAuthenticated || !user) {
+      const currentState = useAuthStore.getState();
+      const currentUser = currentState.user;
+      const currentIsAuth = currentState.isAuthenticated;
+
+      if (!currentIsAuth || !currentUser) {
         hasRedirectedRef.current = true;
         router.replace('/login');
         return;
       }
 
-      if (user.platformRole === 'SUPER_ADMIN') {
+      if (currentUser.platformRole === 'SUPER_ADMIN') {
         hasRedirectedRef.current = true;
         router.replace('/platform');
         return;
       }
 
-      if (user.systemRole === 'ADMIN' && user.organizationId) {
+      if (currentUser.systemRole === 'ADMIN' && currentUser.organizationId) {
         try {
           const response = await api.get(`/organization/me`);
           const organization = response.data.data;
 
-          if (!organization.setupCompleted && isMounted) {
+          if (!organization.setupCompleted && myId === checkIdRef.current) {
             hasRedirectedRef.current = true;
             router.replace('/setup/organization');
             return;
@@ -146,17 +152,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         }
       }
 
-      if (isMounted) {
+      if (myId === checkIdRef.current) {
         setIsCheckingSetup(false);
       }
     };
 
     checkAndRedirect();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [isAuthenticated, user, isHydrated]);
+  }, [isAuthenticated, isHydrated, router]);
 
   if (!isHydrated || !isAuthenticated || isCheckingSetup) {
     return (

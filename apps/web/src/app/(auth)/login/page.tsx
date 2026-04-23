@@ -23,14 +23,18 @@ export default function LoginPage() {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(null);
 
-  // Redirect if already authenticated
+  // Redirect only if user arrives at /login already authenticated (e.g. bookmark).
+  // Do NOT redirect when isAuthenticated flips during OTP verification —
+  // OtpVerification handles post-login routing to the correct destination.
+  const wasAuthOnMount = React.useRef(isAuthenticated);
+
   React.useEffect(() => {
-    if (isAuthenticated) {
+    if (wasAuthOnMount.current) {
       router.replace('/');
     }
-  }, [isAuthenticated]); // router is stable, don't include it
+  }, []); // only on mount
 
-  if (isAuthenticated) {
+  if (wasAuthOnMount.current) {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
