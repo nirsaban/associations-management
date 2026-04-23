@@ -96,7 +96,7 @@ jobs:
         run: |
           sleep 20
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_SSH_USER }}@${{ secrets.DEPLOY_SSH_HOST }} '
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 http://localhost:3100/)
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 http://localhost:3100/health)
             echo "Health check status: $STATUS"
             if [ "$STATUS" != "200" ]; then
               cd /opt/miltech-association && docker compose -f docker-compose.prod.yml logs --tail=30

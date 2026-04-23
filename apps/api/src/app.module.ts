@@ -28,6 +28,7 @@ import { ManagerModule } from '@modules/manager/manager.module';
 import { AdminModule } from '@modules/admin/admin.module';
 import { ActivationModule } from '@modules/activation/activation.module';
 import { AlertsModule } from '@modules/alerts/alerts.module';
+import { HealthModule } from '@modules/health/health.module';
 
 @Module({
   imports: [
@@ -69,6 +70,7 @@ import { AlertsModule } from '@modules/alerts/alerts.module';
     AdminModule,
     ActivationModule,
     AlertsModule,
+    HealthModule,
   ],
   providers: [
     {
