@@ -37,16 +37,28 @@ export class GroupsService {
       }
     }
 
-    const group = await this.prisma.group.create({
-      data: {
-        organizationId,
-        name: createGroupDto.name,
-        managerUserId: createGroupDto.managerId ?? null,
-      },
-      include: {
-        _count: { select: { memberships: true, families: true } },
-        manager: { select: { fullName: true, phone: true } },
-      },
+    const group = await this.prisma.$transaction(async (tx) => {
+      const created = await tx.group.create({
+        data: {
+          organizationId,
+          name: createGroupDto.name,
+          managerUserId: createGroupDto.managerId ?? null,
+        },
+        include: {
+          _count: { select: { memberships: true, families: true } },
+          manager: { select: { fullName: true, phone: true } },
+        },
+      });
+
+      if (createGroupDto.managerId) {
+        await tx.groupMembership.upsert({
+          where: { groupId_userId: { groupId: created.id, userId: createGroupDto.managerId } },
+          update: { role: 'MANAGER', status: 'ACTIVE' },
+          create: { organizationId, groupId: created.id, userId: createGroupDto.managerId, role: 'MANAGER' },
+        });
+      }
+
+      return created;
     });
 
     return this.mapToDto(group);
@@ -126,16 +138,38 @@ export class GroupsService {
       }
     }
 
-    const updated = await this.prisma.group.update({
-      where: { id },
-      data: {
-        ...(updateGroupDto.name !== undefined && { name: updateGroupDto.name }),
-        ...(updateGroupDto.managerId !== undefined && { managerUserId: updateGroupDto.managerId }),
-      },
-      include: {
-        _count: { select: { memberships: true, families: true } },
-        manager: { select: { fullName: true, phone: true } },
-      },
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const result = await tx.group.update({
+        where: { id },
+        data: {
+          ...(updateGroupDto.name !== undefined && { name: updateGroupDto.name }),
+          ...(updateGroupDto.managerId !== undefined && { managerUserId: updateGroupDto.managerId }),
+        },
+        include: {
+          _count: { select: { memberships: true, families: true } },
+          manager: { select: { fullName: true, phone: true } },
+        },
+      });
+
+      if (updateGroupDto.managerId !== undefined) {
+        // Demote old manager if different
+        if (group.managerUserId && group.managerUserId !== updateGroupDto.managerId) {
+          await tx.groupMembership.updateMany({
+            where: { groupId: id, userId: group.managerUserId, role: 'MANAGER' },
+            data: { role: 'MEMBER' },
+          });
+        }
+        // Promote new manager
+        if (updateGroupDto.managerId) {
+          await tx.groupMembership.upsert({
+            where: { groupId_userId: { groupId: id, userId: updateGroupDto.managerId } },
+            update: { role: 'MANAGER', status: 'ACTIVE' },
+            create: { organizationId, groupId: id, userId: updateGroupDto.managerId, role: 'MANAGER' },
+          });
+        }
+      }
+
+      return result;
     });
 
     return this.mapToDto(updated);
@@ -183,13 +217,32 @@ export class GroupsService {
       throw new BadRequestException('המשתמש לא נמצא בעמותה');
     }
 
-    const updated = await this.prisma.group.update({
-      where: { id: groupId },
-      data: { managerUserId: assignManagerDto.userId },
-      include: {
-        _count: { select: { memberships: true, families: true } },
-        manager: { select: { fullName: true, phone: true } },
-      },
+    const updated = await this.prisma.$transaction(async (tx) => {
+      // Demote old manager
+      if (group.managerUserId && group.managerUserId !== assignManagerDto.userId) {
+        await tx.groupMembership.updateMany({
+          where: { groupId, userId: group.managerUserId, role: 'MANAGER' },
+          data: { role: 'MEMBER' },
+        });
+      }
+
+      const result = await tx.group.update({
+        where: { id: groupId },
+        data: { managerUserId: assignManagerDto.userId },
+        include: {
+          _count: { select: { memberships: true, families: true } },
+          manager: { select: { fullName: true, phone: true } },
+        },
+      });
+
+      // Promote new manager
+      await tx.groupMembership.upsert({
+        where: { groupId_userId: { groupId, userId: assignManagerDto.userId } },
+        update: { role: 'MANAGER', status: 'ACTIVE' },
+        create: { organizationId, groupId, userId: assignManagerDto.userId, role: 'MANAGER' },
+      });
+
+      return result;
     });
 
     return this.mapToDto(updated);

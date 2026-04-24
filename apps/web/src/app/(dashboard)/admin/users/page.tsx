@@ -34,6 +34,7 @@ interface EditUserForm {
   fullName: string;
   isActive: boolean;
   groupId: string;
+  systemRole: 'ADMIN' | 'USER';
 }
 
 type RoleFilter = 'all' | 'ADMIN' | 'GROUP_MANAGER' | 'USER';
@@ -67,6 +68,7 @@ export default function AdminUsersPage() {
     fullName: '',
     isActive: true,
     groupId: '',
+    systemRole: 'USER',
   });
   const [createError, setCreateError] = useState('');
   const [editError, setEditError] = useState('');
@@ -130,10 +132,11 @@ export default function AdminUsersPage() {
 
   const editMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: EditUserForm }) => {
-      // Update user fields
+      // Update user fields (including role)
       await api.patch(`/admin/users/${id}`, {
         fullName: data.fullName,
         isActive: data.isActive,
+        systemRole: data.systemRole,
       });
 
       // Handle group assignment change
@@ -184,6 +187,7 @@ export default function AdminUsersPage() {
       fullName: u.fullName ?? '',
       isActive: u.isActive,
       groupId: u.groupId ?? '',
+      systemRole: (u.systemRole as 'ADMIN' | 'USER') || 'USER',
     });
     setEditError('');
   };
@@ -537,14 +541,24 @@ export default function AdminUsersPage() {
                 </select>
               </div>
 
-              {/* Role info (read-only) */}
+              {/* Role */}
               <div>
-                <label className="block text-label-md font-medium mb-2">תפקיד</label>
-                <p className="px-4 py-3 rounded-lg bg-surface-container text-body-md">
-                  <span className={`inline-block px-3 py-1 rounded-full text-label-sm font-medium ${getRoleBadgeStyle(editingUser)}`}>
-                    {getRoleLabel(editingUser)}
-                  </span>
-                </p>
+                <label className="block text-label-md font-medium mb-2">תפקיד מערכת</label>
+                <select
+                  value={editForm.systemRole}
+                  onChange={(e) => setEditForm((f) => ({ ...f, systemRole: e.target.value as 'ADMIN' | 'USER' }))}
+                  disabled={editingUser.id === user?.id}
+                  className="w-full px-4 py-3 rounded-lg border border-outline bg-surface-container focus:border-primary focus:outline-none disabled:opacity-50"
+                >
+                  <option value="USER">משתמש</option>
+                  <option value="ADMIN">אדמין</option>
+                </select>
+                {editingUser.id === user?.id && (
+                  <p className="text-label-sm text-on-surface-variant mt-1">לא ניתן לשנות את התפקיד שלך</p>
+                )}
+                {editingUser.groupRole === 'MANAGER' && (
+                  <p className="text-label-sm text-tertiary mt-1">מנהל קבוצה (נקבע דרך ניהול קבוצות)</p>
+                )}
               </div>
 
               {/* Active toggle */}

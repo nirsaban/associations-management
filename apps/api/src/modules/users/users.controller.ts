@@ -94,6 +94,7 @@ export class UsersController {
       user.organizationId,
       id,
       updateUserDto,
+      user.sub,
     );
     return { data: updatedUser };
   }

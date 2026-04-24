@@ -112,6 +112,16 @@ Rotate these whenever the seed changes.
 - No renaming `Organization` to `Association` in code.
 - No removing existing manual `organizationId` filters in services (the Prisma extension makes them redundant but safe — leave them).
 
+## Generic Admin Panel (Super Admin)
+
+- Backend: `apps/api/src/modules/platform-admin/` — generic CRUD for all Prisma models (SUPER_ADMIN only)
+- Frontend: `apps/web/src/app/platform/admin/` — dynamic table + form, auto-adapts to schema
+- Uses `Prisma.dmmf.datamodel.models` for runtime schema introspection — zero per-model boilerplate
+- When adding a new Prisma model: run `prisma generate` → it auto-appears in the admin panel
+- To add a Hebrew label: update `MODEL_LABELS` in `platform-admin-schema.service.ts`
+- To hide sensitive fields: update `HIDDEN_FIELDS` in `platform-admin-schema.service.ts`
+- To hide entire models: update `HIDDEN_MODELS` in `platform-admin-schema.service.ts`
+
 ## When in doubt
 
 1. Check this file first

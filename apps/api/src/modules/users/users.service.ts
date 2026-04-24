@@ -3,6 +3,7 @@ import {
   Logger,
   NotFoundException,
   ConflictException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '@common/prisma/prisma.service';
 import { SystemRole } from '@prisma/client';
@@ -143,6 +144,7 @@ export class UsersService {
     organizationId: string,
     id: string,
     updateUserDto: UpdateUserDto,
+    currentUserId?: string,
   ): Promise<UserResponseDto> {
     this.logger.log(`Updating user ${id} in organization ${organizationId}`);
 
@@ -152,6 +154,11 @@ export class UsersService {
 
     if (!user) {
       throw new NotFoundException('משתמש לא נמצא');
+    }
+
+    // Prevent admin from demoting themselves
+    if (updateUserDto.systemRole && currentUserId === id && updateUserDto.systemRole !== user.systemRole) {
+      throw new ForbiddenException('לא ניתן לשנות את התפקיד של עצמך');
     }
 
     if (updateUserDto.email && updateUserDto.email !== user.email) {
@@ -178,6 +185,7 @@ export class UsersService {
         ...(fullName !== undefined && { fullName }),
         ...(updateUserDto.email !== undefined && { email: updateUserDto.email }),
         ...(updateUserDto.isActive !== undefined && { isActive: updateUserDto.isActive }),
+        ...(updateUserDto.systemRole !== undefined && { systemRole: updateUserDto.systemRole as SystemRole }),
       },
       include: {
         groupMemberships: {

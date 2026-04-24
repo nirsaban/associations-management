@@ -91,7 +91,14 @@
       "Bash(npx nest:*)",
       "Bash(pkill -f \"node.*dist\")",
       "Bash(python3 -c \"import sys,json; scripts=json.load\\(sys.stdin\\).get\\('scripts',{}\\); [print\\(f'{k}: {v}'\\) for k,v in scripts.items\\(\\)]\")",
-      "Bash(DATABASE_URL=\"postgresql://amutot:amutot_dev_password_change_in_production@localhost:5434/amutot\" npx prisma:*)"
+      "Bash(DATABASE_URL=\"postgresql://amutot:amutot_dev_password_change_in_production@localhost:5434/amutot\" npx prisma:*)",
+      "Bash(gh auth:*)",
+      "Bash(git stash:*)",
+      "Bash(git checkout:*)",
+      "Bash(git cherry-pick:*)",
+      "Bash(git reset:*)",
+      "Bash(npx next:*)",
+      "Bash(gh pr:*)"
     ]
   }
 }
