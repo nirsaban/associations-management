@@ -137,7 +137,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
     const checkAndRedirect = async () => {
       const currentState = useAuthStore.getState();
-      const currentUser = currentState.user;
+      let currentUser = currentState.user;
       const currentIsAuth = currentState.isAuthenticated;
 
       if (!currentIsAuth || !currentUser) {
@@ -167,6 +167,27 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         }
       }
 
+      // Self-heal: if group info was not set during login, fetch /auth/me
+      if (currentUser.isGroupManager === undefined && currentUser.systemRole === 'USER') {
+        try {
+          const meRes = await api.get('/auth/me');
+          const me = meRes.data?.data;
+          if (me && myId === checkIdRef.current) {
+            const { setUser } = useAuthStore.getState();
+            setUser({
+              ...currentUser,
+              isGroupManager: !!me.isGroupManager,
+              managedGroupId: (me.managedGroupId as string) ?? null,
+              groupMembershipGroupId: (me.groupMembershipGroupId as string) ?? null,
+            });
+            // Re-read after enrichment
+            currentUser = useAuthStore.getState().user!;
+          }
+        } catch {
+          // proceed with what we have
+        }
+      }
+
       // Guard: prevent users from accessing routes above their role
       if (myId === checkIdRef.current) {
         const currentPath = window.location.pathname;
@@ -181,6 +202,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         if (currentPath.startsWith('/manager') && role !== 'ADMIN' && !isGroupManager) {
           hasRedirectedRef.current = true;
           router.replace('/user/dashboard');
+          return;
+        }
+        // Redirect group managers from /user/* to /manager/*
+        if (currentPath.startsWith('/user/') && isGroupManager) {
+          hasRedirectedRef.current = true;
+          const managerPath = currentPath.replace('/user/', '/manager/');
+          router.replace(managerPath);
           return;
         }
         if (currentPath.startsWith('/platform') && currentUser.platformRole !== 'SUPER_ADMIN') {
