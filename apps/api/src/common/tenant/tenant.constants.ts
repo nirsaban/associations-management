@@ -14,6 +14,9 @@ export const TENANT_SCOPED_MODELS = [
   'PushSubscription',
   'Alert',
   'WeeklyFamilyDelivery',
+  'Asset',
+  'Review',
+  'LandingLead',
 ] as const;
 
 // מודלים שלא מסוננים לפי שוכר
