@@ -50,6 +50,15 @@ export class OrganizationDetailDto extends OrganizationListItemDto {
   @ApiPropertyOptional({ example: 'https://storage.com/logo.png' })
   logoUrl?: string;
 
+  @ApiProperty({ example: 'IL' })
+  country!: string;
+
+  @ApiProperty({ example: '#2563eb' })
+  primaryColor!: string;
+
+  @ApiProperty({ example: '#f59e0b' })
+  accentColor!: string;
+
   @ApiPropertyOptional()
   settings?: Record<string, unknown>;
 

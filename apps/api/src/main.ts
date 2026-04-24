@@ -1,11 +1,27 @@
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import morgan from 'morgan';
+import { join } from 'path';
+import { existsSync, mkdirSync } from 'fs';
 import { AppModule } from './app.module';
 
 async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  // Ensure upload directories exist
+  const uploadsDir = join(process.cwd(), 'uploads', 'logos');
+  if (!existsSync(uploadsDir)) {
+    mkdirSync(uploadsDir, { recursive: true });
+  }
+  const assetsDir = join(process.cwd(), 'uploads', 'assets');
+  if (!existsSync(assetsDir)) {
+    mkdirSync(assetsDir, { recursive: true });
+  }
+
+  // Serve uploaded files statically
+  app.useStaticAssets(join(process.cwd(), 'uploads'), { prefix: '/uploads/' });
 
   // Enable CORS
   app.enableCors({

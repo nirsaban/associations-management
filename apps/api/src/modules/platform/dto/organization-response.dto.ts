@@ -28,11 +28,47 @@ export class OrganizationResponseDto {
   @ApiPropertyOptional({ example: 'https://storage.com/logo.png' })
   logoUrl?: string;
 
+  @ApiPropertyOptional()
+  logoAssetId?: string;
+
+  @ApiPropertyOptional()
+  legalName?: string;
+
+  @ApiPropertyOptional()
+  taxId?: string;
+
+  @ApiPropertyOptional()
+  addressLine2?: string;
+
+  @ApiPropertyOptional()
+  city?: string;
+
+  @ApiPropertyOptional()
+  postalCode?: string;
+
+  @ApiProperty({ example: 'IL' })
+  country!: string;
+
+  @ApiProperty({ example: '#2563eb' })
+  primaryColor!: string;
+
+  @ApiProperty({ example: '#f59e0b' })
+  accentColor!: string;
+
+  @ApiPropertyOptional({ maxLength: 280 })
+  aboutShort?: string;
+
+  @ApiPropertyOptional()
+  aboutLong?: string;
+
   @ApiPropertyOptional({ description: 'תיאור העמותה' })
   description?: string;
 
   @ApiPropertyOptional({ description: 'קישור לדף תרומות' })
   paymentLink?: string;
+
+  @ApiPropertyOptional()
+  defaultPaymentLink?: string;
 
   @ApiPropertyOptional({ description: 'תיאור מטרת התרומה' })
   paymentDescription?: string;

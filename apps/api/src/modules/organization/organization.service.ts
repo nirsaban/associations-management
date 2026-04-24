@@ -12,6 +12,7 @@ import { SetupOrganizationDto } from './dto/setup-organization.dto';
 import { OnboardingStep1Dto } from './dto/onboarding-step1.dto';
 import { OnboardingStep2Dto } from './dto/onboarding-step2.dto';
 import { OnboardingStep3Dto } from './dto/onboarding-step3.dto';
+import { UpdateOrgProfileDto } from './dto/update-profile.dto';
 import { OrganizationResponseDto } from '@modules/platform/dto/organization-response.dto';
 
 @Injectable()
@@ -166,21 +167,103 @@ export class OrganizationService {
     return this.mapToDto(updated);
   }
 
+  async updateProfile(
+    userId: string,
+    organizationId: string,
+    dto: UpdateOrgProfileDto,
+  ): Promise<OrganizationResponseDto> {
+    this.logger.log(`Updating profile for organization ${organizationId}`);
+    await this.verifyAdminAccess(userId, organizationId);
+
+    // Sanitize rich text fields
+    const sanitizedAboutLong = dto.aboutLong
+      ? this.sanitizeHtml(dto.aboutLong)
+      : dto.aboutLong;
+
+    const updateData: Prisma.OrganizationUpdateInput = {};
+    if (dto.name !== undefined) updateData.name = dto.name;
+    if (dto.legalName !== undefined) updateData.legalName = dto.legalName;
+    if (dto.taxId !== undefined) updateData.taxId = dto.taxId;
+    if (dto.contactEmail !== undefined) updateData.contactEmail = dto.contactEmail;
+    if (dto.contactPhone !== undefined) updateData.contactPhone = dto.contactPhone;
+    if (dto.address !== undefined) updateData.address = dto.address;
+    if (dto.addressLine2 !== undefined) updateData.addressLine2 = dto.addressLine2;
+    if (dto.city !== undefined) updateData.city = dto.city;
+    if (dto.postalCode !== undefined) updateData.postalCode = dto.postalCode;
+    if (dto.country !== undefined) updateData.country = dto.country;
+    if (dto.primaryColor !== undefined) updateData.primaryColor = dto.primaryColor;
+    if (dto.accentColor !== undefined) updateData.accentColor = dto.accentColor;
+    if (dto.aboutShort !== undefined) updateData.aboutShort = dto.aboutShort;
+    if (sanitizedAboutLong !== undefined) updateData.aboutLong = sanitizedAboutLong;
+    if (dto.description !== undefined) updateData.description = dto.description;
+    if (dto.defaultPaymentLink !== undefined) updateData.defaultPaymentLink = dto.defaultPaymentLink;
+    if (dto.paymentLink !== undefined) updateData.paymentLink = dto.paymentLink;
+    if (dto.paymentDescription !== undefined) updateData.paymentDescription = dto.paymentDescription;
+    if (dto.facebookUrl !== undefined) updateData.facebookUrl = dto.facebookUrl;
+    if (dto.instagramUrl !== undefined) updateData.instagramUrl = dto.instagramUrl;
+    if (dto.whatsappUrl !== undefined) updateData.whatsappUrl = dto.whatsappUrl;
+    if (dto.websiteUrl !== undefined) updateData.websiteUrl = dto.websiteUrl;
+
+    const updated = await this.prisma.organization.update({
+      where: { id: organizationId },
+      data: updateData,
+    });
+
+    return this.mapToDto(updated);
+  }
+
   async uploadLogo(
     userId: string,
     organizationId: string,
     logoUrl: string,
+    assetId?: string,
   ): Promise<OrganizationResponseDto> {
     this.logger.log(`Uploading logo for organization ${organizationId}`);
 
     await this.verifyAdminAccess(userId, organizationId);
 
+    const data: Prisma.OrganizationUpdateInput = { logoUrl };
+    if (assetId) {
+      data.logoAsset = { connect: { id: assetId } };
+    }
+
     const updated = await this.prisma.organization.update({
       where: { id: organizationId },
-      data: { logoUrl },
+      data,
     });
 
     return this.mapToDto(updated);
+  }
+
+  async removeLogo(
+    userId: string,
+    organizationId: string,
+  ): Promise<OrganizationResponseDto> {
+    this.logger.log(`Removing logo for organization ${organizationId}`);
+    await this.verifyAdminAccess(userId, organizationId);
+
+    const updated = await this.prisma.organization.update({
+      where: { id: organizationId },
+      data: { logoUrl: null, logoAssetId: null },
+    });
+
+    return this.mapToDto(updated);
+  }
+
+  async getPublicProfile(organizationId: string) {
+    const org = await this.prisma.organization.findFirst({
+      where: { id: organizationId, deletedAt: null },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        logoUrl: true,
+        aboutShort: true,
+        primaryColor: true,
+        accentColor: true,
+      },
+    });
+    return org;
   }
 
   private async verifyAdminAccess(userId: string, organizationId: string): Promise<void> {
@@ -198,6 +281,19 @@ export class OrganizationService {
     }
   }
 
+  private sanitizeHtml(html: string): string {
+    // Server-side sanitization: strip dangerous tags and attributes
+    return html
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+      .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '')
+      .replace(/<embed\b[^>]*>/gi, '')
+      .replace(/<link\b[^>]*>/gi, '')
+      .replace(/\bon\w+\s*=\s*"[^"]*"/gi, '')
+      .replace(/\bon\w+\s*=\s*'[^']*'/gi, '')
+      .replace(/javascript\s*:/gi, '');
+  }
+
   private mapToDto(organization: Record<string, unknown>): OrganizationResponseDto {
     return {
       id: organization.id as string,
@@ -207,8 +303,20 @@ export class OrganizationService {
       phone: (organization.contactPhone as string) || undefined,
       address: (organization.address as string) || undefined,
       logoUrl: (organization.logoUrl as string) || undefined,
+      logoAssetId: (organization.logoAssetId as string) || undefined,
+      legalName: (organization.legalName as string) || undefined,
+      taxId: (organization.taxId as string) || undefined,
+      addressLine2: (organization.addressLine2 as string) || undefined,
+      city: (organization.city as string) || undefined,
+      postalCode: (organization.postalCode as string) || undefined,
+      country: (organization.country as string) || 'IL',
+      primaryColor: (organization.primaryColor as string) || '#2563eb',
+      accentColor: (organization.accentColor as string) || '#f59e0b',
+      aboutShort: (organization.aboutShort as string) || undefined,
+      aboutLong: (organization.aboutLong as string) || undefined,
       description: (organization.description as string) || undefined,
       paymentLink: (organization.paymentLink as string) || undefined,
+      defaultPaymentLink: (organization.defaultPaymentLink as string) || undefined,
       paymentDescription: (organization.paymentDescription as string) || undefined,
       facebookUrl: (organization.facebookUrl as string) || undefined,
       instagramUrl: (organization.instagramUrl as string) || undefined,
