@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import { MotionConfig, useReducedMotion } from 'framer-motion';
 import { THEME_VARS } from './themes';
 import {
   HeroSection,
@@ -133,6 +134,7 @@ export default function PublicLandingPage() {
   const org = landing.organization;
   const primaryColor = org.primaryColor || '#2563eb';
   const accentColor = org.accentColor || '#f59e0b';
+  const prefersReducedMotion = useReducedMotion();
 
   // Build CSS variables
   const cssVars: Record<string, string> = {
@@ -142,38 +144,41 @@ export default function PublicLandingPage() {
   };
 
   return (
-    <div
-      className="min-h-screen"
-      dir="rtl"
-      lang="he"
-      style={{
-        ...cssVars as React.CSSProperties,
-        backgroundColor: 'var(--lp-bg)',
-        fontFamily: 'var(--lp-font-body)',
-        color: 'var(--lp-text)',
-      }}
-    >
-      {/* SEO meta */}
-      {landing.title && <title>{landing.title}</title>}
+    <MotionConfig reducedMotion="user">
+      <div
+        className="min-h-screen"
+        dir="rtl"
+        lang="he"
+        data-reduced-motion={prefersReducedMotion ? 'true' : 'false'}
+        style={{
+          ...cssVars as React.CSSProperties,
+          backgroundColor: 'var(--lp-bg)',
+          fontFamily: 'var(--lp-font-body)',
+          color: 'var(--lp-text)',
+        }}
+      >
+        {/* SEO meta */}
+        {landing.title && <title>{landing.title}</title>}
 
-      {landing.sections
-        .filter(s => s.visible)
-        .sort((a, b) => a.position - b.position)
-        .map(section => {
-          const Component = SECTION_COMPONENTS[section.type];
-          if (!Component) return null;
+        {landing.sections
+          .filter(s => s.visible)
+          .sort((a, b) => a.position - b.position)
+          .map(section => {
+            const Component = SECTION_COMPONENTS[section.type];
+            if (!Component) return null;
 
-          return (
-            <Component
-              key={section.id}
-              data={section.data}
-              org={org}
-              primaryColor={primaryColor}
-              accentColor={accentColor}
-              slug={slug}
-            />
-          );
-        })}
-    </div>
+            return (
+              <Component
+                key={section.id}
+                data={section.data}
+                org={org}
+                primaryColor={primaryColor}
+                accentColor={accentColor}
+                slug={slug}
+              />
+            );
+          })}
+      </div>
+    </MotionConfig>
   );
 }
