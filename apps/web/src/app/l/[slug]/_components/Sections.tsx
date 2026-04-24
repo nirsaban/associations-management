@@ -2,11 +2,13 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, ChevronDown, Phone, Mail, ExternalLink } from 'lucide-react';
+import { Star, ChevronDown, Phone, Mail, ExternalLink, ArrowLeft } from 'lucide-react';
 import {
   fadeInUp, fadeIn, scaleIn, staggerContainer,
   ctaTap, viewportOnce,
 } from '../motion';
+import { HeroGeometric } from '@/components/ui/shape-landing-hero';
+import ShaderBackground from '@/components/ui/shader-background';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 interface SectionData { [key: string]: any; }
@@ -28,11 +30,12 @@ interface SectionProps {
   slug: string;
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// HERO — full-width, gradient background, CTA with press state
-// ═══════════════════════════════════════════════════════════════════
+/* ════════════════════════════════════════════════════════════════════
+   HERO — Geometric shapes + WebGL shader background
+   Uses: shape-landing-hero (21st.dev) + shader-background
+   ════════════════════════════════════════════════════════════════════ */
 
-export function HeroSection({ data, primaryColor, accentColor, org }: SectionProps) {
+export function HeroSection({ data, primaryColor, org }: SectionProps) {
   const handleCta = () => {
     if (data.cta_action === 'payment' && org.paymentLink) {
       window.open(org.paymentLink, '_blank', 'noopener');
@@ -43,82 +46,51 @@ export function HeroSection({ data, primaryColor, accentColor, org }: SectionPro
     }
   };
 
+  // Convert hex to GLSL vec4 components (0-1 range)
+  const hexToGl = (hex: string): [number, number, number, number] => {
+    const r = parseInt(hex.slice(1, 3), 16) / 255;
+    const g = parseInt(hex.slice(3, 5), 16) / 255;
+    const b = parseInt(hex.slice(5, 7), 16) / 255;
+    return [r, g, b, 1.0];
+  };
+
+  const pc = hexToGl(primaryColor);
+  // Derive shader colors from primaryColor — dark bg with colored lines
+  const bg1: [number, number, number, number] = [pc[0] * 0.15, pc[1] * 0.15, pc[2] * 0.4, 1.0];
+  const bg2: [number, number, number, number] = [pc[0] * 0.35, pc[1] * 0.12, pc[2] * 0.5, 1.0];
+  const lineCol: [number, number, number, number] = [pc[0] * 0.8, pc[1] * 0.5, pc[2] * 1.2, 1.0];
+
   return (
-    <section
-      className="relative overflow-hidden"
-      style={{
-        padding: 'var(--lp-section-py) 1.5rem',
-        background: `linear-gradient(135deg, ${primaryColor}12, ${accentColor}08, var(--lp-bg))`,
-      }}
-    >
-      <motion.div
-        className="mx-auto text-center relative z-10"
-        style={{ maxWidth: 'var(--lp-hero-max-w)' }}
-        initial="hidden"
-        whileInView="visible"
-        viewport={viewportOnce}
-        variants={staggerContainer}
+    <section className="relative">
+      <HeroGeometric
+        badge={data.eyebrow || undefined}
+        title1={data.headline || 'ברוכים הבאים'}
+        title2={data.subheadline || ''}
+        description={data.description}
+        primaryColor={primaryColor}
       >
-        {data.eyebrow && (
-          <motion.p
-            variants={fadeInUp}
-            className="uppercase tracking-widest mb-6"
-            style={{
-              fontSize: 'var(--lp-eyebrow-size)',
-              letterSpacing: '0.12em',
-              color: primaryColor,
-            }}
-          >
-            {data.eyebrow}
-          </motion.p>
-        )}
-
-        <motion.h1
-          variants={fadeInUp}
-          style={{
-            fontSize: 'var(--lp-hero-size)',
-            fontWeight: 'var(--lp-heading-weight)',
-            letterSpacing: 'var(--lp-heading-tracking)',
-            lineHeight: 'var(--lp-hero-lh)',
-            fontFamily: 'var(--lp-font-heading)',
-            color: 'var(--lp-text)',
-          }}
-          className="mb-6"
-        >
-          {data.headline || 'ברוכים הבאים'}
-        </motion.h1>
-
-        {data.subheadline && (
-          <motion.p
-            variants={fadeInUp}
-            className="mb-10 mx-auto"
-            style={{
-              fontSize: 'clamp(1.1rem, 2vw, 1.35rem)',
-              lineHeight: 'var(--lp-body-lh)',
-              color: 'var(--lp-text-secondary)',
-              maxWidth: '42rem',
-            }}
-          >
-            {data.subheadline}
-          </motion.p>
-        )}
-
         {data.cta_label && (
           <motion.button
-            variants={fadeInUp}
+            whileHover={{ scale: 1.03, boxShadow: `0 8px 30px -4px ${primaryColor}50` }}
             whileTap={ctaTap}
             onClick={handleCta}
-            className="px-8 py-4 text-lg font-semibold text-white cursor-pointer"
+            className="px-8 py-4 text-lg font-semibold text-white cursor-pointer inline-flex items-center gap-2 mt-2"
             style={{
-              backgroundColor: primaryColor,
-              borderRadius: 'var(--lp-radius-button)',
-              boxShadow: `0 4px 14px ${primaryColor}33`,
+              background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}cc)`,
+              borderRadius: '0.75rem',
+              boxShadow: `0 4px 20px -4px ${primaryColor}50`,
             }}
           >
             {data.cta_label}
+            <ArrowLeft className="h-5 w-5" />
           </motion.button>
         )}
-      </motion.div>
+      </HeroGeometric>
+
+      {/* WebGL shader overlay — behind the geometric shapes */}
+      <div className="absolute inset-0 opacity-30 pointer-events-none" style={{ mixBlendMode: 'screen' }}>
+        <ShaderBackground lineColor={lineCol} bgColor1={bg1} bgColor2={bg2} className="w-full h-full" />
+      </div>
     </section>
   );
 }
