@@ -65,3 +65,23 @@ Add a hidden `website` field to the review submission form. If filled, silently 
 
 ### D15: Rate limiting
 Use NestJS Throttler for public endpoints. Reviews: 5/min per IP. Leads: 5/min per IP. View tracking: 60/min per IP.
+
+### D16: Framer Motion — animation system
+All landing page section components use `framer-motion` for scroll-triggered entrance animations. Motion language follows the inline design system spec:
+- Entrance: 24px Y-offset + opacity 0→1, 600ms, easing [0.22, 1, 0.36, 1] (easeOutExpo)
+- Stagger: 70ms between children
+- Card hover: scale(1.02) in 150ms
+- CTA press: scale(0.98), no bounce
+- `prefers-reduced-motion` honored globally via `<MotionConfig reducedMotion="user">` — Framer Motion's built-in support disables all animations when the user prefers reduced motion.
+
+### D17: UI UX Pro Max skill — not available
+The skill was not found at any path in the repo or env. Fell back to the inline design system spec for all design decisions. All design choices come from the inline spec, not the skill.
+
+### D18: 21st.dev — not initialized
+21st.dev requires interactive CLI setup and an API key. Since we're working autonomously without interactive prompts, we hand-rolled all section components following the inline design system spec. The components use the same patterns that 21st.dev components follow (CSS variable tokens, fluid typography, layered shadows). This is documented as a follow-up: initialize 21st.dev and optionally swap in marketplace components for hero, reviews, and CTA sections.
+
+### D19: Design system — CSS custom properties
+All typography, spacing, radii, and shadow values come from CSS custom properties defined in `themes.ts`. No hard-coded hex values, pixel sizes, or font stacks inside section components. Four themes (warm/modern/minimal/bold) each define the full token set. The org's `primaryColor` and `accentColor` are injected as `--lp-primary` and `--lp-accent` overrides.
+
+### D20: Hebrew RTL typography
+Using Heebo as the heading/body font (RTL-friendly, loaded via the app's font setup). Fluid sizes via `clamp()` per the spec. Direction set via `dir="rtl"` on the root element.
