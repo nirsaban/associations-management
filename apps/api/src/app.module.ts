@@ -22,6 +22,7 @@ import { NotificationsModule } from '@modules/notifications/notifications.module
 import { CsvImportModule } from '@modules/csv-import/csv-import.module';
 import { DashboardModule } from '@modules/dashboard/dashboard.module';
 import { PlatformModule } from '@modules/platform/platform.module';
+import { PlatformAdminModule } from '@modules/platform-admin/platform-admin.module';
 import { OrganizationModule } from '@modules/organization/organization.module';
 import { HomepageModule } from '@modules/homepage/homepage.module';
 import { ManagerModule } from '@modules/manager/manager.module';
@@ -29,6 +30,7 @@ import { AdminModule } from '@modules/admin/admin.module';
 import { ActivationModule } from '@modules/activation/activation.module';
 import { AlertsModule } from '@modules/alerts/alerts.module';
 import { HealthModule } from '@modules/health/health.module';
+import { LandingModule } from '@modules/landing/landing.module';
 
 @Module({
   imports: [
@@ -64,6 +66,7 @@ import { HealthModule } from '@modules/health/health.module';
     CsvImportModule,
     DashboardModule,
     PlatformModule,
+    PlatformAdminModule,
     OrganizationModule,
     HomepageModule,
     ManagerModule,
@@ -71,6 +74,7 @@ import { HealthModule } from '@modules/health/health.module';
     ActivationModule,
     AlertsModule,
     HealthModule,
+    LandingModule,
   ],
   providers: [
     {
