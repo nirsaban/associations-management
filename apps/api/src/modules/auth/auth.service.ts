@@ -311,6 +311,10 @@ export class AuthService {
         groupMemberships: {
           select: { groupId: true, role: true },
         },
+        managedGroups: {
+          select: { id: true },
+          where: { deletedAt: null },
+        },
       },
     });
 
@@ -320,8 +324,9 @@ export class AuthService {
 
     const managerMembership = user.groupMemberships.find((m) => m.role === 'MANAGER');
     const anyMembership = user.groupMemberships[0] ?? null;
-    const isGroupManager = !!managerMembership;
-    const managedGroupId = managerMembership?.groupId ?? null;
+    // Check both GroupMembership role AND Group.managerUserId as fallback
+    const isGroupManager = !!managerMembership || user.managedGroups.length > 0;
+    const managedGroupId = managerMembership?.groupId ?? user.managedGroups[0]?.id ?? null;
     const groupMembershipGroupId = anyMembership?.groupId ?? null;
 
     return {

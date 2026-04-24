@@ -10,6 +10,7 @@ import { Menu, X } from 'lucide-react';
 const NAV_LINKS = [
   { href: '/platform', label: 'סקירה כללית' },
   { href: '/platform/organizations', label: 'עמותות' },
+  { href: '/platform/admin', label: 'ניהול נתונים' },
 ];
 
 export default function PlatformLayout({ children }: { children: ReactNode }) {

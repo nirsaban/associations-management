@@ -1,4 +1,4 @@
-import { IsEmail, IsString, IsOptional, IsBoolean, MinLength } from 'class-validator';
+import { IsEmail, IsString, IsOptional, IsBoolean, IsIn, MinLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateUserDto {
@@ -26,4 +26,14 @@ export class UpdateUserDto {
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;
+
+  @ApiProperty({
+    description: 'User system role (ADMIN or USER only)',
+    enum: ['ADMIN', 'USER'],
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  @IsIn(['ADMIN', 'USER'], { message: 'תפקיד חייב להיות ADMIN או USER' })
+  systemRole?: 'ADMIN' | 'USER';
 }

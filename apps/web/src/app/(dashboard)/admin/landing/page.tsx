@@ -20,7 +20,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
-  Eye, Globe, Copy, Send, X, GripVertical, Settings2, Check,
+  Eye, Globe, Copy, X, GripVertical, Settings2, Check,
 } from 'lucide-react';
 import api from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';

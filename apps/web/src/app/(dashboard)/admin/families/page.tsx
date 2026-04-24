@@ -168,13 +168,10 @@ export default function AdminFamiliesPage() {
     );
   }
 
-  const FamilyFormFields = ({
-    form,
-    setForm,
-  }: {
-    form: FamilyForm;
-    setForm: React.Dispatch<React.SetStateAction<FamilyForm>>;
-  }) => (
+  const renderFormFields = (
+    form: FamilyForm,
+    setForm: React.Dispatch<React.SetStateAction<FamilyForm>>,
+  ) => (
     <div className="space-y-4">
       <div>
         <label className="block text-label-md font-medium mb-2">שם המשפחה *</label>
@@ -376,7 +373,7 @@ export default function AdminFamiliesPage() {
                   {createError}
                 </div>
               )}
-              <FamilyFormFields form={createForm} setForm={setCreateForm} />
+              {renderFormFields(createForm, setCreateForm)}
             </div>
             <div className="flex gap-3 p-6 border-t border-outline/20 sticky bottom-0 bg-surface">
               <button onClick={() => setShowCreateModal(false)} className="btn-outline flex-1">
@@ -419,7 +416,7 @@ export default function AdminFamiliesPage() {
                   {editError}
                 </div>
               )}
-              <FamilyFormFields form={editForm} setForm={setEditForm} />
+              {renderFormFields(editForm, setEditForm)}
             </div>
             <div className="flex gap-3 p-6 border-t border-outline/20 sticky bottom-0 bg-surface">
               <button onClick={() => setEditingFamily(null)} className="btn-outline flex-1">
