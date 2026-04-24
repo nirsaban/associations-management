@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Star, ChevronDown, Phone, Mail, ExternalLink } from 'lucide-react';
 import {
   fadeInUp, fadeIn, scaleIn, staggerContainer,
-  cardHover, ctaTap, viewportOnce,
+  ctaTap, viewportOnce,
 } from '../motion';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -250,7 +250,7 @@ export function ActivitiesSection({ data, primaryColor }: SectionProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {items.map((item, i) => (
             <motion.div
-              key={i} variants={fadeInUp} whileHover={cardHover}
+              key={i} variants={fadeInUp} whileHover={{ y: -4, boxShadow: 'var(--lp-shadow-md)' }}
               className="p-6 border"
               style={{
                 borderColor: 'var(--lp-border)', borderRadius: 'var(--lp-radius-card)',
@@ -339,7 +339,7 @@ export function ReviewsSection({ data, primaryColor, accentColor, slug }: Sectio
         {reviews.length > 0 && (
           <div className="grid gap-6 md:grid-cols-2 mb-12">
             {reviews.map((review) => (
-              <motion.div key={review.id} variants={fadeInUp} whileHover={cardHover}
+              <motion.div key={review.id} variants={fadeInUp} whileHover={{ y: -4, boxShadow: 'var(--lp-shadow-md)' }}
                 className="p-6 border" style={{
                   borderColor: 'var(--lp-border)', borderRadius: 'var(--lp-radius-card)',
                   boxShadow: 'var(--lp-shadow-sm)', backgroundColor: 'var(--lp-bg)',
