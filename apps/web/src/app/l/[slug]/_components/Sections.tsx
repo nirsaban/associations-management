@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import { Star, ChevronDown, ChevronUp, Phone, Mail, ExternalLink } from 'lucide-react';
 
 interface SectionData {
-  [key: string]: unknown;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
 }
 
 interface SectionProps {
@@ -203,7 +204,7 @@ export function GallerySection({ data }: SectionProps) {
 // ─── REVIEWS ─────────────────────────────────────────────────────
 
 export function ReviewsSection({ data, primaryColor, accentColor, slug }: SectionProps) {
-  const [reviews, setReviews] = useState<Array<{ id: string; authorName: string; rating: number; body: string }>>([]);
+  const [reviews] = useState<Array<{ id: string; authorName: string; rating: number; body: string }>>([]);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({ authorName: '', rating: 5, body: '', authorEmail: '', website: '' });
   const [submitted, setSubmitted] = useState(false);
@@ -512,7 +513,7 @@ export function FaqSection({ data }: SectionProps) {
 
 // ─── FOOTER ──────────────────────────────────────────────────────
 
-export function FooterSection({ data, org, primaryColor }: SectionProps) {
+export function FooterSection({ data, org }: SectionProps) {
   return (
     <footer className="py-12 px-6 border-t" style={{ borderColor: 'var(--lp-border)', backgroundColor: 'var(--lp-surface)' }}>
       <div className="max-w-4xl mx-auto">
