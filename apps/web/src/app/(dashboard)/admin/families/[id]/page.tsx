@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
@@ -50,7 +50,6 @@ function formatItems(shoppingListJson: unknown): string {
 
 export default function FamilyDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const router = useRouter();
   const { user } = useAuthStore();
 
   const { data: family, isLoading, error } = useQuery<FamilyDetail>({
