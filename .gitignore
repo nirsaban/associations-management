@@ -110,3 +110,6 @@ storybook-static/
 
 # Performance profiling
 perf_hooks-*.json
+
+# Uploaded files
+uploads/
