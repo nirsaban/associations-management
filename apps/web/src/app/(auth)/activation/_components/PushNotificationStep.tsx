@@ -10,13 +10,8 @@ interface PushNotificationStepProps {
 export function PushNotificationStep({ onComplete }: PushNotificationStepProps) {
   const [status, setStatus] = useState<'loading' | 'ready' | 'requesting' | 'denied' | 'unsupported' | 'done'>('loading');
   const [error, setError] = useState<string | null>(null);
-  const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
-    // Detect desktop (no touch support + wide screen)
-    const desktop = !('ontouchstart' in window) && window.innerWidth >= 1024;
-    setIsDesktop(desktop);
-
     async function check() {
       if (!isPushSupported()) {
         setStatus('unsupported');
@@ -39,9 +34,9 @@ export function PushNotificationStep({ onComplete }: PushNotificationStepProps) 
     check();
   }, []);
 
-  // Auto-advance if already subscribed or unsupported
+  // Auto-advance if already subscribed
   useEffect(() => {
-    if (status === 'done' || status === 'unsupported') {
+    if (status === 'done') {
       const timer = setTimeout(onComplete, 500);
       return () => clearTimeout(timer);
     }
@@ -98,12 +93,16 @@ export function PushNotificationStep({ onComplete }: PushNotificationStepProps) 
         <p className="text-body-md text-on-surface-variant mt-2">
           כדי לקבל עדכונים חשובים על הזמנות, תשלומים וחלוקות — יש להפעיל התראות.
         </p>
-        {!isDesktop && (
-          <p className="text-body-sm text-on-surface-variant mt-1">
-            שלב זה הוא חובה.
-          </p>
-        )}
       </div>
+
+      {status === 'unsupported' && (
+        <div className="rounded-lg bg-surface-container px-4 py-3 text-body-sm text-on-surface-variant">
+          <p className="font-medium">הדפדפן שלך לא תומך בהתראות</p>
+          <p className="mt-1">
+            לקבלת התראות, יש לפתוח את האפליקציה מ-Safari (iOS) או Chrome (Android).
+          </p>
+        </div>
+      )}
 
       {status === 'denied' && (
         <div className="rounded-lg bg-error-container px-4 py-3 text-body-sm text-on-error-container">
@@ -120,22 +119,24 @@ export function PushNotificationStep({ onComplete }: PushNotificationStepProps) 
         </div>
       )}
 
-      <button
-        onClick={handleEnable}
-        disabled={status === 'requesting'}
-        className="btn-primary w-full py-3 text-title-md"
-      >
-        {status === 'requesting' ? 'מפעיל...' : 'הפעל התראות'}
-      </button>
-
-      {isDesktop && (
+      {status !== 'unsupported' && status !== 'denied' && (
         <button
-          onClick={onComplete}
-          className="w-full py-2.5 text-body-md text-on-surface-variant hover:text-on-surface transition-colors"
+          onClick={handleEnable}
+          disabled={status === 'requesting'}
+          className="btn-primary w-full py-3 text-title-md"
         >
-          דלג — אפעיל מהנייד מאוחר יותר
+          {status === 'requesting' ? 'מפעיל...' : 'הפעל התראות'}
         </button>
       )}
+
+      <button
+        onClick={onComplete}
+        className="w-full py-2.5 text-body-sm text-on-surface-variant/60 hover:text-on-surface-variant transition-colors"
+      >
+        {status === 'unsupported' || status === 'denied'
+          ? 'המשך בלי התראות'
+          : 'דלג — אפעיל מאוחר יותר'}
+      </button>
     </div>
   );
 }

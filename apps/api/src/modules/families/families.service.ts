@@ -2,7 +2,7 @@ import { Injectable, Logger, NotFoundException, BadRequestException } from '@nes
 import { PrismaService } from '@common/prisma/prisma.service';
 import { CreateFamilyDto } from './dto/create-family.dto';
 import { UpdateFamilyDto } from './dto/update-family.dto';
-import { FamilyResponseDto } from './dto/family-response.dto';
+import { FamilyResponseDto, FamilyOrderDto } from './dto/family-response.dto';
 
 @Injectable()
 export class FamiliesService {
@@ -27,6 +27,7 @@ export class FamiliesService {
       data: {
         organizationId,
         familyName: createFamilyDto.familyName,
+        contactName: createFamilyDto.contactName ?? null,
         contactPhone: createFamilyDto.contactPhone ?? null,
         address: createFamilyDto.address ?? null,
         notes: createFamilyDto.notes ?? null,
@@ -76,6 +77,21 @@ export class FamiliesService {
 
     const family = await this.prisma.family.findFirst({
       where: { id, organizationId, deletedAt: null },
+      include: {
+        group: { select: { name: true } },
+        weeklyOrders: {
+          orderBy: { weekKey: 'desc' },
+          take: 50,
+          select: {
+            id: true,
+            weekKey: true,
+            shoppingListJson: true,
+            status: true,
+            notes: true,
+            createdAt: true,
+          },
+        },
+      },
     });
 
     if (!family) {
@@ -104,9 +120,11 @@ export class FamiliesService {
       where: { id },
       data: {
         ...(updateFamilyDto.familyName !== undefined && { familyName: updateFamilyDto.familyName }),
+        ...(updateFamilyDto.contactName !== undefined && { contactName: updateFamilyDto.contactName }),
         ...(updateFamilyDto.contactPhone !== undefined && { contactPhone: updateFamilyDto.contactPhone }),
         ...(updateFamilyDto.address !== undefined && { address: updateFamilyDto.address }),
         ...(updateFamilyDto.notes !== undefined && { notes: updateFamilyDto.notes }),
+        ...(updateFamilyDto.groupId !== undefined && { groupId: updateFamilyDto.groupId || null }),
       },
     });
 
@@ -158,7 +176,17 @@ export class FamiliesService {
   }
 
   private mapToDto(family: Record<string, unknown>): FamilyResponseDto {
-    return {
+    const group = family.group as { name: string } | null | undefined;
+    const weeklyOrders = family.weeklyOrders as Array<{
+      id: string;
+      weekKey: string;
+      shoppingListJson: unknown;
+      status: string;
+      notes: string | null;
+      createdAt: Date;
+    }> | undefined;
+
+    const dto: FamilyResponseDto = {
       id: family.id as string,
       organizationId: family.organizationId as string,
       familyName: family.familyName as string,
@@ -170,5 +198,22 @@ export class FamiliesService {
       createdAt: family.createdAt as Date,
       updatedAt: family.updatedAt as Date,
     };
+
+    if (group !== undefined) {
+      dto.groupName = group?.name ?? undefined;
+    }
+
+    if (weeklyOrders !== undefined) {
+      dto.orders = weeklyOrders.map((order): FamilyOrderDto => ({
+        id: order.id,
+        weekKey: order.weekKey,
+        shoppingListJson: order.shoppingListJson,
+        status: order.status,
+        notes: order.notes,
+        createdAt: order.createdAt,
+      }));
+    }
+
+    return dto;
   }
 }

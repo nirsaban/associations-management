@@ -20,7 +20,6 @@ export function BiometryStep({ onComplete, onSkip }: BiometryStepProps) {
       const isSupported = await isWebAuthnSupported();
       setSupported(isSupported);
       if (!isSupported) {
-        // Device doesn't support biometry — auto-skip after brief message
         setStatus('done');
       } else {
         setStatus('ready');
@@ -43,7 +42,6 @@ export function BiometryStep({ onComplete, onSkip }: BiometryStepProps) {
     try {
       const deviceName = getDeviceName();
       await registerWebAuthn(deviceName);
-      // Save phone for future biometry login
       if (user?.phone) {
         localStorage.setItem('amutot_biometry_phone', user.phone);
       }
@@ -54,7 +52,7 @@ export function BiometryStep({ onComplete, onSkip }: BiometryStepProps) {
       if (message.includes('NotAllowedError') || message.includes('cancelled')) {
         setError('הזיהוי בוטל. ניתן לנסות שוב או לדלג.');
       } else {
-        setError('שגיאה ברישום זיהוי ביומטרי. ני��ן לנסות שוב או לדלג.');
+        setError('שגיאה ברישום זיהוי ביומטרי. ניתן לנסות שוב או לדלג.');
       }
       setStatus('error');
     }
@@ -78,7 +76,7 @@ export function BiometryStep({ onComplete, onSkip }: BiometryStepProps) {
         </div>
         <h3 className="text-title-lg font-medium">זיהוי ביומטרי לא נתמך</h3>
         <p className="text-body-md text-on-surface-variant">
-          המכשיר שלך לא תומך ב��יהוי ביו��טרי. ממשיכים הלאה...
+          המכשיר שלך לא תומך בזיהוי ביומטרי. ממשיכים הלאה...
         </p>
       </div>
     );
@@ -128,7 +126,7 @@ export function BiometryStep({ onComplete, onSkip }: BiometryStepProps) {
         disabled={status === 'registering'}
         className="btn-primary w-full py-3 text-title-md"
       >
-        {status === 'registering' ? 'רושם...' : 'הפעל זי��וי ביומטרי'}
+        {status === 'registering' ? 'רושם...' : 'הפעל זיהוי ביומטרי'}
       </button>
 
       <button

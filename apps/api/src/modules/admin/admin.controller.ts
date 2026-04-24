@@ -142,4 +142,34 @@ export class AdminController {
   ): Promise<{ data: GroupWeeklyStatusDto[] }> {
     return this.adminService.getWeeklyStatus(user.organizationId, weekKey);
   }
+
+  @Get('orders')
+  @ApiOperation({
+    summary: 'Get weekly orders grouped by group',
+    description: 'קבלת הזמנות שבועיות מקובצות לפי קבוצה לשבוע נבחר',
+  })
+  @ApiQuery({ name: 'weekKey', required: false, type: String, description: 'מפתח שבוע בפורמט YYYY-Wxx, למשל 2026-W17. אם לא סופק, ישתמש בשבוע הנוכחי.' })
+  async getWeeklyOrders(
+    @CurrentUser() user: ICurrentUser,
+    @Query('weekKey') weekKey?: string,
+  ): Promise<{
+    data: {
+      weekKey: string;
+      groups: Array<{
+        groupId: string;
+        groupName: string;
+        families: Array<{
+          familyId: string;
+          familyName: string;
+          contactName: string | null;
+          address: string | null;
+          items: unknown;
+          status: string;
+          notes: string | null;
+        }>;
+      }>;
+    };
+  }> {
+    return this.adminService.getWeeklyOrders(user.organizationId, weekKey);
+  }
 }

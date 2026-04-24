@@ -12,7 +12,6 @@ import { api } from '@/lib/api';
 const NAVIGATION = {
   SUPER_ADMIN: [{ label: 'פלטפורמה', href: '/platform', icon: Home }],
   ADMIN: [
-    { label: 'בית', href: '/', icon: Home },
     { label: 'דשבורד ניהול', href: '/admin', icon: CreditCard },
     { label: 'משתמשים', href: '/admin/users', icon: Users },
     { label: 'קבוצות', href: '/admin/groups', icon: Users },
@@ -50,10 +49,10 @@ const NAVIGATION = {
 // Bottom nav shows max 5 priority items on mobile
 const BOTTOM_NAV = {
   ADMIN: [
-    { label: 'בית', href: '/', icon: Home },
     { label: 'דשבורד', href: '/admin', icon: CreditCard },
     { label: 'משתמשים', href: '/admin/users', icon: Users },
     { label: 'קבוצות', href: '/admin/groups', icon: Users },
+    { label: 'משפחות', href: '/admin/families', icon: Home },
     { label: 'עוד', href: '__more__', icon: Menu },
   ],
   USER: [

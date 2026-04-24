@@ -31,11 +31,16 @@ export class UsersService {
     this.logger.log(`Creating user for organization ${organizationId}`);
 
     const phone = normalizePhone(createUserDto.phone);
+    const rawPhone = createUserDto.phone.trim();
     const fullName = stripHtml(createUserDto.fullName);
 
-    // Phone is unique within an organization (not globally)
+    // Phone is unique within an organization — check both normalized and raw formats
     const existingByPhone = await this.prisma.user.findFirst({
-      where: { phone, organizationId, deletedAt: null },
+      where: {
+        organizationId,
+        deletedAt: null,
+        OR: [{ phone }, { phone: rawPhone }],
+      },
     });
 
     if (existingByPhone) {

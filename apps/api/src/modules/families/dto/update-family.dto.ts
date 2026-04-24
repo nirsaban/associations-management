@@ -42,4 +42,12 @@ export class UpdateFamilyDto {
   @IsString()
   @IsOptional()
   notes?: string;
+
+  @ApiProperty({
+    description: 'מזהה קבוצה (אופציונלי)',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  groupId?: string;
 }

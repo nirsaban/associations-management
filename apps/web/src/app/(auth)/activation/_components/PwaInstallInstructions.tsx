@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 type Platform = 'ios' | 'android' | 'desktop';
 
@@ -22,8 +22,32 @@ interface PwaInstallInstructionsProps {
 }
 
 export function PwaInstallInstructions({ onAcknowledge }: PwaInstallInstructionsProps) {
-  const platform = detectPlatform();
-  const alreadyInstalled = isStandalone();
+  const [platform, setPlatform] = useState<Platform>('desktop');
+  const [alreadyInstalled, setAlreadyInstalled] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+
+  useEffect(() => {
+    setPlatform(detectPlatform());
+    setAlreadyInstalled(isStandalone());
+
+    // Capture the beforeinstallprompt event for Android/desktop Chrome
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const result = await deferredPrompt.userChoice;
+    if (result.outcome === 'accepted') {
+      setAlreadyInstalled(true);
+    }
+    setDeferredPrompt(null);
+  };
 
   if (alreadyInstalled) {
     return (
@@ -58,15 +82,29 @@ export function PwaInstallInstructions({ onAcknowledge }: PwaInstallInstructions
         </p>
       </div>
 
-      {platform === 'ios' && <IosInstructions />}
-      {platform === 'android' && <AndroidInstructions />}
-      {platform === 'desktop' && <DesktopInstructions />}
+      {deferredPrompt ? (
+        <button onClick={handleInstallClick} className="btn-primary w-full py-3 text-title-md">
+          התקן עכשיו
+        </button>
+      ) : (
+        <>
+          {platform === 'ios' && <IosInstructions />}
+          {platform === 'android' && <AndroidInstructions />}
+          {platform === 'desktop' && <DesktopInstructions />}
+        </>
+      )}
 
       <button onClick={onAcknowledge} className="btn-primary w-full py-3 text-title-md">
         הבנתי, המשך
       </button>
     </div>
   );
+}
+
+// Type for the beforeinstallprompt event
+interface BeforeInstallPromptEvent extends Event {
+  prompt(): Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
 function IosInstructions() {
@@ -76,7 +114,7 @@ function IosInstructions() {
       <ol className="space-y-3 text-body-md">
         <li className="flex gap-3 items-start">
           <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-on-primary flex items-center justify-center text-body-sm font-bold">1</span>
-          <span>לחץ על כפתור השיתוף <span className="inline-block w-5 h-5 align-middle">⬆️</span> בתחתית המסך</span>
+          <span>לחץ על כפתור השיתוף בתחתית המסך</span>
         </li>
         <li className="flex gap-3 items-start">
           <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-on-primary flex items-center justify-center text-body-sm font-bold">2</span>
@@ -98,11 +136,11 @@ function AndroidInstructions() {
       <ol className="space-y-3 text-body-md">
         <li className="flex gap-3 items-start">
           <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-on-primary flex items-center justify-center text-body-sm font-bold">1</span>
-          <span>לחץ על תפריט הדפדפן (שלוש נקודות ⋮) בפינה הימנית העליונה</span>
+          <span>לחץ על תפריט הדפדפן (שלוש נקודות) בפינה הימנית העליונה</span>
         </li>
         <li className="flex gap-3 items-start">
           <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-on-primary flex items-center justify-center text-body-sm font-bold">2</span>
-          <span>בחר &quot;התקן אפליקציה&quot; או &quot;ה��סף למסך הבית&quot;</span>
+          <span>בחר &quot;התקן אפליקציה&quot; או &quot;הוסף למסך הבית&quot;</span>
         </li>
         <li className="flex gap-3 items-start">
           <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-on-primary flex items-center justify-center text-body-sm font-bold">3</span>
@@ -116,11 +154,11 @@ function AndroidInstructions() {
 function DesktopInstructions() {
   return (
     <div className="space-y-4 bg-surface-container-low rounded-xl p-4">
-      <h4 className="text-title-sm font-medium">הוראות ה��קנה — מחשב (Chrome / Edge)</h4>
+      <h4 className="text-title-sm font-medium">הוראות התקנה — מחשב (Chrome / Edge)</h4>
       <ol className="space-y-3 text-body-md">
         <li className="flex gap-3 items-start">
           <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-on-primary flex items-center justify-center text-body-sm font-bold">1</span>
-          <span>חפש את אייקון ההתקנה (⊕) בצד ימין של שורת הכתובת</span>
+          <span>חפש את אייקון ההתקנה בצד ימין של שורת הכתובת</span>
         </li>
         <li className="flex gap-3 items-start">
           <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-on-primary flex items-center justify-center text-body-sm font-bold">2</span>

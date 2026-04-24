@@ -108,6 +108,8 @@ async function seedOrganization(
       systemRole: 'ADMIN',
       isActive: true,
       registrationCompleted: true,
+      activationCompleted: true,
+      activationCompleted: true,
     },
   });
 
@@ -121,6 +123,7 @@ async function seedOrganization(
       systemRole: 'USER',
       isActive: true,
       registrationCompleted: true,
+      activationCompleted: true,
     },
   });
 
@@ -133,6 +136,7 @@ async function seedOrganization(
       systemRole: 'USER',
       isActive: true,
       registrationCompleted: true,
+      activationCompleted: true,
     },
   });
 
@@ -539,6 +543,7 @@ async function main() {
       systemRole: 'USER',
       isActive: true,
       registrationCompleted: true,
+      activationCompleted: true,
     },
   });
   console.log(`  סופר אדמין: ${superAdmin.phone}`);

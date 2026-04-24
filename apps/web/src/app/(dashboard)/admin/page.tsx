@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Users, Home, CreditCard, AlertCircle, Bell, Upload, Send, Trash2, X } from 'lucide-react';
+import { Users, Home, CreditCard, AlertCircle, Bell, Upload, Send, Trash2, X, ChevronDown, CheckCircle2, XCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
@@ -35,6 +35,17 @@ interface AdminDashboardData {
   };
 }
 
+interface GroupWeeklyStatus {
+  groupId: string;
+  groupName: string;
+  managerName?: string | null;
+  totalFamilies: number;
+  completedOrders: number;
+  pendingOrders: number;
+  distributorName?: string;
+  hasDistributor: boolean;
+}
+
 type AlertAudience = 'ALL_USERS' | 'GROUP_MANAGERS';
 
 interface Alert {
@@ -65,6 +76,25 @@ export default function AdminDashboardPage() {
     },
     enabled: !!user,
   });
+
+  // Weekly status per group
+  const { data: weeklyGroups } = useQuery<GroupWeeklyStatus[]>({
+    queryKey: ['admin', 'weekly-status'],
+    queryFn: async () => {
+      const response = await api.get<{ data: GroupWeeklyStatus[] }>('/admin/weekly-status');
+      return response.data.data;
+    },
+    enabled: !!user,
+  });
+  const [openGroupIds, setOpenGroupIds] = useState<Set<string>>(new Set());
+  const toggleGroup = (groupId: string) => {
+    setOpenGroupIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(groupId)) next.delete(groupId);
+      else next.add(groupId);
+      return next;
+    });
+  };
 
   // Alerts / Publish Messages
   const [showAlertForm, setShowAlertForm] = useState(false);
@@ -372,34 +402,78 @@ export default function AdminDashboardPage() {
         )}
       </div>
 
-      {/* Weekly Status */}
+      {/* Weekly Status - Accordion per group */}
       <div className="card-elevated">
-        <h2 className="text-title-lg font-medium mb-6">סטטוס שבועי</h2>
+        <h2 className="text-title-lg font-medium mb-4">סטטוס שבועי</h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-          <div className="p-4 rounded-lg bg-surface-container">
-            <p className="text-label-sm text-on-surface-variant mb-2">מחלקים שבועיים</p>
-            <div className="flex items-baseline gap-2">
-              <p className="text-headline-md font-bold">
-                {data?.weeklyStatus.groupsWithDistributor || 0}
-              </p>
-              <p className="text-body-sm text-on-surface-variant">
-                מתוך {data?.weeklyStatus.totalGroups || 0} קבוצות
-              </p>
-            </div>
+        {/* Summary row */}
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="p-3 rounded-lg bg-surface-container text-center">
+            <p className="text-label-sm text-on-surface-variant">מחלקים שבועיים</p>
+            <p className="text-title-lg font-bold">{data?.weeklyStatus.groupsWithDistributor || 0}<span className="text-body-sm text-on-surface-variant font-normal"> / {data?.weeklyStatus.totalGroups || 0}</span></p>
           </div>
+          <div className="p-3 rounded-lg bg-surface-container text-center">
+            <p className="text-label-sm text-on-surface-variant">הזמנות שבועיות</p>
+            <p className="text-title-lg font-bold">{data?.weeklyStatus.completedOrders || 0}<span className="text-body-sm text-on-surface-variant font-normal"> / {data?.weeklyStatus.totalOrders || 0}</span></p>
+          </div>
+        </div>
 
-          <div className="p-4 rounded-lg bg-surface-container">
-            <p className="text-label-sm text-on-surface-variant mb-2">הזמנות שבועיות</p>
-            <div className="flex items-baseline gap-2">
-              <p className="text-headline-md font-bold">
-                {data?.weeklyStatus.completedOrders || 0}
-              </p>
-              <p className="text-body-sm text-on-surface-variant">
-                מתוך {data?.weeklyStatus.totalOrders || 0} הזמנות
-              </p>
-            </div>
-          </div>
+        {/* Per-group accordion */}
+        <div className="divide-y divide-outline-variant rounded-lg border border-outline-variant overflow-hidden">
+          {weeklyGroups?.map((group) => {
+            const isOpen = openGroupIds.has(group.groupId);
+            const ordersComplete = group.totalFamilies > 0 && group.completedOrders >= group.totalFamilies;
+            return (
+              <div key={group.groupId}>
+                <button
+                  onClick={() => toggleGroup(group.groupId)}
+                  className="w-full flex items-center justify-between p-4 hover:bg-surface-container-high transition-colors text-right"
+                >
+                  <div className="flex items-center gap-3">
+                    <ChevronDown className={`h-4 w-4 text-on-surface-variant transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                    <div className="flex items-center gap-2">
+                      {ordersComplete ? (
+                        <CheckCircle2 className="h-4 w-4 text-success" />
+                      ) : (
+                        <XCircle className="h-4 w-4 text-error" />
+                      )}
+                      {group.hasDistributor ? (
+                        <CheckCircle2 className="h-4 w-4 text-success" />
+                      ) : (
+                        <XCircle className="h-4 w-4 text-error" />
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex-1 text-right mr-2">
+                    <p className="text-title-sm font-medium">{group.groupName}</p>
+                    <p className="text-body-sm text-on-surface-variant">{group.managerName || 'ללא מנהל'}</p>
+                  </div>
+                </button>
+                {isOpen && (
+                  <div className="px-4 pb-4 bg-surface-container-low">
+                    <div className="grid grid-cols-2 gap-3 text-body-sm">
+                      <div className="flex items-center gap-2">
+                        {ordersComplete ? <CheckCircle2 className="h-4 w-4 text-success" /> : <XCircle className="h-4 w-4 text-error" />}
+                        <span>הזמנות: {group.completedOrders} / {group.totalFamilies}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {group.hasDistributor ? <CheckCircle2 className="h-4 w-4 text-success" /> : <XCircle className="h-4 w-4 text-error" />}
+                        <span>מחלק: {group.distributorName || 'לא שובץ'}</span>
+                      </div>
+                      {group.pendingOrders > 0 && (
+                        <div className="col-span-2 text-warning text-label-sm">
+                          {group.pendingOrders} הזמנות ממתינות
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {(!weeklyGroups || weeklyGroups.length === 0) && (
+            <div className="p-4 text-center text-body-sm text-on-surface-variant">אין קבוצות</div>
+          )}
         </div>
       </div>
 
@@ -411,7 +485,7 @@ export default function AdminDashboardPage() {
               <Users className="h-6 w-6 text-secondary" />
               סקירת קבוצות
             </h2>
-            <Link href="/groups" className="btn-outline btn-sm">
+            <Link href="/admin/groups" className="btn-outline btn-sm">
               צפייה בכל הקבוצות
             </Link>
           </div>
@@ -454,13 +528,13 @@ export default function AdminDashboardPage() {
             <p className="text-body-sm text-on-surface-variant">צפייה ועריכת משתמשים</p>
           </Link>
 
-          <Link href="/groups" className="card hover:shadow-lg transition-shadow">
+          <Link href="/admin/groups" className="card hover:shadow-lg transition-shadow">
             <Users className="h-8 w-8 text-secondary mb-3" />
             <h3 className="text-title-md font-medium mb-2">ניהול קבוצות</h3>
             <p className="text-body-sm text-on-surface-variant">קבוצות, מנהלים וחברים</p>
           </Link>
 
-          <Link href="/families" className="card hover:shadow-lg transition-shadow">
+          <Link href="/admin/families" className="card hover:shadow-lg transition-shadow">
             <Home className="h-8 w-8 text-tertiary mb-3" />
             <h3 className="text-title-md font-medium mb-2">ניהול משפחות</h3>
             <p className="text-body-sm text-on-surface-variant">הוספה ועריכת משפחות</p>
@@ -478,7 +552,7 @@ export default function AdminDashboardPage() {
             <p className="text-body-sm text-on-surface-variant">ייבוא משתמשים, קבוצות ומשפחות</p>
           </Link>
 
-          <Link href="/admin/push" className="card hover:shadow-lg transition-shadow">
+          <Link href="/admin/alerts" className="card hover:shadow-lg transition-shadow">
             <Bell className="h-8 w-8 text-tertiary mb-3" />
             <h3 className="text-title-md font-medium mb-2">התראות</h3>
             <p className="text-body-sm text-on-surface-variant">שליחת התראות והודעות</p>

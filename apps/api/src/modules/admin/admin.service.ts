@@ -308,6 +308,98 @@ export class AdminService {
     }));
   }
 
+  async getWeeklyOrders(
+    organizationId: string,
+    weekKey?: string,
+  ): Promise<{
+    data: {
+      weekKey: string;
+      groups: Array<{
+        groupId: string;
+        groupName: string;
+        families: Array<{
+          familyId: string;
+          familyName: string;
+          contactName: string | null;
+          address: string | null;
+          items: unknown;
+          status: string;
+          notes: string | null;
+        }>;
+      }>;
+    };
+  }> {
+    const week = weekKey ?? this.getCurrentWeekKey();
+
+    this.logger.log(`Getting weekly orders for week ${week}, organization ${organizationId}`);
+
+    const orders = await this.prisma.weeklyOrder.findMany({
+      where: {
+        organizationId,
+        weekKey: week,
+      },
+      include: {
+        family: {
+          select: {
+            familyName: true,
+            contactName: true,
+            address: true,
+          },
+        },
+        group: {
+          select: {
+            name: true,
+          },
+        },
+      },
+      orderBy: [{ groupId: 'asc' }, { familyId: 'asc' }],
+    });
+
+    const groupMap = new Map<
+      string,
+      {
+        groupId: string;
+        groupName: string;
+        families: Array<{
+          familyId: string;
+          familyName: string;
+          contactName: string | null;
+          address: string | null;
+          items: unknown;
+          status: string;
+          notes: string | null;
+        }>;
+      }
+    >();
+
+    for (const order of orders) {
+      if (!groupMap.has(order.groupId)) {
+        groupMap.set(order.groupId, {
+          groupId: order.groupId,
+          groupName: order.group.name,
+          families: [],
+        });
+      }
+
+      groupMap.get(order.groupId)!.families.push({
+        familyId: order.familyId,
+        familyName: order.family.familyName,
+        contactName: order.family.contactName,
+        address: order.family.address,
+        items: order.shoppingListJson,
+        status: order.status,
+        notes: order.notes,
+      });
+    }
+
+    return {
+      data: {
+        weekKey: week,
+        groups: Array.from(groupMap.values()),
+      },
+    };
+  }
+
   private getCurrentMonthKey(): string {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
