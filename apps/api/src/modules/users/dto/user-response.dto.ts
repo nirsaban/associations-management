@@ -22,6 +22,15 @@ export class UserResponseDto {
   @ApiProperty({ description: 'האם המשתמש פעיל' })
   isActive!: boolean;
 
+  @ApiProperty({ description: 'מזהה קבוצה', required: false })
+  groupId?: string;
+
+  @ApiProperty({ description: 'שם קבוצה', required: false })
+  groupName?: string;
+
+  @ApiProperty({ description: 'תפקיד בקבוצה (MANAGER / MEMBER)', required: false })
+  groupRole?: string;
+
   @ApiProperty({ description: 'תאריך יצירה' })
   createdAt!: Date;
 

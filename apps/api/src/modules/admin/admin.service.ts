@@ -250,12 +250,23 @@ export class AdminService {
     organizationId: string,
     page: number = 1,
     limit: number = 20,
+    filters?: { monthKey?: string; status?: string; fromDate?: string; toDate?: string },
   ) {
     const skip = (page - 1) * limit;
 
+    const where: Record<string, unknown> = { organizationId };
+    if (filters?.monthKey) where.monthKey = filters.monthKey;
+    if (filters?.status) where.status = filters.status;
+    if (filters?.fromDate || filters?.toDate) {
+      where.paymentDate = {
+        ...(filters.fromDate ? { gte: new Date(filters.fromDate) } : {}),
+        ...(filters.toDate ? { lte: new Date(filters.toDate + 'T23:59:59') } : {}),
+      };
+    }
+
     const [payments, total] = await Promise.all([
       this.prisma.payment.findMany({
-        where: { organizationId },
+        where,
         include: {
           user: { select: { fullName: true, phone: true } },
         },
@@ -263,7 +274,7 @@ export class AdminService {
         skip,
         take: limit,
       }),
-      this.prisma.payment.count({ where: { organizationId } }),
+      this.prisma.payment.count({ where }),
     ]);
 
     return {
@@ -412,6 +423,77 @@ export class AdminService {
       ((now.getTime() - startOfYear.getTime()) / 86400000 + startOfYear.getDay() + 1) / 7
     );
     return `${now.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
+  }
+
+  async getPaymentStatistics(organizationId: string) {
+    const now = new Date();
+    const currentMonthKey = this.getCurrentMonthKey();
+    const currentYear = now.getFullYear();
+
+    // Current month total
+    const monthPayments = await this.prisma.payment.aggregate({
+      where: { organizationId, monthKey: currentMonthKey, status: 'COMPLETED' },
+      _sum: { amount: true },
+      _count: true,
+    });
+
+    // Current week total (payments made in last 7 days)
+    const weekStart = new Date(now);
+    weekStart.setDate(weekStart.getDate() - 7);
+    const weekPayments = await this.prisma.payment.aggregate({
+      where: {
+        organizationId,
+        status: 'COMPLETED',
+        paymentDate: { gte: weekStart },
+      },
+      _sum: { amount: true },
+      _count: true,
+    });
+
+    // Yearly total
+    const yearMonthKeys = Array.from({ length: 12 }, (_, i) => {
+      const d = new Date(currentYear, i, 1);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    });
+    const yearPayments = await this.prisma.payment.aggregate({
+      where: { organizationId, monthKey: { in: yearMonthKeys }, status: 'COMPLETED' },
+      _sum: { amount: true },
+      _count: true,
+    });
+
+    // Daily breakdown for current month (for timing analysis)
+    const monthPaymentsList = await this.prisma.payment.findMany({
+      where: { organizationId, monthKey: currentMonthKey, status: 'COMPLETED', paymentDate: { not: null } },
+      select: { paymentDate: true },
+    });
+    const dayDistribution: Record<number, number> = {};
+    for (const p of monthPaymentsList) {
+      if (p.paymentDate) {
+        const day = p.paymentDate.getDate();
+        dayDistribution[day] = (dayDistribution[day] || 0) + 1;
+      }
+    }
+    const bestDay = Object.entries(dayDistribution)
+      .sort(([, a], [, b]) => b - a)[0];
+
+    return {
+      currentMonth: {
+        total: Number(monthPayments._sum.amount || 0),
+        count: monthPayments._count,
+        monthKey: currentMonthKey,
+      },
+      currentWeek: {
+        total: Number(weekPayments._sum.amount || 0),
+        count: weekPayments._count,
+      },
+      yearly: {
+        total: Number(yearPayments._sum.amount || 0),
+        count: yearPayments._count,
+        year: currentYear,
+      },
+      bestPaymentDay: bestDay ? { day: parseInt(bestDay[0]), count: parseInt(String(bestDay[1])) } : null,
+      dayDistribution,
+    };
   }
 
   private getLastNMonthKeys(n: number): string[] {

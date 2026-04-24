@@ -1,16 +1,18 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
-import { AlertCircle, Plus, Users, X, Edit2, Trash2 } from 'lucide-react';
+import { AlertCircle, Plus, Users, X, Edit2, Trash2, Search, MessageCircle, Phone } from 'lucide-react';
 
 interface AdminGroup {
   id: string;
   organizationId: string;
   name: string;
   managerId?: string;
+  managerName?: string;
+  managerPhone?: string;
   memberCount?: number;
   familyCount?: number;
   createdAt: string;
@@ -28,6 +30,42 @@ interface CreateGroupForm {
   managerId?: string;
 }
 
+type FilterStatus = 'all' | 'with-manager' | 'without-manager';
+
+function formatPhoneForWhatsApp(phone: string): string {
+  // Remove leading 0, prepend 972
+  const cleaned = phone.replace(/\D/g, '');
+  if (cleaned.startsWith('0')) return `972${cleaned.slice(1)}`;
+  if (cleaned.startsWith('972')) return cleaned;
+  return `972${cleaned}`;
+}
+
+function WhatsAppLink({ phone, name }: { phone: string; name?: string }) {
+  const waNumber = formatPhoneForWhatsApp(phone);
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-body-md">{name || phone}</span>
+      <a
+        href={`https://wa.me/${waNumber}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1 text-success hover:text-success/80 transition-colors"
+        title={`WhatsApp ${phone}`}
+      >
+        <MessageCircle className="h-4 w-4" />
+      </a>
+      <a
+        href={`tel:${phone}`}
+        className="inline-flex items-center text-primary hover:text-primary/80 transition-colors"
+        title={`חייג ${phone}`}
+        dir="ltr"
+      >
+        <Phone className="h-3.5 w-3.5" />
+      </a>
+    </div>
+  );
+}
+
 export default function AdminGroupsPage() {
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
@@ -39,6 +77,10 @@ export default function AdminGroupsPage() {
   const [editForm, setEditForm] = useState<CreateGroupForm>({ name: '' });
   const [createError, setCreateError] = useState('');
   const [editError, setEditError] = useState('');
+
+  // Search & filter state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
 
   const {
     data: groups,
@@ -65,6 +107,25 @@ export default function AdminGroupsPage() {
     },
     enabled: user?.systemRole === 'ADMIN',
   });
+
+  // Filtered groups
+  const filteredGroups = useMemo(() => {
+    if (!groups) return [];
+    return groups.filter((g) => {
+      // Search filter
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        const nameMatch = g.name.toLowerCase().includes(q);
+        const managerMatch = g.managerName?.toLowerCase().includes(q) || false;
+        const phoneMatch = g.managerPhone?.includes(q) || false;
+        if (!nameMatch && !managerMatch && !phoneMatch) return false;
+      }
+      // Status filter
+      if (filterStatus === 'with-manager' && !g.managerId) return false;
+      if (filterStatus === 'without-manager' && g.managerId) return false;
+      return true;
+    });
+  }, [groups, searchQuery, filterStatus]);
 
   const createMutation = useMutation({
     mutationFn: async (data: CreateGroupForm) => {
@@ -158,6 +219,47 @@ export default function AdminGroupsPage() {
         </button>
       </div>
 
+      {/* Search & Filters */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-4">
+        <div className="relative flex-1">
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-on-surface-variant pointer-events-none" />
+          <input
+            type="text"
+            placeholder="חיפוש לפי שם קבוצה, מנהל או טלפון..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pr-10 pl-4 py-2.5 rounded-lg border border-outline bg-surface-container-low focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 text-body-md"
+          />
+        </div>
+        <div className="flex gap-1.5">
+          {([
+            { key: 'all', label: 'הכל' },
+            { key: 'with-manager', label: 'עם מנהל' },
+            { key: 'without-manager', label: 'ללא מנהל' },
+          ] as { key: FilterStatus; label: string }[]).map((f) => (
+            <button
+              key={f.key}
+              onClick={() => setFilterStatus(f.key)}
+              className={`px-3 py-2 rounded-lg text-body-sm font-medium transition-colors ${
+                filterStatus === f.key
+                  ? 'bg-primary text-on-primary'
+                  : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Results count */}
+      {(searchQuery || filterStatus !== 'all') && (
+        <p className="text-body-sm text-on-surface-variant mb-3">
+          {filteredGroups.length} תוצאות
+          {searchQuery && ` עבור "${searchQuery}"`}
+        </p>
+      )}
+
       {/* Table */}
       {isLoading ? (
         <div className="space-y-4">
@@ -169,22 +271,23 @@ export default function AdminGroupsPage() {
         <>
         {/* Mobile cards */}
         <div className="space-y-3 md:hidden">
-          {!groups || groups.length === 0 ? (
+          {filteredGroups.length === 0 ? (
             <div className="text-center py-12 text-on-surface-variant">
-              אין קבוצות. לחץ "צור קבוצה" להוספת קבוצה ראשונה.
+              {groups?.length === 0
+                ? 'אין קבוצות. לחץ "צור קבוצה" להוספת קבוצה ראשונה.'
+                : 'לא נמצאו תוצאות לחיפוש'}
             </div>
           ) : (
-            groups.map((g) => (
+            filteredGroups.map((g) => (
               <div key={g.id} className="rounded-lg border border-outline/30 p-4 space-y-3">
                 <div className="flex items-start justify-between">
-                  <div>
+                  <div className="space-y-1">
                     <p className="text-body-md font-medium">{g.name}</p>
-                    <p className="text-body-sm text-on-surface-variant">
-                      {g.managerId ? (() => {
-                        const manager = orgUsers?.find((u) => u.id === g.managerId);
-                        return `מנהל: ${manager?.fullName || manager?.phone || 'לא נמצא'}`;
-                      })() : 'ללא מנהל'}
-                    </p>
+                    {g.managerId && g.managerPhone ? (
+                      <WhatsAppLink phone={g.managerPhone} name={g.managerName} />
+                    ) : (
+                      <p className="text-body-sm text-on-surface-variant">ללא מנהל</p>
+                    )}
                   </div>
                   <div className="flex gap-1">
                     <button
@@ -225,10 +328,13 @@ export default function AdminGroupsPage() {
                   מנהל
                 </th>
                 <th className="px-6 py-4 text-start text-label-md font-medium text-on-surface-variant">
-                  מספר חברים
+                  טלפון מנהל
                 </th>
                 <th className="px-6 py-4 text-start text-label-md font-medium text-on-surface-variant">
-                  מספר משפחות
+                  חברים
+                </th>
+                <th className="px-6 py-4 text-start text-label-md font-medium text-on-surface-variant">
+                  משפחות
                 </th>
                 <th className="px-6 py-4 text-center text-label-md font-medium text-on-surface-variant">
                   פעולות
@@ -236,24 +342,42 @@ export default function AdminGroupsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-outline/20">
-              {!groups || groups.length === 0 ? (
+              {filteredGroups.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-on-surface-variant">
-                    אין קבוצות. לחץ "צור קבוצה" להוספת קבוצה ראשונה.
+                  <td colSpan={6} className="px-6 py-12 text-center text-on-surface-variant">
+                    {groups?.length === 0
+                      ? 'אין קבוצות. לחץ "צור קבוצה" להוספת קבוצה ראשונה.'
+                      : 'לא נמצאו תוצאות לחיפוש'}
                   </td>
                 </tr>
               ) : (
-                groups.map((g) => (
+                filteredGroups.map((g) => (
                   <tr key={g.id} className="hover:bg-surface-container/50">
                     <td className="px-6 py-4 text-body-md font-medium">{g.name}</td>
                     <td className="px-6 py-4 text-body-md">
-                      {g.managerId ? (
-                        (() => {
-                          const manager = orgUsers?.find((u) => u.id === g.managerId);
-                          return manager?.fullName || manager?.phone || 'מנהל לא נמצא';
-                        })()
-                      ) : (
+                      {g.managerName || (
                         <span className="text-on-surface-variant text-body-sm">לא שובץ</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      {g.managerPhone ? (
+                        <div className="flex items-center gap-2">
+                          <span className="text-body-sm text-on-surface-variant" dir="ltr">
+                            {g.managerPhone}
+                          </span>
+                          <a
+                            href={`https://wa.me/${formatPhoneForWhatsApp(g.managerPhone)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-success bg-success/10 hover:bg-success/20 transition-colors text-label-sm"
+                            title="WhatsApp"
+                          >
+                            <MessageCircle className="h-3.5 w-3.5" />
+                            WhatsApp
+                          </a>
+                        </div>
+                      ) : (
+                        <span className="text-on-surface-variant text-body-sm">—</span>
                       )}
                     </td>
                     <td className="px-6 py-4">
@@ -429,7 +553,7 @@ export default function AdminGroupsPage() {
           <div className="bg-surface rounded-t-2xl sm:rounded-lg max-w-sm w-full shadow-xl p-6">
             <h2 className="text-headline-sm font-headline mb-4">מחיקת קבוצה</h2>
             <p className="text-body-md text-on-surface-variant mb-6">
-              האם אתה בטוח שברצונך למחוק את הקבוצה "{deletingGroup.name}"? פעולה זו אינה ניתנת
+              האם אתה בטוח שברצונך למחוק את הקבוצה &quot;{deletingGroup.name}&quot;? פעולה זו אינה ניתנת
               לביטול.
             </p>
             <div className="flex gap-3">

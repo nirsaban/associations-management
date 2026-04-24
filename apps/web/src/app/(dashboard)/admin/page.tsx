@@ -408,13 +408,27 @@ export default function AdminDashboardPage() {
 
         {/* Summary row */}
         <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="p-3 rounded-lg bg-surface-container text-center">
-            <p className="text-label-sm text-on-surface-variant">מחלקים שבועיים</p>
-            <p className="text-title-lg font-bold">{data?.weeklyStatus.groupsWithDistributor || 0}<span className="text-body-sm text-on-surface-variant font-normal"> / {data?.weeklyStatus.totalGroups || 0}</span></p>
+          <div className={`p-3 rounded-lg text-center ${
+            (data?.weeklyStatus.totalGroups ?? 0) - (data?.weeklyStatus.groupsWithDistributor ?? 0) > 0
+              ? 'bg-error-container/30'
+              : 'bg-success-container/30'
+          }`}>
+            <p className="text-label-sm text-on-surface-variant">ללא מחלק שבועי</p>
+            <p className="text-title-lg font-bold">
+              {(data?.weeklyStatus.totalGroups ?? 0) - (data?.weeklyStatus.groupsWithDistributor ?? 0)}
+              <span className="text-body-sm text-on-surface-variant font-normal"> / {data?.weeklyStatus.totalGroups || 0} קבוצות</span>
+            </p>
           </div>
-          <div className="p-3 rounded-lg bg-surface-container text-center">
-            <p className="text-label-sm text-on-surface-variant">הזמנות שבועיות</p>
-            <p className="text-title-lg font-bold">{data?.weeklyStatus.completedOrders || 0}<span className="text-body-sm text-on-surface-variant font-normal"> / {data?.weeklyStatus.totalOrders || 0}</span></p>
+          <div className={`p-3 rounded-lg text-center ${
+            (data?.weeklyStatus.totalOrders ?? 0) - (data?.weeklyStatus.completedOrders ?? 0) > 0
+              ? 'bg-error-container/30'
+              : 'bg-success-container/30'
+          }`}>
+            <p className="text-label-sm text-on-surface-variant">הזמנות שלא הושלמו</p>
+            <p className="text-title-lg font-bold">
+              {(data?.weeklyStatus.totalOrders ?? 0) - (data?.weeklyStatus.completedOrders ?? 0)}
+              <span className="text-body-sm text-on-surface-variant font-normal"> / {data?.weeklyStatus.totalOrders || 0} הזמנות</span>
+            </p>
           </div>
         </div>
 

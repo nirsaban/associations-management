@@ -14,6 +14,7 @@ import { GroupResponseDto } from './dto/group-response.dto';
 type GroupWithCounts = Prisma.GroupGetPayload<{
   include: {
     _count: { select: { memberships: true; families: true } };
+    manager: { select: { fullName: true; phone: true } };
   };
 }>;
 
@@ -44,6 +45,7 @@ export class GroupsService {
       },
       include: {
         _count: { select: { memberships: true, families: true } },
+        manager: { select: { fullName: true, phone: true } },
       },
     });
 
@@ -69,6 +71,7 @@ export class GroupsService {
         orderBy: { createdAt: 'desc' },
         include: {
           _count: { select: { memberships: true, families: true } },
+          manager: { select: { fullName: true, phone: true } },
         },
       }),
       this.prisma.group.count({ where: { organizationId, deletedAt: null } }),
@@ -87,6 +90,7 @@ export class GroupsService {
       where: { id, organizationId, deletedAt: null },
       include: {
         _count: { select: { memberships: true, families: true } },
+        manager: { select: { fullName: true, phone: true } },
       },
     });
 
@@ -130,6 +134,7 @@ export class GroupsService {
       },
       include: {
         _count: { select: { memberships: true, families: true } },
+        manager: { select: { fullName: true, phone: true } },
       },
     });
 
@@ -183,6 +188,7 @@ export class GroupsService {
       data: { managerUserId: assignManagerDto.userId },
       include: {
         _count: { select: { memberships: true, families: true } },
+        manager: { select: { fullName: true, phone: true } },
       },
     });
 
@@ -287,6 +293,8 @@ export class GroupsService {
       organizationId: g.organizationId,
       name: g.name,
       managerId: g.managerUserId ?? undefined,
+      managerName: g.manager?.fullName ?? undefined,
+      managerPhone: g.manager?.phone ?? undefined,
       memberCount: g._count?.memberships,
       familyCount: g._count?.families,
       createdAt: g.createdAt,

@@ -4,7 +4,12 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
-import { AlertCircle, Search, Plus, Edit2, Trash2, X, CheckCircle, XCircle } from 'lucide-react';
+import { AlertCircle, Search, Plus, Edit2, Trash2, X, CheckCircle, XCircle, Users } from 'lucide-react';
+
+interface AdminGroup {
+  id: string;
+  name: string;
+}
 
 interface AdminUser {
   id: string;
@@ -13,16 +18,10 @@ interface AdminUser {
   email?: string;
   systemRole: string;
   isActive: boolean;
+  groupId?: string;
+  groupName?: string;
+  groupRole?: string;
   createdAt: string;
-}
-
-interface UsersResponse {
-  data: AdminUser[];
-  meta: {
-    total: number;
-    page: number;
-    limit: number;
-  };
 }
 
 interface CreateUserForm {
@@ -33,20 +32,29 @@ interface CreateUserForm {
 
 interface EditUserForm {
   fullName: string;
-  email: string;
   isActive: boolean;
+  groupId: string;
 }
 
-const ROLE_LABELS: Record<string, string> = {
-  ADMIN: 'מנהל מערכת',
-  USER: 'משתמש',
-  GROUP_MANAGER: 'מנהל קבוצה',
-};
+type RoleFilter = 'all' | 'ADMIN' | 'GROUP_MANAGER' | 'USER';
+
+function getRoleLabel(user: AdminUser): string {
+  if (user.systemRole === 'ADMIN') return 'אדמין';
+  if (user.groupRole === 'MANAGER') return 'מנהל קבוצה';
+  return 'משתמש';
+}
+
+function getRoleBadgeStyle(user: AdminUser): string {
+  if (user.systemRole === 'ADMIN') return 'bg-error/10 text-error border border-error/20';
+  if (user.groupRole === 'MANAGER') return 'bg-tertiary/10 text-tertiary border border-tertiary/20';
+  return 'bg-primary/10 text-primary border border-primary/20';
+}
 
 export default function AdminUsersPage() {
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState<RoleFilter>('all');
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
@@ -57,8 +65,8 @@ export default function AdminUsersPage() {
   const [createForm, setCreateForm] = useState<CreateUserForm>({ fullName: '', phone: '' });
   const [editForm, setEditForm] = useState<EditUserForm>({
     fullName: '',
-    email: '',
     isActive: true,
+    groupId: '',
   });
   const [createError, setCreateError] = useState('');
   const [editError, setEditError] = useState('');
@@ -70,7 +78,7 @@ export default function AdminUsersPage() {
   } = useQuery({
     queryKey: ['admin', 'users', page, searchTerm],
     queryFn: async () => {
-      const res = await api.get<{ data: UsersResponse }>('/admin/users', {
+      const res = await api.get<{ data: AdminUser[]; meta?: { total?: number } }>('/admin/users', {
         params: { page, limit: pageSize, search: searchTerm || undefined },
       });
       const body = res.data as unknown as { data: AdminUser[]; meta?: { total?: number } };
@@ -79,9 +87,29 @@ export default function AdminUsersPage() {
     enabled: user?.systemRole === 'ADMIN',
   });
 
-  const users = response?.users ?? [];
+  // Fetch groups for group assignment dropdown
+  const { data: groups } = useQuery({
+    queryKey: ['admin', 'groups-list'],
+    queryFn: async () => {
+      const res = await api.get<{ data: AdminGroup[] }>('/admin/groups', { params: { limit: 200 } });
+      return res.data.data;
+    },
+    enabled: user?.systemRole === 'ADMIN',
+  });
+
+  const allUsers = response?.users ?? [];
   const total = response?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+  // Client-side role filter (search is server-side)
+  const users = roleFilter === 'all'
+    ? allUsers
+    : allUsers.filter((u) => {
+        if (roleFilter === 'ADMIN') return u.systemRole === 'ADMIN';
+        if (roleFilter === 'GROUP_MANAGER') return u.groupRole === 'MANAGER';
+        if (roleFilter === 'USER') return u.systemRole === 'USER' && u.groupRole !== 'MANAGER';
+        return true;
+      });
 
   const createMutation = useMutation({
     mutationFn: async (data: CreateUserForm) => {
@@ -102,11 +130,35 @@ export default function AdminUsersPage() {
 
   const editMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: EditUserForm }) => {
-      const res = await api.patch(`/admin/users/${id}`, data);
-      return res.data;
+      // Update user fields
+      await api.patch(`/admin/users/${id}`, {
+        fullName: data.fullName,
+        isActive: data.isActive,
+      });
+
+      // Handle group assignment change
+      const currentUser = allUsers.find((u) => u.id === id);
+      const currentGroupId = currentUser?.groupId;
+      const newGroupId = data.groupId || null;
+
+      if (currentGroupId !== (newGroupId ?? undefined)) {
+        // Remove from current group
+        if (currentGroupId) {
+          try {
+            await api.delete(`/admin/groups/${currentGroupId}/members/${id}`);
+          } catch {
+            // May fail if already removed
+          }
+        }
+        // Add to new group
+        if (newGroupId) {
+          await api.post(`/admin/groups/${newGroupId}/members`, { userId: id });
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'groups'] });
       setEditingUser(null);
       setEditError('');
     },
@@ -128,7 +180,11 @@ export default function AdminUsersPage() {
 
   const openEditModal = (u: AdminUser) => {
     setEditingUser(u);
-    setEditForm({ fullName: u.fullName ?? '', email: u.email ?? '', isActive: u.isActive });
+    setEditForm({
+      fullName: u.fullName ?? '',
+      isActive: u.isActive,
+      groupId: u.groupId ?? '',
+    });
     setEditError('');
   };
 
@@ -160,7 +216,7 @@ export default function AdminUsersPage() {
         <div>
           <h1 className="text-headline-sm sm:text-headline-md font-headline mb-1 sm:mb-2">משתמשים</h1>
           <p className="text-body-sm sm:text-body-md text-on-surface-variant">
-            ניהול משתמשים במערכת ({total} סה"כ)
+            ניהול משתמשים במערכת ({total} סה&quot;כ)
           </p>
         </div>
         <button
@@ -175,19 +231,41 @@ export default function AdminUsersPage() {
         </button>
       </div>
 
-      {/* Search */}
-      <div className="mb-6 relative">
-        <Search className="absolute start-4 top-1/2 -translate-y-1/2 h-5 w-5 text-on-surface-variant" />
-        <input
-          type="text"
-          placeholder="חפש לפי שם או טלפון..."
-          value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value);
-            setPage(1);
-          }}
-          className="w-full rounded-lg border border-outline bg-surface-container-low ps-12 pe-4 py-3 text-body-md transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-        />
+      {/* Search & Filters */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        <div className="relative flex-1">
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-on-surface-variant pointer-events-none" />
+          <input
+            type="text"
+            placeholder="חיפוש לפי שם או טלפון..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPage(1);
+            }}
+            className="w-full pr-10 pl-4 py-2.5 rounded-lg border border-outline bg-surface-container-low focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 text-body-md"
+          />
+        </div>
+        <div className="flex gap-1.5 flex-wrap">
+          {([
+            { key: 'all', label: 'הכל' },
+            { key: 'ADMIN', label: 'אדמין' },
+            { key: 'GROUP_MANAGER', label: 'מנהלי קבוצה' },
+            { key: 'USER', label: 'משתמשים' },
+          ] as { key: RoleFilter; label: string }[]).map((f) => (
+            <button
+              key={f.key}
+              onClick={() => setRoleFilter(f.key)}
+              className={`px-3 py-2 rounded-lg text-body-sm font-medium transition-colors ${
+                roleFilter === f.key
+                  ? 'bg-primary text-on-primary'
+                  : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Table */}
@@ -227,9 +305,15 @@ export default function AdminUsersPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="inline-block px-3 py-1 rounded-full bg-primary-container/20 text-primary text-label-sm font-medium">
-                      {ROLE_LABELS[u.systemRole] || u.systemRole}
+                    <span className={`inline-block px-3 py-1 rounded-full text-label-sm font-medium ${getRoleBadgeStyle(u)}`}>
+                      {getRoleLabel(u)}
                     </span>
+                    {u.groupName && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant text-label-sm">
+                        <Users className="h-3 w-3" />
+                        {u.groupName}
+                      </span>
+                    )}
                     {u.isActive ? (
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-success-container text-on-success-container text-label-sm">
                         <CheckCircle className="h-3 w-3" />
@@ -252,27 +336,18 @@ export default function AdminUsersPage() {
             <table className="w-full">
               <thead className="border-b border-outline/30 bg-surface-container-low">
                 <tr>
-                  <th className="px-6 py-4 text-start text-label-md font-medium text-on-surface-variant">
-                    שם מלא
-                  </th>
-                  <th className="px-6 py-4 text-start text-label-md font-medium text-on-surface-variant">
-                    טלפון
-                  </th>
-                  <th className="px-6 py-4 text-start text-label-md font-medium text-on-surface-variant">
-                    תפקיד
-                  </th>
-                  <th className="px-6 py-4 text-start text-label-md font-medium text-on-surface-variant">
-                    סטטוס
-                  </th>
-                  <th className="px-6 py-4 text-center text-label-md font-medium text-on-surface-variant">
-                    פעולות
-                  </th>
+                  <th className="px-6 py-4 text-start text-label-md font-medium text-on-surface-variant">שם מלא</th>
+                  <th className="px-6 py-4 text-start text-label-md font-medium text-on-surface-variant">טלפון</th>
+                  <th className="px-6 py-4 text-start text-label-md font-medium text-on-surface-variant">תפקיד</th>
+                  <th className="px-6 py-4 text-start text-label-md font-medium text-on-surface-variant">קבוצה</th>
+                  <th className="px-6 py-4 text-start text-label-md font-medium text-on-surface-variant">סטטוס</th>
+                  <th className="px-6 py-4 text-center text-label-md font-medium text-on-surface-variant">פעולות</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline/20">
                 {users.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-on-surface-variant">
+                    <td colSpan={6} className="px-6 py-12 text-center text-on-surface-variant">
                       לא נמצאו משתמשים
                     </td>
                   </tr>
@@ -280,13 +355,21 @@ export default function AdminUsersPage() {
                   users.map((u) => (
                     <tr key={u.id} className="hover:bg-surface-container/50">
                       <td className="px-6 py-4 text-body-md font-medium">{u.fullName || '—'}</td>
-                      <td className="px-6 py-4 text-body-md" dir="ltr">
-                        {u.phone}
+                      <td className="px-6 py-4 text-body-md" dir="ltr">{u.phone}</td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-block px-3 py-1 rounded-full text-label-sm font-medium ${getRoleBadgeStyle(u)}`}>
+                          {getRoleLabel(u)}
+                        </span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="inline-block px-3 py-1 rounded-full bg-primary-container/20 text-primary text-label-sm font-medium">
-                          {ROLE_LABELS[u.systemRole] || u.systemRole}
-                        </span>
+                        {u.groupName ? (
+                          <span className="inline-flex items-center gap-1 text-body-sm">
+                            <Users className="h-3.5 w-3.5 text-on-surface-variant" />
+                            {u.groupName}
+                          </span>
+                        ) : (
+                          <span className="text-on-surface-variant text-body-sm">—</span>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         {u.isActive ? (
@@ -357,18 +440,13 @@ export default function AdminUsersPage() {
           <div className="bg-surface rounded-t-2xl sm:rounded-lg max-w-md w-full shadow-xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-outline/20">
               <h2 className="text-headline-sm font-headline">הוסף משתמש חדש</h2>
-              <button
-                onClick={() => setShowCreateModal(false)}
-                className="p-2 hover:bg-surface-container rounded-md"
-              >
+              <button onClick={() => setShowCreateModal(false)} className="p-2 hover:bg-surface-container rounded-md">
                 <X className="h-5 w-5" />
               </button>
             </div>
             <div className="p-6 space-y-4">
               {createError && (
-                <div className="p-3 rounded-lg bg-error-container text-on-error-container text-body-sm">
-                  {createError}
-                </div>
+                <div className="p-3 rounded-lg bg-error-container text-on-error-container text-body-sm">{createError}</div>
               )}
               <div>
                 <label className="block text-label-md font-medium mb-2">שם מלא *</label>
@@ -391,32 +469,13 @@ export default function AdminUsersPage() {
                   className="w-full px-4 py-3 rounded-lg border border-outline bg-surface-container focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
               </div>
-              <div>
-                <label className="block text-label-md font-medium mb-2">אימייל (אופציונלי)</label>
-                <input
-                  type="email"
-                  value={createForm.email ?? ''}
-                  onChange={(e) => setCreateForm((f) => ({ ...f, email: e.target.value }))}
-                  placeholder="user@example.com"
-                  dir="ltr"
-                  className="w-full px-4 py-3 rounded-lg border border-outline bg-surface-container focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                />
-              </div>
             </div>
             <div className="flex gap-3 p-6 border-t border-outline/20">
-              <button onClick={() => setShowCreateModal(false)} className="btn-outline flex-1">
-                ביטול
-              </button>
+              <button onClick={() => setShowCreateModal(false)} className="btn-outline flex-1">ביטול</button>
               <button
                 onClick={() => {
-                  if (!createForm.fullName.trim()) {
-                    setCreateError('שם מלא הוא שדה חובה');
-                    return;
-                  }
-                  if (!createForm.phone.trim()) {
-                    setCreateError('טלפון הוא שדה חובה');
-                    return;
-                  }
+                  if (!createForm.fullName.trim()) { setCreateError('שם מלא הוא שדה חובה'); return; }
+                  if (!createForm.phone.trim()) { setCreateError('טלפון הוא שדה חובה'); return; }
                   createMutation.mutate(createForm);
                 }}
                 disabled={createMutation.isPending}
@@ -435,19 +494,24 @@ export default function AdminUsersPage() {
           <div className="bg-surface rounded-t-2xl sm:rounded-lg max-w-md w-full shadow-xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-outline/20">
               <h2 className="text-headline-sm font-headline">עריכת משתמש</h2>
-              <button
-                onClick={() => setEditingUser(null)}
-                className="p-2 hover:bg-surface-container rounded-md"
-              >
+              <button onClick={() => setEditingUser(null)} className="p-2 hover:bg-surface-container rounded-md">
                 <X className="h-5 w-5" />
               </button>
             </div>
             <div className="p-6 space-y-4">
               {editError && (
-                <div className="p-3 rounded-lg bg-error-container text-on-error-container text-body-sm">
-                  {editError}
-                </div>
+                <div className="p-3 rounded-lg bg-error-container text-on-error-container text-body-sm">{editError}</div>
               )}
+
+              {/* Phone (read-only) */}
+              <div>
+                <label className="block text-label-md font-medium mb-2">טלפון</label>
+                <p className="px-4 py-3 rounded-lg bg-surface-container text-body-md text-on-surface-variant" dir="ltr">
+                  {editingUser.phone}
+                </p>
+              </div>
+
+              {/* Name */}
               <div>
                 <label className="block text-label-md font-medium mb-2">שם מלא</label>
                 <input
@@ -457,16 +521,33 @@ export default function AdminUsersPage() {
                   className="w-full px-4 py-3 rounded-lg border border-outline bg-surface-container focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
               </div>
+
+              {/* Group assignment */}
               <div>
-                <label className="block text-label-md font-medium mb-2">אימייל</label>
-                <input
-                  type="email"
-                  value={editForm.email}
-                  onChange={(e) => setEditForm((f) => ({ ...f, email: e.target.value }))}
-                  dir="ltr"
-                  className="w-full px-4 py-3 rounded-lg border border-outline bg-surface-container focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                />
+                <label className="block text-label-md font-medium mb-2">קבוצה</label>
+                <select
+                  value={editForm.groupId}
+                  onChange={(e) => setEditForm((f) => ({ ...f, groupId: e.target.value }))}
+                  className="w-full px-4 py-3 rounded-lg border border-outline bg-surface-container focus:border-primary focus:outline-none"
+                >
+                  <option value="">ללא קבוצה</option>
+                  {groups?.map((g) => (
+                    <option key={g.id} value={g.id}>{g.name}</option>
+                  ))}
+                </select>
               </div>
+
+              {/* Role info (read-only) */}
+              <div>
+                <label className="block text-label-md font-medium mb-2">תפקיד</label>
+                <p className="px-4 py-3 rounded-lg bg-surface-container text-body-md">
+                  <span className={`inline-block px-3 py-1 rounded-full text-label-sm font-medium ${getRoleBadgeStyle(editingUser)}`}>
+                    {getRoleLabel(editingUser)}
+                  </span>
+                </p>
+              </div>
+
+              {/* Active toggle */}
               <div>
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
@@ -480,9 +561,7 @@ export default function AdminUsersPage() {
               </div>
             </div>
             <div className="flex gap-3 p-6 border-t border-outline/20">
-              <button onClick={() => setEditingUser(null)} className="btn-outline flex-1">
-                ביטול
-              </button>
+              <button onClick={() => setEditingUser(null)} className="btn-outline flex-1">ביטול</button>
               <button
                 onClick={() => editMutation.mutate({ id: editingUser.id, data: editForm })}
                 disabled={editMutation.isPending}
@@ -505,9 +584,7 @@ export default function AdminUsersPage() {
               אינה ניתנת לביטול.
             </p>
             <div className="flex gap-3">
-              <button onClick={() => setDeletingUser(null)} className="btn-outline flex-1">
-                ביטול
-              </button>
+              <button onClick={() => setDeletingUser(null)} className="btn-outline flex-1">ביטול</button>
               <button
                 onClick={() => deleteMutation.mutate(deletingUser.id)}
                 disabled={deleteMutation.isPending}

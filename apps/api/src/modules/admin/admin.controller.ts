@@ -76,11 +76,30 @@ export class AdminController {
     @CurrentUser() user: ICurrentUser,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
+    @Query('monthKey') monthKey?: string,
+    @Query('status') status?: string,
+    @Query('fromDate') fromDate?: string,
+    @Query('toDate') toDate?: string,
   ): Promise<{ data: { payments: Record<string, unknown>[]; total: number; page: number; pageSize: number } }> {
     const safePage = Number(page) || 1;
     const safeLimit = Number(limit) || 20;
-    const result = await this.adminService.getPaymentsList(user.organizationId, safePage, safeLimit);
+    const result = await this.adminService.getPaymentsList(
+      user.organizationId, safePage, safeLimit,
+      { monthKey, status, fromDate, toDate },
+    );
     return { data: result };
+  }
+
+  @Get('payments/statistics')
+  @ApiOperation({
+    summary: 'Get payment statistics',
+    description: 'קבלת סטטיסטיקות תשלומים - חודש נוכחי, שבוע, שנה, ויום תשלום מועדף',
+  })
+  async getPaymentStatistics(
+    @CurrentUser() user: ICurrentUser,
+  ): Promise<{ data: Record<string, unknown> }> {
+    const stats = await this.adminService.getPaymentStatistics(user.organizationId);
+    return { data: stats };
   }
 
   @Get('dashboard/stats')

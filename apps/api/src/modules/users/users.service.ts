@@ -101,6 +101,13 @@ export class UsersService {
         skip,
         take: safeLimit,
         orderBy: { createdAt: 'desc' },
+        include: {
+          groupMemberships: {
+            where: { status: 'ACTIVE' },
+            select: { groupId: true, role: true, group: { select: { name: true } } },
+            take: 1,
+          },
+        },
       }),
       this.prisma.user.count({ where }),
     ]);
@@ -116,6 +123,13 @@ export class UsersService {
 
     const user = await this.prisma.user.findFirst({
       where: { id, organizationId, deletedAt: null },
+      include: {
+        groupMemberships: {
+          where: { status: 'ACTIVE' },
+          select: { groupId: true, role: true, group: { select: { name: true } } },
+          take: 1,
+        },
+      },
     });
 
     if (!user) {
@@ -165,6 +179,13 @@ export class UsersService {
         ...(updateUserDto.email !== undefined && { email: updateUserDto.email }),
         ...(updateUserDto.isActive !== undefined && { isActive: updateUserDto.isActive }),
       },
+      include: {
+        groupMemberships: {
+          where: { status: 'ACTIVE' },
+          select: { groupId: true, role: true, group: { select: { name: true } } },
+          take: 1,
+        },
+      },
     });
 
     return this.mapToDto(updated);
@@ -188,6 +209,13 @@ export class UsersService {
   }
 
   private mapToDto(user: Record<string, unknown>): UserResponseDto {
+    const memberships = (user.groupMemberships ?? []) as Array<{
+      groupId: string;
+      role: string;
+      group: { name: string };
+    }>;
+    const membership = memberships[0] ?? null;
+
     return {
       id: user.id as string,
       organizationId: user.organizationId as string,
@@ -196,6 +224,9 @@ export class UsersService {
       phone: user.phone as string,
       systemRole: user.systemRole as string,
       isActive: user.isActive as boolean,
+      groupId: membership?.groupId,
+      groupName: membership?.group?.name,
+      groupRole: membership?.role,
       createdAt: user.createdAt as Date,
       updatedAt: user.updatedAt as Date,
     };

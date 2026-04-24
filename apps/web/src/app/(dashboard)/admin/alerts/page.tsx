@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Bell, Trash2, X, AlertCircle, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Bell, Trash2, X, AlertCircle, ChevronRight, ChevronLeft, Save, BookOpen } from 'lucide-react';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import api from '@/lib/api';
@@ -38,6 +38,33 @@ interface CreateAlertForm {
   body: string;
   audience: AlertAudience;
   expiresAt: string;
+}
+
+interface AlertTemplate {
+  id: string;
+  name: string;
+  title: string;
+  body: string;
+  audience: AlertAudience;
+}
+
+const TEMPLATES_KEY = 'amutot-alert-templates';
+
+function getTemplates(): AlertTemplate[] {
+  try {
+    return JSON.parse(localStorage.getItem(TEMPLATES_KEY) || '[]');
+  } catch { return []; }
+}
+
+function saveTemplate(template: AlertTemplate): void {
+  const templates = getTemplates();
+  templates.push(template);
+  localStorage.setItem(TEMPLATES_KEY, JSON.stringify(templates));
+}
+
+function deleteTemplate(id: string): void {
+  const templates = getTemplates().filter(t => t.id !== id);
+  localStorage.setItem(TEMPLATES_KEY, JSON.stringify(templates));
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -80,6 +107,34 @@ function CreateAlertModal({ onClose, onSuccess }: CreateModalProps) {
     expiresAt: '',
   });
   const [errors, setErrors] = useState<Partial<Record<keyof CreateAlertForm, string>>>({});
+  const [templates, setTemplates] = useState<AlertTemplate[]>(() => getTemplates());
+  const [showTemplates, setShowTemplates] = useState(false);
+
+  const handleLoadTemplate = (t: AlertTemplate) => {
+    setForm({ title: t.title, body: t.body, audience: t.audience, expiresAt: '' });
+    setShowTemplates(false);
+  };
+
+  const handleSaveTemplate = () => {
+    if (!form.title.trim()) { showToast('נא למלא כותרת לפני שמירה', 'error'); return; }
+    const name = prompt('שם התבנית:');
+    if (!name) return;
+    const template: AlertTemplate = {
+      id: Date.now().toString(),
+      name,
+      title: form.title,
+      body: form.body,
+      audience: form.audience,
+    };
+    saveTemplate(template);
+    setTemplates(getTemplates());
+    showToast('התבנית נשמרה', 'success');
+  };
+
+  const handleDeleteTemplate = (id: string) => {
+    deleteTemplate(id);
+    setTemplates(getTemplates());
+  };
 
   const mutation = useMutation({
     mutationFn: async (payload: Partial<CreateAlertForm>) => {
@@ -133,6 +188,50 @@ function CreateAlertModal({ onClose, onSuccess }: CreateModalProps) {
             aria-label="סגור"
           >
             <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Template bar */}
+        <div className="flex items-center gap-2 mb-4">
+          <div className="relative flex-1">
+            <button
+              type="button"
+              onClick={() => setShowTemplates(!showTemplates)}
+              className="btn-outline text-sm flex items-center gap-2 w-full justify-center"
+            >
+              <BookOpen className="h-4 w-4" />
+              בחר תבנית ({templates.length})
+            </button>
+            {showTemplates && templates.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-surface border border-outline rounded-lg shadow-lg z-10 max-h-48 overflow-auto">
+                {templates.map((t) => (
+                  <div key={t.id} className="flex items-center justify-between px-3 py-2 hover:bg-surface-container cursor-pointer">
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteTemplate(t.id)}
+                      className="p-1 text-error hover:bg-error-container rounded"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleLoadTemplate(t)}
+                      className="flex-1 text-right text-sm"
+                    >
+                      {t.name}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={handleSaveTemplate}
+            className="btn-outline text-sm flex items-center gap-2"
+          >
+            <Save className="h-4 w-4" />
+            שמור כתבנית
           </button>
         </div>
 

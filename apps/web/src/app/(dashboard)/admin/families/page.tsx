@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import { AlertCircle, Plus, Home, X, Edit2, Trash2, Phone, MapPin, Search } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface AdminFamily {
   id: string;
@@ -44,6 +45,7 @@ const emptyForm: FamilyForm = {
 export default function AdminFamiliesPage() {
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
 
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -297,7 +299,11 @@ export default function AdminFamiliesPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {filteredFamilies.map((family) => (
-            <div key={family.id} className="card-elevated hover:shadow-lg transition-shadow">
+            <div
+              key={family.id}
+              className="card-elevated hover:shadow-lg transition-shadow cursor-pointer"
+              onClick={() => router.push(`/admin/families/${family.id}`)}
+            >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-full bg-primary/10">
@@ -312,13 +318,13 @@ export default function AdminFamiliesPage() {
                 </div>
                 <div className="flex gap-1">
                   <button
-                    onClick={() => openEditModal(family)}
+                    onClick={(e) => { e.stopPropagation(); openEditModal(family); }}
                     className="p-2 hover:bg-surface-container rounded-md transition-colors text-secondary"
                   >
                     <Edit2 className="h-4 w-4" />
                   </button>
                   <button
-                    onClick={() => setDeletingFamily(family)}
+                    onClick={(e) => { e.stopPropagation(); setDeletingFamily(family); }}
                     className="p-2 hover:bg-surface-container rounded-md transition-colors text-error"
                   >
                     <Trash2 className="h-4 w-4" />

@@ -106,15 +106,15 @@ interface StatCardProps {
 function StatCard({ label, value, subtext, icon, iconBg }: StatCardProps) {
   return (
     <div className="card-elevated">
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <p className="text-label-md text-on-surface-variant mb-1 truncate">{label}</p>
-          <p className="text-headline-md font-bold truncate">{value}</p>
+          <p className="text-label-sm sm:text-label-md text-on-surface-variant mb-1">{label}</p>
+          <p className="text-title-lg sm:text-headline-md font-bold break-words">{value}</p>
           {subtext && (
-            <p className="text-body-sm text-on-surface-variant mt-1 truncate">{subtext}</p>
+            <p className="text-label-sm sm:text-body-sm text-on-surface-variant mt-1">{subtext}</p>
           )}
         </div>
-        <div className={`p-3 rounded-full flex-shrink-0 ${iconBg}`}>{icon}</div>
+        <div className={`p-2 sm:p-3 rounded-full flex-shrink-0 ${iconBg}`}>{icon}</div>
       </div>
     </div>
   );

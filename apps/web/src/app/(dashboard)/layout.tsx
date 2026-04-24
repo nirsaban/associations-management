@@ -16,6 +16,7 @@ const NAVIGATION = {
     { label: 'משתמשים', href: '/admin/users', icon: Users },
     { label: 'קבוצות', href: '/admin/groups', icon: Users },
     { label: 'משפחות', href: '/admin/families', icon: Home },
+    { label: 'הזמנות', href: '/admin/orders', icon: ShoppingCart },
     { label: 'תשלומים', href: '/payments', icon: CreditCard },
     { label: 'ייבוא משתמשים', href: '/admin/csv-import', icon: Upload },
     { label: 'ייבוא קבוצות', href: '/admin/groups-import', icon: Upload },
