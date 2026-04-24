@@ -2,8 +2,9 @@
 
 import React, { ReactNode, useEffect, useState, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/auth.store';
-import { Menu, LogOut, Home, Users, CreditCard, Upload, Bell, Truck, ShoppingCart, Heart, UserCircle } from 'lucide-react';
+import { Menu, LogOut, Home, Users, CreditCard, Upload, Bell, Truck, ShoppingCart, Heart, UserCircle, Building2, Globe } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import Link from 'next/link';
 import { api } from '@/lib/api';
@@ -22,6 +23,8 @@ const NAVIGATION = {
     { label: 'ייבוא קבוצות', href: '/admin/groups-import', icon: Upload },
     { label: 'ייבוא משפחות', href: '/admin/families-import', icon: Upload },
     { label: 'התראות', href: '/admin/alerts', icon: Bell },
+    { label: 'פרופיל עמותה', href: '/admin/organization/profile', icon: Building2 },
+    { label: 'דף נחיתה', href: '/admin/landing', icon: Globe },
   ],
   USER: [
     { label: 'דף הבית', href: '/user/dashboard', icon: Home },
@@ -87,6 +90,17 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const hasRedirectedRef = useRef(false);
   const checkIdRef = useRef(0);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
+
+  // Fetch org profile for chrome (logo, name, colors)
+  const { data: orgProfile } = useQuery({
+    queryKey: ['org-public-profile'],
+    queryFn: async () => {
+      const res = await api.get('/organization/profile');
+      return res.data.data;
+    },
+    enabled: isAuthenticated && !!user?.organizationId && user?.systemRole !== undefined,
+    staleTime: 5 * 60 * 1000,
+  });
 
   // Close more menu on route change
   useEffect(() => {
@@ -210,8 +224,15 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       {/* Desktop Sidebar — hidden on mobile */}
       <aside className="hidden md:flex md:flex-col md:w-64 border-s border-outline/30 bg-surface-container-low">
         <div className="border-b border-outline/30 px-6 py-5">
-          <h1 className="text-headline-sm font-headline">ניהול עמותות</h1>
-          <p className="text-label-sm text-on-surface-variant mt-1">{user?.name || user?.phone}</p>
+          <div className="flex items-center gap-3">
+            {orgProfile?.logoUrl && (
+              <img src={orgProfile.logoUrl} alt="" className="w-8 h-8 rounded-lg object-contain flex-shrink-0" />
+            )}
+            <div className="min-w-0">
+              <h1 className="text-headline-sm font-headline truncate">{orgProfile?.name || 'ניהול עמותות'}</h1>
+              <p className="text-label-sm text-on-surface-variant mt-0.5 truncate">{user?.name || user?.phone}</p>
+            </div>
+          </div>
         </div>
 
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
@@ -250,7 +271,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         {/* Top Header — mobile */}
         <header className="md:hidden border-b border-outline/30 bg-surface-container-low px-4 py-3 flex items-center justify-between">
-          <h1 className="text-title-sm font-headline">ניהול עמותות</h1>
+          <div className="flex items-center gap-2 min-w-0">
+            {orgProfile?.logoUrl && (
+              <img src={orgProfile.logoUrl} alt="" className="w-7 h-7 rounded-lg object-contain flex-shrink-0" />
+            )}
+            <h1 className="text-title-sm font-headline truncate">{orgProfile?.name || 'ניהול עמותות'}</h1>
+          </div>
           <button
             onClick={logout}
             className="p-2 rounded-md text-error hover:bg-error/10 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
