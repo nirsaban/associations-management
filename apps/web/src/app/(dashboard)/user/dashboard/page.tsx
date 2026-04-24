@@ -354,8 +354,30 @@ function NonDistributorCard({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function UserDashboardPage() {
-  const { user } = useAuthStore();
+  const { user, setUser } = useAuthStore();
   const firstName = getFirstName(user?.name);
+
+  // Self-heal: if groupMembershipGroupId was not set during login, fetch /auth/me to enrich
+  useQuery({
+    queryKey: ['auth-me-enrich'],
+    queryFn: async () => {
+      const res = await api.get<{ data: Record<string, unknown> }>('/auth/me');
+      const me = res.data.data;
+      if (user && me) {
+        setUser({
+          ...user,
+          isGroupManager: !!me.isGroupManager,
+          managedGroupId: (me.managedGroupId as string) ?? null,
+          groupMembershipGroupId: (me.groupMembershipGroupId as string) ?? null,
+        });
+      }
+      return me;
+    },
+    enabled: !!user && user.groupMembershipGroupId === undefined,
+    staleTime: Infinity,
+    retry: 1,
+  });
+
   const hasGroup = !!user?.groupMembershipGroupId;
 
   // Query: weekly distribution status

@@ -66,20 +66,27 @@ export function OtpVerification({
       // Determine landing page based on role and activation status
       const { user, setUser } = useAuthStore.getState();
 
-      // Enrich user with group manager flag from /auth/me
+      // Enrich user with group manager flag from /auth/me (retry once on failure)
       let meData: Record<string, unknown> | null = null;
-      try {
-        const { default: api } = await import('@/lib/api');
-        const meRes = await api.get('/auth/me');
-        meData = meRes.data.data;
+      const { default: api } = await import('@/lib/api');
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const meRes = await api.get('/auth/me');
+          meData = meRes.data.data;
+          break;
+        } catch {
+          if (attempt === 0) await new Promise((r) => setTimeout(r, 500));
+        }
+      }
 
-        if (!meData?.activationCompleted) {
+      if (meData) {
+        if (!meData.activationCompleted) {
           router.replace('/activation');
           return;
         }
 
         // Persist group info into auth store
-        if (user && meData) {
+        if (user) {
           setUser({
             ...user,
             isGroupManager: !!meData.isGroupManager,
@@ -87,8 +94,6 @@ export function OtpVerification({
             groupMembershipGroupId: (meData.groupMembershipGroupId as string) ?? null,
           });
         }
-      } catch {
-        // If /auth/me fails, proceed to normal flow
       }
 
       if (user?.platformRole === 'SUPER_ADMIN') {
