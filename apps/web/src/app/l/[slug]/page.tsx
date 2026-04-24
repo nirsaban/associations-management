@@ -78,6 +78,7 @@ export default function PublicLandingPage() {
   const [landing, setLanding] = useState<LandingPageData | null>(null);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
+  const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
@@ -134,7 +135,6 @@ export default function PublicLandingPage() {
   const org = landing.organization;
   const primaryColor = org.primaryColor || '#2563eb';
   const accentColor = org.accentColor || '#f59e0b';
-  const prefersReducedMotion = useReducedMotion();
 
   // Build CSS variables
   const cssVars: Record<string, string> = {
