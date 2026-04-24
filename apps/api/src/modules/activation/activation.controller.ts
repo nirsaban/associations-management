@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Delete, Body, HttpCode, UseGuards, Query } from '@nestjs/common';
+import { Controller, Post, Get, Delete, Body, HttpCode, UseGuards, Query, Param } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { Public } from '@common/decorators/public.decorator';
@@ -90,6 +90,28 @@ export class ActivationController {
   @ApiResponse({ status: 200, description: 'Authentication verified, tokens issued' })
   async webauthnAuthenticateVerify(@Body() dto: WebauthnAuthenticateVerifyDto) {
     return { data: await this.activationService.verifyAuthenticate(dto) };
+  }
+
+  // ── Group Selection ──────────────────────────────────────────────────────
+
+  @Get('groups')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'List active groups in user\'s organization for activation' })
+  @ApiResponse({ status: 200, description: 'Groups list with current membership info' })
+  async listGroupsForActivation(@CurrentUser() user: ICurrentUser) {
+    return { data: await this.activationService.listGroupsForActivation(user.sub, user.organizationId) };
+  }
+
+  @Post('group-select/:groupId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Select or confirm group membership during activation' })
+  @ApiResponse({ status: 200, description: 'Group membership confirmed' })
+  async selectGroup(@CurrentUser() user: ICurrentUser, @Param('groupId') groupId: string) {
+    return { data: await this.activationService.selectGroup(user.sub, user.organizationId, groupId) };
   }
 
   // ── Activation Complete ──────────────────────────────────────────────────

@@ -7,8 +7,16 @@ import {
 import api from './api';
 
 export async function isWebAuthnSupported(): Promise<boolean> {
-  if (!browserSupportsWebAuthn()) return false;
-  return platformAuthenticatorIsAvailable();
+  try {
+    if (!browserSupportsWebAuthn()) return false;
+    // platformAuthenticatorIsAvailable can throw on some mobile browsers
+    const available = await platformAuthenticatorIsAvailable();
+    return available;
+  } catch {
+    // Fallback: if the check throws, assume platform authenticator is available
+    // on devices that at least support WebAuthn (most modern phones have biometrics)
+    return browserSupportsWebAuthn();
+  }
 }
 
 export async function registerWebAuthn(deviceName?: string): Promise<boolean> {

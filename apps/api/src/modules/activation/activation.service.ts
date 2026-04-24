@@ -293,6 +293,87 @@ export class ActivationService {
     return tokens;
   }
 
+  // ── Group Selection ──────────────────────────────────────────────────────
+
+  async listGroupsForActivation(userId: string, organizationId: string) {
+    // Get all active groups in the user's organization
+    const groups = await this.prisma.group.findMany({
+      where: {
+        organizationId,
+        isActive: true,
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+        name: true,
+        _count: { select: { memberships: { where: { status: 'ACTIVE' } } } },
+      },
+      orderBy: { name: 'asc' },
+    });
+
+    // Get user's current membership
+    const currentMembership = await this.prisma.groupMembership.findFirst({
+      where: {
+        userId,
+        organizationId,
+        status: 'ACTIVE',
+      },
+      select: { groupId: true },
+    });
+
+    return {
+      groups: groups.map((g) => ({
+        id: g.id,
+        name: g.name,
+        memberCount: g._count.memberships,
+      })),
+      currentGroupId: currentMembership?.groupId || null,
+    };
+  }
+
+  async selectGroup(userId: string, organizationId: string, groupId: string) {
+    // Verify group exists and belongs to user's organization
+    const group = await this.prisma.group.findFirst({
+      where: { id: groupId, organizationId, isActive: true, deletedAt: null },
+    });
+
+    if (!group) {
+      throw new BadRequestException('הקבוצה לא נמצאה');
+    }
+
+    // Check if user's group choice is locked by admin
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { groupChoiceLocked: true },
+    });
+
+    if (user?.groupChoiceLocked) {
+      throw new BadRequestException('שיוך הקבוצה שלך ננעל על ידי מנהל המערכת');
+    }
+
+    // Deactivate any existing memberships (user should be in one group)
+    await this.prisma.groupMembership.updateMany({
+      where: { userId, organizationId, status: 'ACTIVE' },
+      data: { status: 'INACTIVE' },
+    });
+
+    // Create or reactivate membership in the selected group
+    await this.prisma.groupMembership.upsert({
+      where: { groupId_userId: { groupId, userId } },
+      update: { status: 'ACTIVE', role: 'MEMBER' },
+      create: {
+        organizationId,
+        groupId,
+        userId,
+        role: 'MEMBER',
+        status: 'ACTIVE',
+      },
+    });
+
+    this.logger.log(`User ${userId} selected group ${groupId} during activation`);
+    return { ok: true, groupId };
+  }
+
   // ── Activation Complete ──────────────────────────────────────────────────
 
   async completeActivation(userId: string) {

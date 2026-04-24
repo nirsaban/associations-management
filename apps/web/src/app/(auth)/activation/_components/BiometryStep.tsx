@@ -17,15 +17,23 @@ export function BiometryStep({ onComplete, onSkip }: BiometryStepProps) {
 
   useEffect(() => {
     async function check() {
-      const isSupported = await isWebAuthnSupported();
-      setSupported(isSupported);
-      if (!isSupported) {
+      try {
+        const isSupported = await isWebAuthnSupported();
+        setSupported(isSupported);
+        if (!isSupported) {
+          setStatus('done');
+        } else {
+          setStatus('ready');
+        }
+      } catch {
+        // If detection fails entirely, skip biometry gracefully
+        setSupported(false);
         setStatus('done');
-      } else {
-        setStatus('ready');
       }
     }
-    check();
+    // Small delay to ensure browser APIs are fully ready (important on mobile)
+    const timer = setTimeout(check, 300);
+    return () => clearTimeout(timer);
   }, []);
 
   // Auto-advance if not supported

@@ -15,6 +15,8 @@ export const API_ROUTES = {
     WEBAUTHN_AUTH_OPTIONS: '/activation/webauthn/authenticate/options',
     WEBAUTHN_AUTH_VERIFY: '/activation/webauthn/authenticate/verify',
     COMPLETE: '/activation/complete',
+    GROUPS: '/activation/groups',
+    GROUP_SELECT: (groupId: string) => `/activation/group-select/${groupId}`,
   },
   ORGANIZATION: {
     ME: '/organization/me',

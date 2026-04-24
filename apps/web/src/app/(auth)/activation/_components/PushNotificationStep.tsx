@@ -97,10 +97,16 @@ export function PushNotificationStep({ onComplete }: PushNotificationStepProps) 
 
       {status === 'unsupported' && (
         <div className="rounded-lg bg-surface-container px-4 py-3 text-body-sm text-on-surface-variant">
-          <p className="font-medium">הדפדפן שלך לא תומך בהתראות</p>
-          <p className="mt-1">
-            לקבלת התראות, יש לפתוח את האפליקציה מ-Safari (iOS) או Chrome (Android).
-          </p>
+          <p className="font-medium">לא ניתן להפעיל התראות כרגע</p>
+          {/iphone|ipad|ipod/i.test(typeof navigator !== 'undefined' ? navigator.userAgent : '') ? (
+            <p className="mt-1">
+              ב-iPhone יש להתקין את האפליקציה למסך הבית תחילה. לאחר ההתקנה, פתח מהאייקון והתראות יעבדו.
+            </p>
+          ) : (
+            <p className="mt-1">
+              יש לפתוח את האפליקציה מ-Chrome (Android) או להתקין כאפליקציה למסך הבית.
+            </p>
+          )}
         </div>
       )}
 

@@ -61,14 +61,32 @@ export async function subscribeToPush(): Promise<boolean> {
 }
 
 async function waitForServiceWorker(): Promise<ServiceWorkerRegistration> {
-  const maxAttempts = 10;
+  // First try to get an existing active registration
+  let registration = await navigator.serviceWorker.getRegistration();
+  if (registration?.active) {
+    return registration;
+  }
+
+  // No active SW — register it ourselves
+  registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+
+  // Wait for it to become active
+  const maxAttempts = 20;
   for (let i = 0; i < maxAttempts; i++) {
-    const registration = await navigator.serviceWorker.getRegistration();
-    if (registration?.active) {
+    if (registration.active) {
       return registration;
     }
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    // Re-fetch in case state changed
+    const fresh = await navigator.serviceWorker.getRegistration();
+    if (fresh?.active) return fresh;
   }
+
+  // Last resort — await the ready promise
+  await navigator.serviceWorker.ready;
+  const final = await navigator.serviceWorker.getRegistration();
+  if (final?.active) return final;
+
   throw new Error('Service worker not available');
 }
 

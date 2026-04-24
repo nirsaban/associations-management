@@ -78,8 +78,13 @@ export function PwaInstallInstructions({ onAcknowledge }: PwaInstallInstructions
         </div>
         <h3 className="text-title-lg font-medium">התקנת האפליקציה</h3>
         <p className="text-body-md text-on-surface-variant">
-          להתנסות הטובה ביותר, מומלץ להתקין את האפליקציה במכשיר שלך
+          להתנסות הטובה ביותר, יש להתקין את האפליקציה במכשיר שלך.
         </p>
+        {platform === 'ios' && (
+          <p className="text-body-sm text-primary mt-1 font-medium">
+            לאחר ההתקנה, פתח מהאייקון כדי לקבל התראות ולהשתמש בזיהוי ביומטרי.
+          </p>
+        )}
       </div>
 
       {deferredPrompt ? (
