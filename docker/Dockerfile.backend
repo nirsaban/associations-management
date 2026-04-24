@@ -54,6 +54,9 @@ COPY --from=builder --chown=nestjs:nodejs /app/apps/api/dist ./apps/api/dist
 COPY --from=builder --chown=nestjs:nodejs /app/packages ./packages
 COPY --from=builder --chown=nestjs:nodejs /app/prisma ./prisma
 
+# Create uploads directory with correct ownership
+RUN mkdir -p /app/uploads/logos && chown -R nestjs:nodejs /app/uploads
+
 # Switch to non-root user
 USER nestjs
 
