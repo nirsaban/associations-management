@@ -19,6 +19,46 @@ import {
   FooterSection,
 } from './_components/Sections';
 
+/* ── Sticky nav (from prototype) ── */
+function StickyNav({ orgName, logoUrl, paymentLink }: { orgName: string; logoUrl?: string; paymentLink?: string }) {
+  const [scrolled, setScrolled] = React.useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  return (
+    <nav style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      padding: '20px clamp(20px, 5vw, 56px)',
+      position: 'sticky', top: 0, zIndex: 50,
+      background: 'rgba(251,250,247,0.85)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
+      borderBottom: scrolled ? '1px solid var(--border)' : '1px solid transparent',
+      transition: 'border-color 200ms',
+    }}>
+      <a href="#top" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', color: 'inherit' }}>
+        {logoUrl ? (
+          <img src={logoUrl} alt="" style={{ width: 24, height: 24, borderRadius: 7, objectFit: 'contain' }} />
+        ) : (
+          <div style={{ width: 24, height: 24, borderRadius: 7, background: 'var(--primary)' }} />
+        )}
+        <span style={{ fontFamily: 'var(--font-display)', fontSize: 21 }}>{orgName}</span>
+      </a>
+      {paymentLink && (
+        <a href={paymentLink} target="_blank" rel="noopener noreferrer" style={{
+          display: 'inline-flex', alignItems: 'center', gap: 8,
+          borderRadius: 'var(--r-btn)', padding: '10px 20px', fontSize: 14, fontWeight: 500,
+          background: 'var(--primary)', color: '#fff', boxShadow: 'var(--e-cta)',
+          textDecoration: 'none', border: 'none',
+        }}>
+          תרמו
+        </a>
+      )}
+    </nav>
+  );
+}
+
 interface Section {
   id: string;
   type: string;
@@ -157,6 +197,9 @@ export default function PublicLandingPage() {
           color: 'var(--text)',
         }}
       >
+        {/* Sticky nav */}
+        <StickyNav orgName={org.name} logoUrl={org.logoUrl} paymentLink={org.paymentLink} />
+
         {landing.sections
           .filter(s => s.visible)
           .sort((a, b) => a.position - b.position)
