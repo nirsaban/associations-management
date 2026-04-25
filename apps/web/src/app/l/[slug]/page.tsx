@@ -3,7 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { MotionConfig, useReducedMotion } from 'framer-motion';
-import { THEME_VARS } from './themes';
+import { derivePrimaryScale } from './themes';
+import './tokens.css';
 import {
   HeroSection,
   VideoSection,
@@ -21,7 +22,8 @@ import {
 interface Section {
   id: string;
   type: string;
-  data: Record<string, unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: Record<string, any>;
   visible: boolean;
   position: number;
 }
@@ -44,6 +46,8 @@ interface LandingPageData {
     aboutShort?: string;
     contactPhone?: string;
     contactEmail?: string;
+    address?: string;
+    legalName?: string;
     facebookUrl?: string;
     instagramUrl?: string;
     whatsappUrl?: string;
@@ -53,7 +57,8 @@ interface LandingPageData {
 }
 
 const SECTION_COMPONENTS: Record<string, React.ComponentType<{
-  data: Record<string, unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: Record<string, any>;
   org: LandingPageData['organization'];
   primaryColor: string;
   accentColor: string;
@@ -105,10 +110,8 @@ export default function PublicLandingPage() {
   // Track view
   useEffect(() => {
     if (!landing || !landing.published) return;
-
     const viewedKey = `_lp_viewed_${slug}`;
     if (sessionStorage.getItem(viewedKey)) return;
-
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3003/api/v1';
     fetch(`${apiUrl}/public/landing/${slug}/track`, { method: 'POST' }).catch(() => {});
     sessionStorage.setItem(viewedKey, '1');
@@ -116,50 +119,44 @@ export default function PublicLandingPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FBFAF7' }}>
+        <div style={{ width: 32, height: 32, border: '3px solid #DFD8C7', borderTopColor: '#2F5F5C', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
       </div>
     );
   }
 
   if (error || !landing) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white" dir="rtl">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">העמוד לא נמצא</h1>
-        <p className="text-gray-500">ייתכן שהעמוד הוסר או שהכתובת שגויה</p>
+      <div dir="rtl" lang="he" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#FBFAF7', fontFamily: 'Inter, Heebo, sans-serif', color: '#15130F' }}>
+        <h1 style={{ fontSize: 24, fontWeight: 600, marginBottom: 8 }}>העמוד לא נמצא</h1>
+        <p style={{ color: '#6B645B' }}>ייתכן שהעמוד הוסר או שהכתובת שגויה</p>
       </div>
     );
   }
 
-  const theme = THEME_VARS[landing.theme] || THEME_VARS.MODERN;
   const org = landing.organization;
-  const primaryColor = org.primaryColor || '#2563eb';
-  const accentColor = org.accentColor || '#f59e0b';
+  const primaryColor = org.primaryColor || '#2F5F5C';
+  const accentColor = org.accentColor || '#C8732F';
+  const themeName = (landing.theme || 'modern').toLowerCase();
 
-  // Build CSS variables
-  const cssVars: Record<string, string> = {
-    ...theme,
-    '--lp-primary': primaryColor,
-    '--lp-accent': accentColor,
-  };
+  // Derive primary color scale as inline CSS vars
+  const colorOverrides = derivePrimaryScale(primaryColor, accentColor);
 
   return (
     <MotionConfig reducedMotion="user">
       <div
-        className="min-h-screen"
         dir="rtl"
         lang="he"
+        data-theme={themeName}
         data-reduced-motion={prefersReducedMotion ? 'true' : 'false'}
         style={{
-          ...cssVars as React.CSSProperties,
-          backgroundColor: 'var(--lp-bg)',
-          fontFamily: 'var(--lp-font-body)',
-          color: 'var(--lp-text)',
+          ...colorOverrides as React.CSSProperties,
+          minHeight: '100vh',
+          background: 'var(--bg)',
+          fontFamily: 'var(--font-body)',
+          color: 'var(--text)',
         }}
       >
-        {/* SEO meta */}
-        {landing.title && <title>{landing.title}</title>}
-
         {landing.sections
           .filter(s => s.visible)
           .sort((a, b) => a.position - b.position)
