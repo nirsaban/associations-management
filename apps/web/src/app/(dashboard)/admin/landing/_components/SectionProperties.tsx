@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { X, Eye, EyeOff, Trash2 } from 'lucide-react';
+import { X, Eye, EyeOff, Trash2, Plus, Minus } from 'lucide-react';
 import { SECTION_DEFINITIONS } from './SectionLibrary';
 
 interface Section {
@@ -22,7 +22,6 @@ interface SectionPropertiesProps {
 
 export default function SectionProperties({ section, onUpdate, onToggleVisibility, onDelete, onClose }: SectionPropertiesProps) {
   const def = SECTION_DEFINITIONS.find(d => d.type === section.type);
-
   const updateField = (key: string, value: unknown) => {
     onUpdate({ ...section.data, [key]: value });
   };
@@ -31,321 +30,340 @@ export default function SectionProperties({ section, onUpdate, onToggleVisibilit
     <div className="h-full flex flex-col">
       <div className="flex items-center justify-between px-4 py-3 border-b border-outline/20">
         <h3 className="text-title-sm font-headline">{def?.label || section.type}</h3>
-        <button onClick={onClose} className="p-1 rounded hover:bg-surface-container">
-          <X className="h-4 w-4" />
-        </button>
+        <button onClick={onClose} className="p-1 rounded hover:bg-surface-container"><X className="h-4 w-4" /></button>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {/* Common actions */}
         <div className="flex items-center gap-2">
-          <button
-            onClick={onToggleVisibility}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-body-sm ${
-              section.visible ? 'bg-surface-container text-on-surface' : 'bg-error/10 text-error'
-            }`}
-          >
+          <button onClick={onToggleVisibility} className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-body-sm ${section.visible ? 'bg-surface-container text-on-surface' : 'bg-error/10 text-error'}`}>
             {section.visible ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
             {section.visible ? 'מוצג' : 'מוסתר'}
           </button>
-          <button
-            onClick={onDelete}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-md text-body-sm text-error hover:bg-error/10"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-            מחק
+          <button onClick={onDelete} className="flex items-center gap-2 px-3 py-1.5 rounded-md text-body-sm text-error hover:bg-error/10">
+            <Trash2 className="h-3.5 w-3.5" /> מחק
           </button>
         </div>
 
+        {/* Every section gets an eyebrow field */}
+        <Field label="כותרת עליונה (eyebrow)" value={(section.data.eyebrow as string) || ''} onChange={v => updateField('eyebrow', v)} placeholder="עמותה רשומה · נוסדה 1994" />
+
         {/* Type-specific fields */}
-        {section.type === 'hero' && (
-          <HeroFields data={section.data} onChange={updateField} />
-        )}
-        {section.type === 'video' && (
-          <VideoFields data={section.data} onChange={updateField} />
-        )}
-        {section.type === 'about' && (
-          <AboutFields data={section.data} onChange={updateField} />
-        )}
-        {section.type === 'activities' && (
-          <ActivitiesFields data={section.data} onChange={updateField} />
-        )}
-        {section.type === 'stats' && (
-          <StatsFields data={section.data} onChange={updateField} />
-        )}
-        {section.type === 'cta_payment' && (
-          <CtaPaymentFields data={section.data} onChange={updateField} />
-        )}
-        {section.type === 'join_us' && (
-          <JoinUsFields data={section.data} onChange={updateField} />
-        )}
-        {section.type === 'faq' && (
-          <FaqFields data={section.data} onChange={updateField} />
-        )}
-        {section.type === 'footer' && (
-          <FooterFields data={section.data} onChange={updateField} />
-        )}
-        {section.type === 'reviews' && (
-          <ReviewsFields data={section.data} onChange={updateField} />
-        )}
-        {section.type === 'gallery' && (
-          <GalleryFields data={section.data} onChange={updateField} />
-        )}
+        {section.type === 'hero' && <HeroFields data={section.data} onChange={updateField} />}
+        {section.type === 'video' && <VideoFields data={section.data} onChange={updateField} />}
+        {section.type === 'about' && <AboutFields data={section.data} onChange={updateField} />}
+        {section.type === 'activities' && <ActivitiesFields data={section.data} onChange={updateField} />}
+        {section.type === 'gallery' && <GalleryFields data={section.data} onChange={updateField} />}
+        {section.type === 'reviews' && <ReviewsFields data={section.data} onChange={updateField} />}
+        {section.type === 'stats' && <StatsFields data={section.data} onChange={updateField} />}
+        {section.type === 'cta_payment' && <CtaPaymentFields data={section.data} onChange={updateField} />}
+        {section.type === 'join_us' && <JoinUsFields data={section.data} onChange={updateField} />}
+        {section.type === 'faq' && <FaqFields data={section.data} onChange={updateField} />}
+        {section.type === 'footer' && <FooterFields data={section.data} onChange={updateField} />}
       </div>
     </div>
   );
 }
 
-// ─── Field Components ─────────────────────────────────────────
+/* ── Shared field components ── */
 
-function PropField({ label, value, onChange, type = 'text', rows, placeholder }: {
-  label: string; value: string; onChange: (v: string) => void; type?: string; rows?: number; placeholder?: string;
+function Field({ label, value, onChange, placeholder, type = 'text', rows, maxLength, dir }: {
+  label: string; value: string; onChange: (v: string) => void; placeholder?: string; type?: string; rows?: number; maxLength?: number; dir?: string;
 }) {
+  const cls = "w-full px-3 py-2 rounded-lg border border-outline/30 bg-surface text-body-sm focus:ring-2 focus:ring-primary/30 focus:outline-none";
   return (
     <div>
       <label className="text-label-sm text-on-surface-variant block mb-1">{label}</label>
       {rows ? (
-        <textarea
-          value={value}
-          onChange={e => onChange(e.target.value)}
-          rows={rows}
-          placeholder={placeholder}
-          className="w-full px-3 py-2 rounded-lg border border-outline/30 bg-surface text-body-sm focus:ring-2 focus:ring-primary/30 resize-y"
-          dir="auto"
-        />
+        <textarea value={value} onChange={e => onChange(e.target.value)} rows={rows} placeholder={placeholder} maxLength={maxLength} className={`${cls} resize-y`} dir={dir || 'auto'} />
       ) : (
-        <input
-          type={type}
-          value={value}
-          onChange={e => onChange(e.target.value)}
-          placeholder={placeholder}
-          className="w-full px-3 py-2 rounded-lg border border-outline/30 bg-surface text-body-sm focus:ring-2 focus:ring-primary/30"
-          dir="auto"
-        />
+        <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} maxLength={maxLength} className={cls} dir={dir || 'auto'} />
       )}
+      {maxLength && <p className="text-[10px] text-on-surface-variant mt-0.5">{value.length}/{maxLength}</p>}
     </div>
   );
 }
 
-function PropSelect({ label, value, onChange, options }: {
+function Select({ label, value, onChange, options }: {
   label: string; value: string; onChange: (v: string) => void; options: { value: string; label: string }[];
 }) {
   return (
     <div>
       <label className="text-label-sm text-on-surface-variant block mb-1">{label}</label>
-      <select
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        className="w-full px-3 py-2 rounded-lg border border-outline/30 bg-surface text-body-sm focus:ring-2 focus:ring-primary/30"
-      >
+      <select value={value} onChange={e => onChange(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-outline/30 bg-surface text-body-sm focus:ring-2 focus:ring-primary/30">
         {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
     </div>
   );
 }
 
-function PropCheck({ label, checked, onChange }: {
-  label: string; checked: boolean; onChange: (v: boolean) => void;
-}) {
+function Check({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
-    <label className="flex items-center gap-2 cursor-pointer">
-      <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} className="rounded" />
+    <label className="flex items-center gap-2 cursor-pointer py-1">
+      <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} className="rounded border-outline/30" />
       <span className="text-body-sm">{label}</span>
     </label>
   );
 }
 
-// ─── Section-specific field groups ─────────────────────────────
+function Divider({ label }: { label: string }) {
+  return <div className="pt-2 pb-1 text-label-sm text-on-surface-variant font-medium border-t border-outline/10 mt-2">{label}</div>;
+}
 
+/* ── 1. HERO — matches prototype hero structure ── */
 function HeroFields({ data, onChange }: { data: Record<string, unknown>; onChange: (key: string, val: unknown) => void }) {
   return (
     <>
-      <PropField label="כותרת" value={(data.headline as string) || ''} onChange={v => onChange('headline', v)} />
-      <PropField label="תת-כותרת" value={(data.subheadline as string) || ''} onChange={v => onChange('subheadline', v)} rows={2} />
-      <PropField label="טקסט כפתור" value={(data.cta_label as string) || ''} onChange={v => onChange('cta_label', v)} />
-      <PropSelect
-        label="פעולת כפתור"
-        value={(data.cta_action as string) || 'payment'}
-        onChange={v => onChange('cta_action', v)}
-        options={[
-          { value: 'payment', label: 'תרומה' },
-          { value: 'scroll', label: 'גלילה למטה' },
-          { value: 'external', label: 'קישור חיצוני' },
-        ]}
-      />
-      {(data.cta_action === 'external') && (
-        <PropField label="כתובת קישור" value={(data.cta_target as string) || ''} onChange={v => onChange('cta_target', v)} placeholder="https://..." />
-      )}
+      <Field label="כותרת ראשית" value={(data.headline as string) || ''} onChange={v => onChange('headline', v)} maxLength={80} placeholder="דרך שקטה לתת" />
+      <Field label="תת-כותרת" value={(data.subheadline as string) || ''} onChange={v => onChange('subheadline', v)} rows={2} maxLength={200} />
+
+      <Divider label="כפתור ראשי" />
+      <Field label="טקסט כפתור" value={(data.cta_label as string) || ''} onChange={v => onChange('cta_label', v)} maxLength={24} placeholder="תרמו עכשיו →" />
+      <Select label="פעולת כפתור" value={(data.cta_action as string) || 'payment'} onChange={v => onChange('cta_action', v)}
+        options={[{ value: 'payment', label: 'תרומה (קישור תשלום)' }, { value: 'link', label: 'קישור חיצוני' }, { value: 'scroll', label: 'גלילה למטה' }]} />
+      {data.cta_action === 'link' && <Field label="כתובת קישור" value={(data.cta_target as string) || ''} onChange={v => onChange('cta_target', v)} placeholder="https://..." dir="ltr" />}
+
+      <Divider label="כפתור משני (אופציונלי)" />
+      <Field label="טקסט כפתור משני" value={(data.secondary_cta_label as string) || ''} onChange={v => onChange('secondary_cta_label', v)} maxLength={24} placeholder="צפו בסיפור שלנו" />
+      <Select label="פעולת כפתור משני" value={(data.secondary_cta_action as string) || 'scroll'} onChange={v => onChange('secondary_cta_action', v)}
+        options={[{ value: 'scroll', label: 'גלילה למטה' }, { value: 'link', label: 'קישור חיצוני' }]} />
+
+      <Divider label="תמונת רקע" />
+      <Field label="כתובת תמונה (URL)" value={(data.background_image as string) || ''} onChange={v => onChange('background_image', v)} placeholder="https://..." dir="ltr" />
+      <Field label="טקסט חלופי לתמונה" value={(data.background_image_alt as string) || ''} onChange={v => onChange('background_image_alt', v)} />
     </>
   );
 }
 
+/* ── 2. VIDEO ── */
 function VideoFields({ data, onChange }: { data: Record<string, unknown>; onChange: (key: string, val: unknown) => void }) {
   return (
     <>
-      <PropField label="כותרת" value={(data.title as string) || ''} onChange={v => onChange('title', v)} />
-      <PropField label="תיאור" value={(data.description as string) || ''} onChange={v => onChange('description', v)} rows={2} />
-      <PropSelect
-        label="מקור"
-        value={(data.source as string) || 'youtube'}
-        onChange={v => onChange('source', v)}
-        options={[
-          { value: 'youtube', label: 'YouTube' },
-          { value: 'vimeo', label: 'Vimeo' },
-        ]}
-      />
-      <PropField label="כתובת הסרטון" value={(data.url_or_asset_id as string) || ''} onChange={v => onChange('url_or_asset_id', v)} placeholder="https://youtube.com/watch?v=..." />
-      <PropCheck label="הפעלה אוטומטית" checked={!!data.autoplay} onChange={v => onChange('autoplay', v)} />
-      <PropCheck label="ללא קול" checked={!!data.muted} onChange={v => onChange('muted', v)} />
+      <Field label="כותרת" value={(data.title as string) || ''} onChange={v => onChange('title', v)} maxLength={80} />
+      <Field label="תיאור" value={(data.description as string) || ''} onChange={v => onChange('description', v)} rows={2} maxLength={240} />
+      <Field label="כתובת סרטון (YouTube / Vimeo / MP4)" value={(data.source as string) || ''} onChange={v => onChange('source', v)} placeholder="https://youtube.com/watch?v=..." dir="ltr" />
     </>
   );
 }
 
+/* ── 3. ABOUT ── */
 function AboutFields({ data, onChange }: { data: Record<string, unknown>; onChange: (key: string, val: unknown) => void }) {
   return (
     <>
-      <PropField label="כותרת" value={(data.title as string) || ''} onChange={v => onChange('title', v)} />
-      <PropField label="תוכן" value={(data.body_rich_text as string) || ''} onChange={v => onChange('body_rich_text', v)} rows={5} />
+      <Field label="כותרת" value={(data.title as string) || ''} onChange={v => onChange('title', v)} maxLength={80} />
+      <Field label="תוכן (HTML/Markdown)" value={(data.body_rich_text as string) || ''} onChange={v => onChange('body_rich_text', v)} rows={6} />
+      <Divider label="תמונה צדדית" />
+      <Field label="כתובת תמונה (URL)" value={(data.side_image as string) || ''} onChange={v => onChange('side_image', v)} placeholder="https://..." dir="ltr" />
+      <Field label="טקסט חלופי" value={(data.side_image_alt as string) || ''} onChange={v => onChange('side_image_alt', v)} />
     </>
   );
 }
 
+/* ── 4. ACTIVITIES ── */
 function ActivitiesFields({ data, onChange }: { data: Record<string, unknown>; onChange: (key: string, val: unknown) => void }) {
   const items = (data.items as Array<Record<string, string>>) || [];
 
-  const addItem = () => {
-    onChange('items', [...items, { title: '', description: '', icon: '' }]);
+  const addItem = () => onChange('items', [...items, { title: '', description: '', image: '', image_alt: '' }]);
+  const updateItem = (i: number, field: string, value: string) => {
+    const updated = [...items]; updated[i] = { ...updated[i], [field]: value }; onChange('items', updated);
   };
-
-  const updateItem = (index: number, field: string, value: string) => {
-    const updated = [...items];
-    updated[index] = { ...updated[index], [field]: value };
-    onChange('items', updated);
-  };
-
-  const removeItem = (index: number) => {
-    onChange('items', items.filter((_, i) => i !== index));
-  };
+  const removeItem = (i: number) => onChange('items', items.filter((_, idx) => idx !== i));
 
   return (
     <>
-      <PropField label="כותרת" value={(data.title as string) || ''} onChange={v => onChange('title', v)} />
-      <PropField label="הקדמה" value={(data.intro as string) || ''} onChange={v => onChange('intro', v)} rows={2} />
+      <Field label="כותרת" value={(data.title as string) || ''} onChange={v => onChange('title', v)} />
       <div className="space-y-3">
-        <p className="text-label-sm text-on-surface-variant">פעילויות</p>
+        <div className="flex items-center justify-between">
+          <span className="text-label-sm text-on-surface-variant font-medium">פעילויות ({items.length})</span>
+          <button onClick={addItem} className="flex items-center gap-1 text-body-sm text-primary hover:underline"><Plus className="h-3 w-3" /> הוסף</button>
+        </div>
         {items.map((item, i) => (
           <div key={i} className="p-3 rounded-lg bg-surface-container space-y-2">
             <div className="flex justify-between items-center">
-              <span className="text-label-sm">פעילות {i + 1}</span>
-              <button onClick={() => removeItem(i)} className="text-error text-[11px]">הסר</button>
+              <span className="text-label-sm font-medium">פעילות {i + 1}</span>
+              <button onClick={() => removeItem(i)} className="text-error text-[11px] flex items-center gap-1"><Minus className="h-3 w-3" /> הסר</button>
             </div>
-            <PropField label="כותרת" value={item.title || ''} onChange={v => updateItem(i, 'title', v)} />
-            <PropField label="תיאור" value={item.description || ''} onChange={v => updateItem(i, 'description', v)} rows={2} />
+            <Field label="שם" value={item.title || ''} onChange={v => updateItem(i, 'title', v)} maxLength={60} />
+            <Field label="תיאור" value={item.description || ''} onChange={v => updateItem(i, 'description', v)} rows={2} maxLength={200} />
+            <Field label="תמונה (URL)" value={item.image || ''} onChange={v => updateItem(i, 'image', v)} dir="ltr" placeholder="https://..." />
           </div>
         ))}
-        <button onClick={addItem} className="text-body-sm text-primary hover:underline">+ הוסף פעילות</button>
       </div>
     </>
   );
 }
 
-function StatsFields({ data, onChange }: { data: Record<string, unknown>; onChange: (key: string, val: unknown) => void }) {
-  const items = (data.items as Array<Record<string, string>>) || [];
-
-  const addItem = () => onChange('items', [...items, { number: '', label: '' }]);
-  const updateItem = (i: number, field: string, value: string) => {
-    const updated = [...items];
-    updated[i] = { ...updated[i], [field]: value };
-    onChange('items', updated);
+/* ── 5. GALLERY ── */
+function GalleryFields({ data, onChange }: { data: Record<string, unknown>; onChange: (key: string, val: unknown) => void }) {
+  const images = (data.images as Array<Record<string, string>>) || [];
+  const addImage = () => onChange('images', [...images, { url: '', alt: '' }]);
+  const updateImage = (i: number, field: string, value: string) => {
+    const updated = [...images]; updated[i] = { ...updated[i], [field]: value }; onChange('images', updated);
   };
-  const removeItem = (i: number) => onChange('items', items.filter((_, idx) => idx !== i));
+  const removeImage = (i: number) => onChange('images', images.filter((_, idx) => idx !== i));
 
   return (
-    <div className="space-y-3">
-      <p className="text-label-sm text-on-surface-variant">נתונים</p>
-      {items.map((item, i) => (
-        <div key={i} className="flex items-center gap-2">
-          <input value={item.number || ''} onChange={e => updateItem(i, 'number', e.target.value)} placeholder="1,200" className="w-24 px-2 py-1.5 rounded border border-outline/30 text-body-sm" dir="ltr" />
-          <input value={item.label || ''} onChange={e => updateItem(i, 'label', e.target.value)} placeholder="חברים" className="flex-1 px-2 py-1.5 rounded border border-outline/30 text-body-sm" dir="auto" />
-          <button onClick={() => removeItem(i)} className="text-error text-xs">X</button>
+    <>
+      <Field label="כותרת" value={(data.title as string) || ''} onChange={v => onChange('title', v)} />
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-label-sm text-on-surface-variant font-medium">תמונות ({images.length})</span>
+          <button onClick={addImage} className="flex items-center gap-1 text-body-sm text-primary hover:underline"><Plus className="h-3 w-3" /> הוסף תמונה</button>
         </div>
-      ))}
-      <button onClick={addItem} className="text-body-sm text-primary hover:underline">+ הוסף נתון</button>
-    </div>
-  );
-}
-
-function CtaPaymentFields({ data, onChange }: { data: Record<string, unknown>; onChange: (key: string, val: unknown) => void }) {
-  return (
-    <>
-      <PropField label="כותרת" value={(data.headline as string) || ''} onChange={v => onChange('headline', v)} />
-      <PropField label="תת-כותרת" value={(data.subheadline as string) || ''} onChange={v => onChange('subheadline', v)} />
-      <PropField label="טקסט כפתור" value={(data.button_label as string) || ''} onChange={v => onChange('button_label', v)} />
-      <PropCheck label="הצג רמז לתשלומים" checked={!!data.installments_hint} onChange={v => onChange('installments_hint', v)} />
-    </>
-  );
-}
-
-function JoinUsFields({ data, onChange }: { data: Record<string, unknown>; onChange: (key: string, val: unknown) => void }) {
-  return (
-    <>
-      <PropField label="כותרת" value={(data.headline as string) || ''} onChange={v => onChange('headline', v)} />
-      <PropField label="תוכן" value={(data.body as string) || ''} onChange={v => onChange('body', v)} rows={3} />
-      <PropField label="הודעת הצלחה" value={(data.success_message as string) || ''} onChange={v => onChange('success_message', v)} />
-    </>
-  );
-}
-
-function FaqFields({ data, onChange }: { data: Record<string, unknown>; onChange: (key: string, val: unknown) => void }) {
-  const items = (data.items as Array<Record<string, string>>) || [];
-
-  const addItem = () => onChange('items', [...items, { q: '', a: '' }]);
-  const updateItem = (i: number, field: string, value: string) => {
-    const updated = [...items];
-    updated[i] = { ...updated[i], [field]: value };
-    onChange('items', updated);
-  };
-  const removeItem = (i: number) => onChange('items', items.filter((_, idx) => idx !== i));
-
-  return (
-    <div className="space-y-3">
-      <p className="text-label-sm text-on-surface-variant">שאלות ותשובות</p>
-      {items.map((item, i) => (
-        <div key={i} className="p-3 rounded-lg bg-surface-container space-y-2">
-          <div className="flex justify-between items-center">
-            <span className="text-label-sm">שאלה {i + 1}</span>
-            <button onClick={() => removeItem(i)} className="text-error text-[11px]">הסר</button>
+        {images.map((img, i) => (
+          <div key={i} className="flex items-start gap-2">
+            <div className="flex-1 space-y-1">
+              <input value={img.url || ''} onChange={e => updateImage(i, 'url', e.target.value)} placeholder="https://..." className="w-full px-2 py-1.5 rounded border border-outline/30 text-body-sm" dir="ltr" />
+              <input value={img.alt || ''} onChange={e => updateImage(i, 'alt', e.target.value)} placeholder="תיאור תמונה" className="w-full px-2 py-1.5 rounded border border-outline/30 text-body-sm" dir="auto" />
+            </div>
+            <button onClick={() => removeImage(i)} className="text-error text-xs mt-1">X</button>
           </div>
-          <PropField label="שאלה" value={item.q || ''} onChange={v => updateItem(i, 'q', v)} />
-          <PropField label="תשובה" value={item.a || ''} onChange={v => updateItem(i, 'a', v)} rows={3} />
-        </div>
-      ))}
-      <button onClick={addItem} className="text-body-sm text-primary hover:underline">+ הוסף שאלה</button>
-    </div>
-  );
-}
-
-function FooterFields({ data, onChange }: { data: Record<string, unknown>; onChange: (key: string, val: unknown) => void }) {
-  return (
-    <>
-      <PropCheck label="הצג פרטי קשר" checked={data.show_contact !== false} onChange={v => onChange('show_contact', v)} />
-      <PropCheck label="הצג רשתות חברתיות" checked={data.show_social !== false} onChange={v => onChange('show_social', v)} />
-      <PropField label="טקסט מותאם" value={(data.custom_text as string) || ''} onChange={v => onChange('custom_text', v)} rows={2} />
+        ))}
+      </div>
     </>
   );
 }
 
+/* ── 6. REVIEWS ── */
 function ReviewsFields({ data, onChange }: { data: Record<string, unknown>; onChange: (key: string, val: unknown) => void }) {
   return (
     <>
-      <PropField label="כותרת" value={(data.title as string) || ''} onChange={v => onChange('title', v)} />
-      <PropCheck label="הצג טופס שליחת המלצה" checked={!!data.show_submit_cta} onChange={v => onChange('show_submit_cta', v)} />
+      <Field label="כותרת" value={(data.title as string) || ''} onChange={v => onChange('title', v)} placeholder="הקהילה, על הקהילה." />
+      <Field label="טקסט מצב ריק" value={(data.empty_text as string) || ''} onChange={v => onChange('empty_text', v)} placeholder="היו הראשונים להשאיר הודעה." />
+      <Field label="טקסט כפתור ביקורת" value={(data.cta_text as string) || ''} onChange={v => onChange('cta_text', v)} placeholder="השאירו ביקורת שלכם" />
+      <p className="text-[11px] text-on-surface-variant">ביקורות נשלפות אוטומטית מטבלת reviews (מאושרות בלבד)</p>
     </>
   );
 }
 
-function GalleryFields({ data, onChange }: { data: Record<string, unknown>; onChange: (key: string, val: unknown) => void }) {
+/* ── 7. STATS ── */
+function StatsFields({ data, onChange }: { data: Record<string, unknown>; onChange: (key: string, val: unknown) => void }) {
+  const items = (data.items as Array<Record<string, string>>) || [];
+  const addItem = () => onChange('items', [...items, { value: '', label: '' }]);
+  const updateItem = (i: number, field: string, value: string) => {
+    const updated = [...items]; updated[i] = { ...updated[i], [field]: value }; onChange('items', updated);
+  };
+  const removeItem = (i: number) => onChange('items', items.filter((_, idx) => idx !== i));
+
   return (
-    <PropField label="כותרת" value={(data.title as string) || ''} onChange={v => onChange('title', v)} />
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-label-sm text-on-surface-variant font-medium">נתונים ({items.length}/5)</span>
+        {items.length < 5 && <button onClick={addItem} className="flex items-center gap-1 text-body-sm text-primary hover:underline"><Plus className="h-3 w-3" /> הוסף</button>}
+      </div>
+      {items.map((item, i) => (
+        <div key={i} className="flex items-center gap-2">
+          <input value={item.value || ''} onChange={e => updateItem(i, 'value', e.target.value)} placeholder="140" className="w-24 px-2 py-1.5 rounded border border-outline/30 text-body-sm" dir="ltr" />
+          <input value={item.label || ''} onChange={e => updateItem(i, 'label', e.target.value)} placeholder="משפחות כל שבוע" className="flex-1 px-2 py-1.5 rounded border border-outline/30 text-body-sm" dir="auto" />
+          <button onClick={() => removeItem(i)} className="text-error text-xs">X</button>
+        </div>
+      ))}
+      <p className="text-[10px] text-on-surface-variant">ערכים מספריים יספרו למעלה באנימציה (140, 68%, ₪1,200)</p>
+    </div>
+  );
+}
+
+/* ── 8. CTA PAYMENT ── */
+function CtaPaymentFields({ data, onChange }: { data: Record<string, unknown>; onChange: (key: string, val: unknown) => void }) {
+  const amounts = (data.amounts as number[]) || [100, 250, 500, 1000];
+
+  const updateAmount = (i: number, val: string) => {
+    const num = parseInt(val, 10);
+    if (isNaN(num)) return;
+    const updated = [...amounts]; updated[i] = num; onChange('amounts', updated);
+  };
+  const addAmount = () => onChange('amounts', [...amounts, 0]);
+  const removeAmount = (i: number) => onChange('amounts', amounts.filter((_, idx) => idx !== i));
+
+  return (
+    <>
+      <Field label="כותרת" value={(data.headline as string) || ''} onChange={v => onChange('headline', v)} maxLength={80} placeholder="כל שקל — ישר לעבודה." />
+      <Field label="תת-כותרת" value={(data.subheadline as string) || ''} onChange={v => onChange('subheadline', v)} rows={2} maxLength={200} />
+      <Field label="טקסט כפתור" value={(data.cta_label as string) || ''} onChange={v => onChange('cta_label', v)} placeholder="תרמו" maxLength={24} />
+
+      <Divider label="סכומי תרומה" />
+      <div className="space-y-2">
+        {amounts.map((amt, i) => (
+          <div key={i} className="flex items-center gap-2">
+            <span className="text-body-sm text-on-surface-variant">₪</span>
+            <input value={amt || ''} onChange={e => updateAmount(i, e.target.value)} type="number" className="w-24 px-2 py-1.5 rounded border border-outline/30 text-body-sm" dir="ltr" />
+            <button onClick={() => removeAmount(i)} className="text-error text-xs">X</button>
+          </div>
+        ))}
+        {amounts.length < 6 && <button onClick={addAmount} className="text-body-sm text-primary hover:underline">+ הוסף סכום</button>}
+      </div>
+      <Select label="סכום ברירת מחדל" value={String(data.default_amount_index ?? 2)} onChange={v => onChange('default_amount_index', parseInt(v, 10))}
+        options={amounts.map((a, i) => ({ value: String(i), label: `₪${a.toLocaleString()}` }))} />
+      <Check label='אפשר סכום מותאם (כפתור "אחר")' checked={!!data.allow_custom} onChange={v => onChange('allow_custom', v)} />
+
+      <Divider label="שורת אמון" />
+      <Check label="הצג תשלומים (עד 12 תשלומים)" checked={data.installments_hint !== false} onChange={v => onChange('installments_hint', v)} />
+      <Check label="הצג קבלה (סעיף 46)" checked={data.receipt_hint !== false} onChange={v => onChange('receipt_hint', v)} />
+      <Field label="טקסט סליקה מאובטחת" value={(data.secure_label as string) || ''} onChange={v => onChange('secure_label', v)} placeholder="סליקה מאובטחת" />
+    </>
+  );
+}
+
+/* ── 9. JOIN US ── */
+function JoinUsFields({ data, onChange }: { data: Record<string, unknown>; onChange: (key: string, val: unknown) => void }) {
+  return (
+    <>
+      <Field label="כותרת" value={(data.headline as string) || ''} onChange={v => onChange('headline', v)} placeholder="מקום ליד השולחן תמיד פתוח." />
+      <Field label="תוכן" value={(data.body as string) || ''} onChange={v => onChange('body', v)} rows={3} />
+      <Field label="טקסט כפתור שליחה" value={(data.submit_label as string) || ''} onChange={v => onChange('submit_label', v)} placeholder="שלחו →" />
+      <Divider label="מסך הצלחה" />
+      <Field label="כותרת הצלחה" value={(data.success_title as string) || ''} onChange={v => onChange('success_title', v)} placeholder="קיבלנו. תודה רבה." />
+      <Field label="הודעת הצלחה" value={(data.success_message as string) || ''} onChange={v => onChange('success_message', v)} placeholder="נחזור אליכם תוך מספר ימים." />
+    </>
+  );
+}
+
+/* ── 10. FAQ ── */
+function FaqFields({ data, onChange }: { data: Record<string, unknown>; onChange: (key: string, val: unknown) => void }) {
+  const items = (data.items as Array<Record<string, string>>) || [];
+  const addItem = () => onChange('items', [...items, { question: '', answer: '' }]);
+  const updateItem = (i: number, field: string, value: string) => {
+    const updated = [...items]; updated[i] = { ...updated[i], [field]: value }; onChange('items', updated);
+  };
+  const removeItem = (i: number) => onChange('items', items.filter((_, idx) => idx !== i));
+
+  return (
+    <>
+      <Field label="כותרת" value={(data.title as string) || ''} onChange={v => onChange('title', v)} placeholder="הנפוצות ביותר." />
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-label-sm text-on-surface-variant font-medium">שאלות ({items.length})</span>
+          <button onClick={addItem} className="flex items-center gap-1 text-body-sm text-primary hover:underline"><Plus className="h-3 w-3" /> הוסף</button>
+        </div>
+        {items.map((item, i) => (
+          <div key={i} className="p-3 rounded-lg bg-surface-container space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-label-sm font-medium">שאלה {i + 1}</span>
+              <button onClick={() => removeItem(i)} className="text-error text-[11px] flex items-center gap-1"><Minus className="h-3 w-3" /> הסר</button>
+            </div>
+            <Field label="שאלה" value={item.question || ''} onChange={v => updateItem(i, 'question', v)} />
+            <Field label="תשובה" value={item.answer || ''} onChange={v => updateItem(i, 'answer', v)} rows={3} />
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
+/* ── 11. FOOTER ── */
+function FooterFields({ data, onChange }: { data: Record<string, unknown>; onChange: (key: string, val: unknown) => void }) {
+  return (
+    <>
+      <Field label="תיאור קצר" value={(data.about as string) || ''} onChange={v => onChange('about', v)} rows={2} placeholder="עמותה קהילתית המשרתת את משפחות השכונה..." />
+      <Divider label="כתובת וביקור" />
+      <Field label="כותרת עמודת ביקור" value={(data.visit_label as string) || ''} onChange={v => onChange('visit_label', v)} placeholder="ביקור" />
+      <Field label="שעות פעילות" value={(data.hours as string) || ''} onChange={v => onChange('hours', v)} placeholder="א׳–ה׳, 9:00–17:00" />
+      <Divider label="כותרות עמודות" />
+      <Field label="כותרת עמודת קשר" value={(data.contact_label as string) || ''} onChange={v => onChange('contact_label', v)} placeholder="יצירת קשר" />
+      <Field label="כותרת עמודת מעקב" value={(data.follow_label as string) || ''} onChange={v => onChange('follow_label', v)} placeholder="עקבו" />
+      <Divider label="מידע משפטי" />
+      <Field label="מספר עמותה" value={(data.registration_number as string) || ''} onChange={v => onChange('registration_number', v)} placeholder="58-000-000-0" dir="ltr" />
+      <Check label="אישור סעיף 46" checked={!!data.section_46} onChange={v => onChange('section_46', v)} />
+    </>
   );
 }
