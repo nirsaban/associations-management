@@ -54,6 +54,103 @@ interface LandingPage {
   };
 }
 
+/* ── Default data per section type ── */
+function getDefaultData(type: string): Record<string, unknown> {
+  switch (type) {
+    case 'hero': return {
+      eyebrow: 'עמותה רשומה',
+      headline: 'דרך שקטה לתת',
+      subheadline: 'חונכות, תכניות אחר־צהריים וביטחון תזונתי למשפחות בקהילה שלנו.',
+      cta_label: 'תרמו עכשיו →',
+      cta_action: 'payment',
+      secondary_cta_label: 'צפו בסיפור שלנו',
+      secondary_cta_action: 'scroll',
+    };
+    case 'video': return {
+      eyebrow: 'הסיפור שלנו',
+      title: 'העבודה, במילותיהן של המשפחות שחיו אותה.',
+      description: '',
+      source: '',
+    };
+    case 'about': return {
+      eyebrow: 'אודות',
+      title: 'התחלנו סביב שולחן מטבח. וכך אנחנו ממשיכים.',
+      body_rich_text: '<p>התחלנו עם ארבע משפחות, ארוחה משותפת אחת בשבוע, ואמונה ששכנים יודעים הכי טוב מה שכנים צריכים.</p>',
+    };
+    case 'activities': return {
+      eyebrow: 'מה אנחנו עושים',
+      title: 'התכניות שלנו',
+      items: [
+        { title: 'חונכות נוער', description: 'התאמה אישית בין תלמידי תיכון למתנדבים סטודנטים.' },
+        { title: 'תכנית אחר־צהריים', description: 'חדר חם ובטוח עם תגבור, עזרה בשיעורים וארוחה חמה.' },
+        { title: 'סל מזון שבועי', description: 'ירקות ומצרכי יסוד למשפחות בכל שבוע.' },
+      ],
+    };
+    case 'gallery': return {
+      eyebrow: 'בתוך הרגע',
+      title: 'רגעים, שנשמרו על־ידי האנשים שהיו בהם.',
+      images: [],
+    };
+    case 'reviews': return {
+      eyebrow: 'במילים שלהם',
+      title: 'הקהילה, על הקהילה.',
+      cta_text: 'השאירו ביקורת שלכם',
+      empty_text: 'היו הראשונים להשאיר הודעה.',
+    };
+    case 'stats': return {
+      eyebrow: 'במספרים',
+      items: [
+        { value: '140', label: 'משפחות כל שבוע' },
+        { value: '32', label: 'שנים בשכונה' },
+        { value: '68%', label: 'מימון מקומי' },
+        { value: '1,240', label: 'שעות התנדבות' },
+      ],
+    };
+    case 'cta_payment': return {
+      eyebrow: 'תרמו עכשיו',
+      headline: 'כל שקל — ישר לעבודה.',
+      subheadline: 'עד 12 תשלומים חודשיים ללא ריבית.',
+      amounts: [100, 250, 500, 1000],
+      default_amount_index: 2,
+      allow_custom: true,
+      installments_hint: true,
+      receipt_hint: true,
+      cta_label: 'תרמו',
+    };
+    case 'join_us': return {
+      eyebrow: 'הצטרפו אלינו',
+      headline: 'מקום ליד השולחן תמיד פתוח.',
+      body: 'מתנדבים, שכנים, סטודנטים — אם תרצו לעזור, השאירו לנו הודעה.',
+      submit_label: 'שלחו →',
+      success_title: 'קיבלנו. תודה רבה.',
+      success_message: 'נחזור אליכם תוך מספר ימים.',
+    };
+    case 'faq': return {
+      eyebrow: 'שאלות',
+      title: 'הנפוצות ביותר.',
+      items: [
+        { question: 'האם התרומה מוכרת לזיכוי מס?', answer: 'כן. אנחנו עמותה רשומה בעלת אישור סעיף 46.' },
+        { question: 'איך אפשר להתנדב?', answer: 'מלאו את הטופס למעלה או כתבו לנו.' },
+      ],
+    };
+    case 'footer': return {
+      about: 'עמותה קהילתית המשרתת את משפחות השכונה שלנו.',
+      visit_label: 'ביקור',
+      contact_label: 'יצירת קשר',
+      follow_label: 'עקבו',
+      registration_number: '',
+      section_46: false,
+    };
+    default: return {};
+  }
+}
+
+/* ── Example page sections for quick start ── */
+const EXAMPLE_SECTIONS = [
+  'hero', 'video', 'about', 'activities', 'gallery',
+  'reviews', 'stats', 'cta_payment', 'join_us', 'faq', 'footer',
+];
+
 export default function LandingBuilderPage() {
   const queryClient = useQueryClient();
   const { showToast } = useToast();
@@ -87,7 +184,8 @@ export default function LandingBuilderPage() {
 
   const addSectionMutation = useMutation({
     mutationFn: async (type: string) => {
-      await api.post('/landing/sections', { type, data: {} });
+      const defaults = getDefaultData(type);
+      await api.post('/landing/sections', { type, data: defaults });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['landing'] });
@@ -96,8 +194,9 @@ export default function LandingBuilderPage() {
   });
 
   const updateSectionMutation = useMutation({
-    mutationFn: async ({ id, ...data }: { id: string; data?: Record<string, unknown>; visible?: boolean }) => {
-      await api.patch(`/landing/sections/${id}`, data);
+    mutationFn: async (payload: { id: string; data?: Record<string, unknown>; visible?: boolean }) => {
+      const { id, ...body } = payload;
+      await api.patch(`/landing/sections/${id}`, body);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['landing'] });
@@ -141,6 +240,22 @@ export default function LandingBuilderPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['landing'] });
       showToast('דף הנחיתה הוסר מפרסום', 'success');
+    },
+  });
+
+  // Seed example page — adds all 11 sections with default Hebrew content
+  const seedExampleMutation = useMutation({
+    mutationFn: async () => {
+      for (const type of EXAMPLE_SECTIONS) {
+        await api.post('/landing/sections', { type, data: getDefaultData(type) });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['landing'] });
+      showToast('דף לדוגמה נוצר!', 'success');
+    },
+    onError: () => {
+      showToast('שגיאה ביצירת דף לדוגמה', 'error');
     },
   });
 
@@ -294,8 +409,16 @@ export default function LandingBuilderPage() {
           {landing.sections.length === 0 ? (
             <div className="text-center py-20">
               <p className="text-body-lg text-on-surface-variant mb-4">הדף ריק. הוסיפו סקשנים מהספרייה.</p>
+              <button
+                onClick={() => seedExampleMutation.mutate()}
+                disabled={seedExampleMutation.isPending}
+                className="px-6 py-3 bg-primary text-on-primary rounded-xl text-body-md font-medium shadow-md hover:bg-primary/90 transition-colors mb-8"
+              >
+                {seedExampleMutation.isPending ? 'יוצר דף לדוגמה...' : '✨ צור דף נחיתה לדוגמה'}
+              </button>
+              <p className="text-body-sm text-on-surface-variant mb-6">או הוסיפו סקשנים ידנית:</p>
               {/* Mobile: show section library inline */}
-              <div className="lg:hidden max-w-sm mx-auto mt-8">
+              <div className="lg:hidden max-w-sm mx-auto mt-4">
                 <SectionLibrary onAdd={type => addSectionMutation.mutate(type)} />
               </div>
             </div>
