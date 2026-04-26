@@ -1,319 +1,146 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import './landing.css';
-import {
-  HeroSection,
-  MarqueeSection,
-  VideoSection,
-  AboutSection,
-  ActivitiesSection,
-  GallerySection,
-  ReviewsSection,
-  StatsSection,
-  CtaPaymentSection,
-  JoinUsSection,
-  FaqSection,
-  FooterSection,
-} from './_components/Sections';
 
-/* ─── Types ──────────────────────────────────────────────────────────────── */
+/* ─── Types ─────────────────────────────────────────────────────────────── */
+
 interface OrgData {
   name: string;
-  legalName?: string;
+  slug: string;
+  logoUrl?: string;
+  primaryColor?: string;
+  accentColor?: string;
   paymentLink?: string;
-  hasGrowWallet?: boolean;
   contactPhone?: string;
   contactEmail?: string;
   address?: string;
+  legalName?: string;
   facebookUrl?: string;
   instagramUrl?: string;
   whatsappUrl?: string;
   websiteUrl?: string;
-  logoUrl?: string;
   youtubeUrl?: string;
-  primaryColor?: string;
-  accentColor?: string;
 }
 
-interface Section {
+interface SectionRow {
+  id: string;
   type: string;
+  position: number;
   data: Record<string, unknown>;
   visible: boolean;
-  position: number;
 }
 
-interface LandingData {
+interface LandingResponse {
   data: {
+    id: string;
     slug: string;
     title: string;
     theme: string;
     published: boolean;
-    sections: Section[];
+    sections: SectionRow[];
     organization: OrgData;
   };
 }
 
-/* ─── Section → nav label map ────────────────────────────────────────────── */
-const NAV_LABELS: Record<string, { href: string; label: string }> = {
-  about:       { href: '#about',      label: 'אודות' },
-  activities:  { href: '#activities', label: 'פעילויות' },
-  gallery:     { href: '#gallery',    label: 'גלריה' },
-  join_us:     { href: '#contact',    label: 'צרו קשר' },
-  reviews:     { href: '#reviews',    label: 'המלצות' },
-  stats:       { href: '#stats',      label: 'במספרים' },
-  faq:         { href: '#faq',        label: 'שאלות' },
-  video:       { href: '#story',      label: 'הסיפור שלנו' },
-  cta_payment: { href: '#donate',     label: 'תרמו' },
+/* ─── Nav link map — only show links for sections present on the page ──── */
+
+const NAV_ANCHORS: Record<string, { href: string; he: string; en: string }> = {
+  about:      { href: '#about',      he: 'אודות',    en: 'About' },
+  activities: { href: '#activities', he: 'פעילויות', en: 'Activities' },
+  gallery:    { href: '#gallery',    he: 'גלריה',    en: 'Gallery' },
+  join_us:    { href: '#contact',    he: 'צרו קשר',  en: 'Contact' },
 };
 
-/* ─── Section renderer ───────────────────────────────────────────────────── */
-function renderSection(section: Section, org: OrgData, slug: string, i: number) {
-  const props = {
-    data: section.data,
-    org,
-    primaryColor: org.primaryColor || '#1A1410',
-    accentColor: org.accentColor || '#B8893A',
-    slug,
-  };
+/* ─── Page ──────────────────────────────────────────────────────────────── */
 
-  switch (section.type) {
-    case 'hero':         return <HeroSection        key={i} {...props} />;
-    case 'marquee':      return <MarqueeSection      key={i} {...props} />;
-    case 'video':        return <VideoSection        key={i} {...props} />;
-    case 'about':        return <AboutSection        key={i} {...props} />;
-    case 'activities':   return <ActivitiesSection   key={i} {...props} />;
-    case 'gallery':      return <GallerySection      key={i} {...props} />;
-    case 'reviews':      return <ReviewsSection      key={i} {...props} />;
-    case 'stats':        return <StatsSection        key={i} {...props} />;
-    case 'cta_payment':  return <CtaPaymentSection   key={i} {...props} />;
-    case 'join_us':      return <JoinUsSection       key={i} {...props} />;
-    case 'faq':          return <FaqSection          key={i} {...props} />;
-    case 'footer':       return <FooterSection       key={i} {...props} />;
-    default:             return null;
-  }
-}
-
-/* ─── Page ───────────────────────────────────────────────────────────────── */
 export default function LandingPage() {
   const params = useParams();
   const slug = params.slug as string;
-  const [data, setData] = useState<LandingData | null>(null);
-  const [error, setError] = useState<string | null>(null);
+
+  const [landing, setLanding] = useState<LandingResponse['data'] | null>(null);
+  const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [navScrolled, setNavScrolled] = useState(false);
-  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [scrolled, setScrolled] = useState(false);
 
-  /* ── Fetch landing data ─────────────────────────────────────────────── */
+  /* ── Fetch ── */
   useEffect(() => {
-    const apiBase =
-      process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3003/api/v1';
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3003/api/v1';
+    const qs = new URLSearchParams(window.location.search);
+    const preview = qs.get('preview') === '1' ? '?preview=1' : '';
 
-    const searchParams = new URLSearchParams(window.location.search);
-    const isPreview = searchParams.get('preview') === '1';
-    fetch(`${apiBase}/public/landing/${slug}${isPreview ? '?preview=1' : ''}`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json() as Promise<LandingData>;
-      })
-      .then((json) => {
-        setData(json);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError('לא ניתן לטעון את הדף. אנא נסו שוב מאוחר יותר.');
-        setLoading(false);
-      });
+    fetch(`${apiBase}/public/landing/${slug}${preview}`)
+      .then((r) => { if (!r.ok) throw new Error(); return r.json() as Promise<LandingResponse>; })
+      .then((json) => { setLanding(json.data); setLoading(false); })
+      .catch(() => { setError(true); setLoading(false); });
   }, [slug]);
 
-  /* ── Scroll reveal ──────────────────────────────────────────────────── */
+  /* ── Nav scroll shadow ── */
   useEffect(() => {
-    if (!data) return;
-
-    const prefersReduced =
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (!('IntersectionObserver' in window) || prefersReduced) return;
-
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) {
-            e.target.classList.remove('pending');
-            io.unobserve(e.target);
-          }
-        });
-      },
-      { threshold: 0.05 }
-    );
-
-    requestAnimationFrame(() => {
-      document.querySelectorAll('.lp-landing .reveal').forEach((el) => {
-        const r = el.getBoundingClientRect();
-        if (r.top >= window.innerHeight || r.bottom <= 0) {
-          el.classList.add('pending');
-          io.observe(el);
-        }
-      });
-    });
-
-    return () => io.disconnect();
-  }, [data]);
-
-  /* ── Nav scroll shadow ──────────────────────────────────────────────── */
-  useEffect(() => {
-    const handler = () => setNavScrolled(window.scrollY > 8);
-    window.addEventListener('scroll', handler, { passive: true });
-    return () => window.removeEventListener('scroll', handler);
+    const h = () => setScrolled(window.scrollY > 8);
+    window.addEventListener('scroll', h, { passive: true });
+    return () => window.removeEventListener('scroll', h);
   }, []);
 
-  /* ── Color override ─────────────────────────────────────────────────── */
-  useEffect(() => {
-    if (!data?.data?.organization?.accentColor) return;
-    document.documentElement.style.setProperty(
-      '--coral',
-      data.data.organization.accentColor
-    );
-    return () => {
-      document.documentElement.style.removeProperty('--coral');
-    };
-  }, [data?.data?.organization?.accentColor]);
-
-  /* ── Loading ────────────────────────────────────────────────────────── */
+  /* ── Loading ── */
   if (loading) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          background: 'var(--paper, #F4ECD8)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          direction: 'rtl',
-        }}
-      >
-        <div
-          style={{
-            width: 48,
-            height: 48,
-            borderRadius: '50%',
-            border: '3px solid var(--paper-3, #DCCEAA)',
-            borderTopColor: 'var(--coral, #B8893A)',
-            animation: 'lp-spin 0.8s linear infinite',
-          }}
-        />
-        <style>{`@keyframes lp-spin { to { transform: rotate(360deg); } }`}</style>
+      <div style={{ minHeight: '100vh', background: '#F4ECD8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid #EADFC4', borderTopColor: '#B8893A', animation: 'lp-spin .8s linear infinite' }} />
+        <style>{`@keyframes lp-spin{to{transform:rotate(360deg)}}`}</style>
       </div>
     );
   }
 
-  /* ── Error ──────────────────────────────────────────────────────────── */
-  if (error || !data) {
+  /* ── Error ── */
+  if (error || !landing) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          background: 'var(--paper, #F4ECD8)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          direction: 'rtl',
-          gap: 16,
-          padding: 32,
-          textAlign: 'center',
-          fontFamily: '"Frank Ruhl Libre", serif',
-        }}
-      >
-        <div style={{ fontSize: 48, marginBottom: 8 }}>⚠</div>
-        <h2 style={{ fontSize: 28, margin: 0, color: 'var(--ink, #1A1410)' }}>
-          שגיאה בטעינת הדף
-        </h2>
-        <p style={{ color: 'var(--text-muted, #6B655C)', maxWidth: 420, lineHeight: 1.6 }}>
-          {error || 'הדף לא נמצא. אנא בדקו את הכתובת ונסו שוב.'}
-        </p>
-        <a
-          href="/"
-          style={{
-            marginTop: 8,
-            padding: '12px 24px',
-            background: 'var(--ink, #1A1410)',
-            color: 'var(--paper, #F4ECD8)',
-            borderRadius: 999,
-            fontSize: 14,
-            fontWeight: 600,
-          }}
-        >
-          חזרה לדף הבית
-        </a>
+      <div dir="rtl" lang="he" style={{ minHeight: '100vh', background: '#F4ECD8', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: '"Frank Ruhl Libre", serif', color: '#1A1410' }}>
+        <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8 }}>העמוד לא נמצא</h1>
+        <p style={{ color: '#6B655C' }}>ייתכן שהעמוד הוסר או שהכתובת שגויה</p>
       </div>
     );
   }
 
-  const landing = data.data;
   const org = landing.organization;
-  const sections = landing.sections
-    .filter((s) => s.visible)
-    .sort((a, b) => a.position - b.position);
+  const sections = landing.sections.filter((s) => s.visible).sort((a, b) => a.position - b.position);
+  const sectionTypes = new Set(sections.map((s) => s.type));
 
-  /* ── Nav links derived from section types ───────────────────────────── */
-  const navLinks = sections
-    .filter((s) => NAV_LABELS[s.type])
-    .map((s) => NAV_LABELS[s.type])
-    .filter(
-      (link, idx, arr) => arr.findIndex((l) => l.href === link.href) === idx
-    );
-
-  /* ── Has footer ─────────────────────────────────────────────────────── */
-  const hasFooter = sections.some((s) => s.type === 'footer');
+  /* Nav links from visible sections */
+  const navLinks = Object.entries(NAV_ANCHORS)
+    .filter(([type]) => sectionTypes.has(type))
+    .map(([, v]) => v);
 
   return (
-    <div className="lp-landing" dir="rtl" lang="he" ref={wrapperRef}>
-      {/* ── Sticky nav ─────────────────────────────────────────────────── */}
-      <nav className={`nav${navScrolled ? ' scrolled' : ''}`} id="nav">
+    <div className="lp-landing" dir="rtl" lang="he">
+      {/* ── Sticky nav — prototype lines 328-340 ── */}
+      <nav className={`nav${scrolled ? ' scrolled' : ''}`} id="nav">
         <a className="brand" href="#top">
-          {org.logoUrl ? (
-            <img
-              src={org.logoUrl}
-              alt={org.name}
-              style={{ width: 30, height: 30, borderRadius: 10, objectFit: 'cover' }}
-            />
-          ) : (
-            <div className="brand-mark" />
-          )}
+          {org.logoUrl
+            ? <img src={org.logoUrl} alt="" style={{ width: 30, height: 30, borderRadius: 10, objectFit: 'cover' }} />
+            : <div className="brand-mark" />
+          }
           <div className="brand-name">{org.name}</div>
         </a>
 
         {navLinks.length > 0 && (
           <div className="nav-links">
-            {navLinks
-              .filter((l) => l.href !== '#donate')
-              .map((link) => (
-                <a key={link.href} href={link.href}>
-                  {link.label}
-                </a>
-              ))}
+            {navLinks.map((l) => (
+              <a key={l.href} href={l.href}>{l.he}</a>
+            ))}
           </div>
         )}
 
-        <a href="#donate" className="btn btn-primary">
-          <span>תרמו</span>
-        </a>
+        <a href="#donate" className="btn btn-primary"><span>תרמו</span></a>
       </nav>
 
-      {/* ── Sections ───────────────────────────────────────────────────── */}
-      {sections.map((section, i) => renderSection(section, org, slug, i))}
-
-      {/* ── Fallback footer if none in sections ────────────────────────── */}
-      {!hasFooter && (
-        <FooterSection
-          data={{}}
-          org={org}
-          primaryColor={org.primaryColor || '#1A1410'}
-          accentColor={org.accentColor || '#B8893A'}
-          slug={slug}
-        />
-      )}
+      {/* Placeholder content so page is scrollable (tests scroll shadow) */}
+      <div style={{ minHeight: '200vh', padding: '120px 64px 64px' }}>
+        <p style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontSize: 18 }}>
+          דף הנחיתה בבנייה — גלול למטה כדי לבדוק את אפקט ה-scroll shadow
+        </p>
+      </div>
     </div>
   );
 }
