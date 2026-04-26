@@ -54,17 +54,28 @@ interface LandingPage {
   };
 }
 
-/* ── Default data per section type ── */
+/* ── Default data per section type (matching Live Prototype) ── */
 function getDefaultData(type: string): Record<string, unknown> {
   switch (type) {
     case 'hero': return {
-      eyebrow: 'עמותה רשומה',
-      headline: 'דרך שקטה לתת',
-      subheadline: 'חונכות, תכניות אחר־צהריים וביטחון תזונתי למשפחות בקהילה שלנו.',
+      pill_text: 'פעיל · קמפיין פתוח',
+      since_text: 'עמותה רשומה · נוסדה 1994',
+      headline: 'דרך שקטה לתת כתף',
+      accent_word_index: 2,
+      subheadline: 'חונכות, תכניות אחר־צהריים וביטחון תזונתי למשפחות בקהילה שלנו. ממומן על־ידי שכנים, למען שכנים.',
       cta_label: 'תרמו עכשיו →',
       cta_action: 'payment',
       secondary_cta_label: 'צפו בסיפור שלנו',
-      secondary_cta_action: 'scroll',
+      secondary_cta_target: '#story',
+      stats: [
+        { value: '140', label: 'משפחות בשבוע' },
+        { value: '32', label: 'שנות פעילות' },
+        { value: '68%', label: 'מימון מקומי' },
+        { value: '1,240', label: 'שעות התנדבות' },
+      ],
+    };
+    case 'marquee': return {
+      items: ['חונכות', 'מזון', 'חינוך', 'קהילה', 'תקווה'],
     };
     case 'video': return {
       eyebrow: 'הסיפור שלנו',
@@ -74,16 +85,20 @@ function getDefaultData(type: string): Record<string, unknown> {
     };
     case 'about': return {
       eyebrow: 'אודות',
-      title: 'התחלנו סביב שולחן מטבח. וכך אנחנו ממשיכים.',
-      body_rich_text: '<p>התחלנו עם ארבע משפחות, ארוחה משותפת אחת בשבוע, ואמונה ששכנים יודעים הכי טוב מה שכנים צריכים.</p>',
+      title: 'התחלנו סביב שולחן מטבח ב־1994. וכך אנחנו ממשיכים.',
+      body_rich_text: '<p>התחלנו עם ארבע משפחות, ארוחה משותפת אחת בשבוע, ואמונה ששכנים יודעים הכי טוב מה שכנים צריכים.</p><p>שלושה עשורים לאחר מכן אנחנו מפעילים חונכות אחר־צהריים, תכנית מזון שבועית, וקייטנת נוער קיצית — אבל צורת העבודה לא השתנתה הרבה.</p>',
+      badge_text: 'מאז 1994',
     };
     case 'activities': return {
       eyebrow: 'מה אנחנו עושים',
-      title: 'התכניות שלנו',
+      title: 'שש תכניות, בכל שבוע של השנה.',
       items: [
-        { title: 'חונכות נוער', description: 'התאמה אישית בין תלמידי תיכון למתנדבים סטודנטים.' },
-        { title: 'תכנית אחר־צהריים', description: 'חדר חם ובטוח עם תגבור, עזרה בשיעורים וארוחה חמה.' },
-        { title: 'סל מזון שבועי', description: 'ירקות ומצרכי יסוד למשפחות בכל שבוע.' },
+        { title: 'חונכות נוער', description: 'התאמה אישית בין תלמידי תיכון למתנדבים סטודנטים, מדי שבוע לאורך שנת לימודים.' },
+        { title: 'תכנית אחר־צהריים', description: 'חדר חם ובטוח בין 14:00 ל־18:00, עם תגבור, עזרה בשיעורים וארוחה חמה.' },
+        { title: 'סל מזון שבועי', description: 'ירקות ומצרכי יסוד נמסרים ל־140 משפחות בכל יום חמישי, בלי טפסים ובלי שאלות.' },
+        { title: 'קייטנת קיץ', description: 'עשרה ימים של טיולים, מוסיקה וחברות לילדים שמשפחותיהם לא יכולות לשלוח אותם בדרך אחרת.' },
+        { title: 'מטבח קהילתי', description: 'מתנדבים, סטודנטים וסבתות מבשלים יחד עבור שכנים שזקוקים לארוחה.' },
+        { title: 'פעילות חגים', description: 'מבצעי מתנות ומצרכים לפני כל חג, המופעלים על־ידי מועצת המתנדבים הצעירים.' },
       ],
     };
     case 'gallery': return {
@@ -100,27 +115,30 @@ function getDefaultData(type: string): Record<string, unknown> {
     case 'stats': return {
       eyebrow: 'במספרים',
       items: [
-        { value: '140', label: 'משפחות כל שבוע' },
+        { value: '140', label: 'משפחות בשבוע' },
         { value: '32', label: 'שנים בשכונה' },
-        { value: '68%', label: 'מימון מקומי' },
-        { value: '1,240', label: 'שעות התנדבות' },
+        { value: '68%', label: 'מהמימון מתורמים מקומיים' },
+        { value: '1,240', label: 'שעות התנדבות אשתקד' },
       ],
     };
     case 'cta_payment': return {
       eyebrow: 'תרמו עכשיו',
-      headline: 'כל שקל — ישר לעבודה.',
-      subheadline: 'עד 12 תשלומים חודשיים ללא ריבית.',
+      headline: 'כל שקל, *ישר לעבודה.*',
+      subheadline: 'עיבוד באמצעות שותף הסליקה המאובטח שלנו. עד 12 תשלומים חודשיים ללא ריבית.',
       amounts: [100, 250, 500, 1000],
       default_amount_index: 2,
       allow_custom: true,
       installments_hint: true,
       receipt_hint: true,
       cta_label: 'תרמו',
+      secure_label: 'סליקה מאובטחת',
+      installments_label: 'עד 12 תשלומים',
+      receipt_label: 'קבלה לפי סעיף 46',
     };
     case 'join_us': return {
       eyebrow: 'הצטרפו אלינו',
       headline: 'מקום ליד השולחן תמיד פתוח.',
-      body: 'מתנדבים, שכנים, סטודנטים — אם תרצו לעזור, השאירו לנו הודעה.',
+      body: 'מתנדבים, שכנים, סטודנטים, סבתות — אם תרצו לעזור, השאירו לנו הודעה ונחזור אליכם תוך שבוע.',
       submit_label: 'שלחו →',
       success_title: 'קיבלנו. תודה רבה.',
       success_message: 'נחזור אליכם תוך מספר ימים.',
@@ -129,15 +147,21 @@ function getDefaultData(type: string): Record<string, unknown> {
       eyebrow: 'שאלות',
       title: 'הנפוצות ביותר.',
       items: [
-        { question: 'האם התרומה מוכרת לזיכוי מס?', answer: 'כן. אנחנו עמותה רשומה בעלת אישור סעיף 46.' },
-        { question: 'איך אפשר להתנדב?', answer: 'מלאו את הטופס למעלה או כתבו לנו.' },
+        { question: 'האם התרומה מוכרת לזיכוי מס?', answer: 'כן. אנחנו עמותה רשומה בעלת אישור סעיף 46; קבלה לצורכי מס מונפקת אוטומטית לאחר כל תרומה.' },
+        { question: 'האם ניתן לתרום בעילום שם?', answer: 'כן. תרומות בעילום שם מתקבלות בברכה ומופיעות בדוח השנתי ללא שם.' },
+        { question: 'איך הכסף מנוצל?', answer: 'כ־82% הולך ישירות לתכניות; השאר מכסה שכר דירה, הוצאות שוטפות, ורכזת.' },
+        { question: 'איך אפשר להתנדב?', answer: 'מלאו את הטופס למעלה או כתבו לנו. אנחנו מקיימים יום הכוונה קצר בתחילת כל חודש.' },
+        { question: 'האם אתם מקבלים תרומות בעין?', answer: 'אנחנו מקבלים מזון, ספרים, וביגוד עונתי. אנא צרו איתנו קשר לפני הבאת פריטים.' },
       ],
     };
     case 'footer': return {
-      about: 'עמותה קהילתית המשרתת את משפחות השכונה שלנו.',
+      big_text: 'לבנות קהילה.',
+      big_accent: 'ביחד.',
+      about: 'עמותה קהילתית המשרתת את משפחות השכונה שלנו מאז 1994.',
       visit_label: 'ביקור',
       contact_label: 'יצירת קשר',
       follow_label: 'עקבו',
+      hours: 'א׳–ה׳, 9:00–17:00',
       registration_number: '',
       section_46: false,
     };
@@ -147,7 +171,7 @@ function getDefaultData(type: string): Record<string, unknown> {
 
 /* ── Example page sections for quick start ── */
 const EXAMPLE_SECTIONS = [
-  'hero', 'video', 'about', 'activities', 'gallery',
+  'hero', 'marquee', 'video', 'about', 'activities', 'gallery',
   'reviews', 'stats', 'cta_payment', 'join_us', 'faq', 'footer',
 ];
 
@@ -158,6 +182,10 @@ export default function LandingBuilderPage() {
   const [showSettings, setShowSettings] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
 
+  // Local state for settings panel inputs
+  const [settingsForm, setSettingsForm] = useState({ title: '', slug: '', theme: 'MODERN', seoDescription: '' });
+  const settingsInitialized = React.useRef(false);
+
   const { data: landing, isLoading } = useQuery<LandingPage>({
     queryKey: ['landing'],
     queryFn: async () => {
@@ -165,6 +193,19 @@ export default function LandingBuilderPage() {
       return res.data.data;
     },
   });
+
+  // Sync settings form when landing data loads
+  React.useEffect(() => {
+    if (landing && !settingsInitialized.current) {
+      setSettingsForm({
+        title: landing.title || '',
+        slug: landing.slug || '',
+        theme: landing.theme || 'MODERN',
+        seoDescription: landing.seoDescription || '',
+      });
+      settingsInitialized.current = true;
+    }
+  }, [landing]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -363,8 +404,9 @@ export default function LandingBuilderPage() {
               <div>
                 <label className="text-label-sm text-on-surface-variant block mb-1">כותרת</label>
                 <input
-                  defaultValue={landing.title}
-                  onBlur={e => updateMutation.mutate({ title: e.target.value })}
+                  value={settingsForm.title}
+                  onChange={e => setSettingsForm(f => ({ ...f, title: e.target.value }))}
+                  onBlur={() => updateMutation.mutate({ title: settingsForm.title })}
                   className="w-full px-3 py-1.5 rounded-lg border border-outline/30 text-body-sm"
                   dir="auto"
                 />
@@ -372,8 +414,9 @@ export default function LandingBuilderPage() {
               <div>
                 <label className="text-label-sm text-on-surface-variant block mb-1">Slug</label>
                 <input
-                  defaultValue={landing.slug}
-                  onBlur={e => updateMutation.mutate({ slug: e.target.value })}
+                  value={settingsForm.slug}
+                  onChange={e => setSettingsForm(f => ({ ...f, slug: e.target.value }))}
+                  onBlur={() => updateMutation.mutate({ slug: settingsForm.slug })}
                   className="w-full px-3 py-1.5 rounded-lg border border-outline/30 text-body-sm font-mono"
                   dir="ltr"
                 />
@@ -381,8 +424,8 @@ export default function LandingBuilderPage() {
               <div>
                 <label className="text-label-sm text-on-surface-variant block mb-1">ערכת עיצוב</label>
                 <select
-                  defaultValue={landing.theme}
-                  onChange={e => updateMutation.mutate({ theme: e.target.value })}
+                  value={settingsForm.theme}
+                  onChange={e => { setSettingsForm(f => ({ ...f, theme: e.target.value })); updateMutation.mutate({ theme: e.target.value }); }}
                   className="w-full px-3 py-1.5 rounded-lg border border-outline/30 text-body-sm"
                 >
                   <option value="MODERN">מודרני</option>
@@ -394,8 +437,9 @@ export default function LandingBuilderPage() {
               <div>
                 <label className="text-label-sm text-on-surface-variant block mb-1">תיאור SEO</label>
                 <input
-                  defaultValue={landing.seoDescription || ''}
-                  onBlur={e => updateMutation.mutate({ seoDescription: e.target.value })}
+                  value={settingsForm.seoDescription}
+                  onChange={e => setSettingsForm(f => ({ ...f, seoDescription: e.target.value }))}
+                  onBlur={() => updateMutation.mutate({ seoDescription: settingsForm.seoDescription })}
                   className="w-full px-3 py-1.5 rounded-lg border border-outline/30 text-body-sm"
                   dir="auto"
                 />

@@ -3,7 +3,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 
 export const SECTION_TYPES = [
-  'hero', 'video', 'about', 'activities', 'gallery',
+  'hero', 'marquee', 'video', 'about', 'activities', 'gallery',
   'reviews', 'stats', 'cta_payment', 'join_us', 'faq', 'footer',
 ] as const;
 

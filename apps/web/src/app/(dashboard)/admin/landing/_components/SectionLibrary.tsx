@@ -1,11 +1,12 @@
 'use client';
 
-import { Image, Video, Info, Grid3X3, GalleryHorizontalEnd, Star, BarChart3, CreditCard, UserPlus, HelpCircle, Footprints } from 'lucide-react';
+import { Image, Video, Info, Grid3X3, GalleryHorizontalEnd, Star, BarChart3, CreditCard, UserPlus, HelpCircle, Footprints, Megaphone } from 'lucide-react';
 
 export const SECTION_DEFINITIONS = [
-  { type: 'hero', label: 'כותרת ראשית', icon: Image, description: 'באנר עם כותרת וקריאה לפעולה' },
+  { type: 'hero', label: 'כותרת ראשית', icon: Image, description: 'באנר עם כותרת, נתונים וקריאה לפעולה' },
+  { type: 'marquee', label: 'מרקיז', icon: Megaphone, description: 'פס טקסט רץ עם מילות מפתח' },
   { type: 'video', label: 'וידאו', icon: Video, description: 'סרטון מ-YouTube, Vimeo או העלאה' },
-  { type: 'about', label: 'אודות', icon: Info, description: 'טקסט ותמונה על העמותה' },
+  { type: 'about', label: 'אודות', icon: Info, description: 'טקסט ותמונה עם אפקט שכבות' },
   { type: 'activities', label: 'פעילויות', icon: Grid3X3, description: 'רשת פעילויות עם אייקונים' },
   { type: 'gallery', label: 'גלריה', icon: GalleryHorizontalEnd, description: 'גלריית תמונות' },
   { type: 'reviews', label: 'המלצות', icon: Star, description: 'חוות דעת מאושרות' },
@@ -13,7 +14,7 @@ export const SECTION_DEFINITIONS = [
   { type: 'cta_payment', label: 'קריאה לתרומה', icon: CreditCard, description: 'כפתור תרומה בולט' },
   { type: 'join_us', label: 'הצטרפות', icon: UserPlus, description: 'טופס הרשמה / יצירת קשר' },
   { type: 'faq', label: 'שאלות ותשובות', icon: HelpCircle, description: 'שאלות נפוצות' },
-  { type: 'footer', label: 'פוטר', icon: Footprints, description: 'תחתית העמוד עם פרטי קשר' },
+  { type: 'footer', label: 'פוטר', icon: Footprints, description: 'תחתית העמוד עם כותרת גדולה ופרטי קשר' },
 ] as const;
 
 interface SectionLibraryProps {

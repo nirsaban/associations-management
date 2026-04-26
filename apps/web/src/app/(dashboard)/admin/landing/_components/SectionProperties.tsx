@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Eye, EyeOff, Trash2, Plus, Minus } from 'lucide-react';
 import { SECTION_DEFINITIONS } from './SectionLibrary';
 
@@ -22,9 +22,29 @@ interface SectionPropertiesProps {
 
 export default function SectionProperties({ section, onUpdate, onToggleVisibility, onDelete, onClose }: SectionPropertiesProps) {
   const def = SECTION_DEFINITIONS.find(d => d.type === section.type);
-  const updateField = (key: string, value: unknown) => {
-    onUpdate({ ...section.data, [key]: value });
-  };
+
+  // Local state so typing is instant; debounce saves to server
+  const [localData, setLocalData] = useState<Record<string, unknown>>(section.data);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const onUpdateRef = useRef(onUpdate);
+  onUpdateRef.current = onUpdate;
+
+  // Sync from server when switching sections
+  useEffect(() => {
+    setLocalData(section.data);
+  }, [section.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const updateField = useCallback((key: string, value: unknown) => {
+    setLocalData(prev => {
+      const next = { ...prev, [key]: value };
+      clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => onUpdateRef.current(next), 500);
+      return next;
+    });
+  }, []);
+
+  // Flush on unmount
+  useEffect(() => () => clearTimeout(debounceRef.current), []);
 
   return (
     <div className="h-full flex flex-col">
@@ -45,21 +65,24 @@ export default function SectionProperties({ section, onUpdate, onToggleVisibilit
           </button>
         </div>
 
-        {/* Every section gets an eyebrow field */}
-        <Field label="כותרת עליונה (eyebrow)" value={(section.data.eyebrow as string) || ''} onChange={v => updateField('eyebrow', v)} placeholder="עמותה רשומה · נוסדה 1994" />
+        {/* Every section gets an eyebrow field (except hero, marquee, footer which have their own layout) */}
+        {section.type !== 'hero' && section.type !== 'marquee' && section.type !== 'footer' && (
+          <Field label="כותרת עליונה (eyebrow)" value={(localData.eyebrow as string) || ''} onChange={v => updateField('eyebrow', v)} placeholder="עמותה רשומה · נוסדה 1994" />
+        )}
 
         {/* Type-specific fields */}
-        {section.type === 'hero' && <HeroFields data={section.data} onChange={updateField} />}
-        {section.type === 'video' && <VideoFields data={section.data} onChange={updateField} />}
-        {section.type === 'about' && <AboutFields data={section.data} onChange={updateField} />}
-        {section.type === 'activities' && <ActivitiesFields data={section.data} onChange={updateField} />}
-        {section.type === 'gallery' && <GalleryFields data={section.data} onChange={updateField} />}
-        {section.type === 'reviews' && <ReviewsFields data={section.data} onChange={updateField} />}
-        {section.type === 'stats' && <StatsFields data={section.data} onChange={updateField} />}
-        {section.type === 'cta_payment' && <CtaPaymentFields data={section.data} onChange={updateField} />}
-        {section.type === 'join_us' && <JoinUsFields data={section.data} onChange={updateField} />}
-        {section.type === 'faq' && <FaqFields data={section.data} onChange={updateField} />}
-        {section.type === 'footer' && <FooterFields data={section.data} onChange={updateField} />}
+        {section.type === 'hero' && <HeroFields data={localData} onChange={updateField} />}
+        {section.type === 'marquee' && <MarqueeFields data={localData} onChange={updateField} />}
+        {section.type === 'video' && <VideoFields data={localData} onChange={updateField} />}
+        {section.type === 'about' && <AboutFields data={localData} onChange={updateField} />}
+        {section.type === 'activities' && <ActivitiesFields data={localData} onChange={updateField} />}
+        {section.type === 'gallery' && <GalleryFields data={localData} onChange={updateField} />}
+        {section.type === 'reviews' && <ReviewsFields data={localData} onChange={updateField} />}
+        {section.type === 'stats' && <StatsFields data={localData} onChange={updateField} />}
+        {section.type === 'cta_payment' && <CtaPaymentFields data={localData} onChange={updateField} />}
+        {section.type === 'join_us' && <JoinUsFields data={localData} onChange={updateField} />}
+        {section.type === 'faq' && <FaqFields data={localData} onChange={updateField} />}
+        {section.type === 'footer' && <FooterFields data={localData} onChange={updateField} />}
       </div>
     </div>
   );
@@ -110,11 +133,24 @@ function Divider({ label }: { label: string }) {
   return <div className="pt-2 pb-1 text-label-sm text-on-surface-variant font-medium border-t border-outline/10 mt-2">{label}</div>;
 }
 
-/* ── 1. HERO — matches prototype hero structure ── */
+/* ── 1. HERO — matches Live Prototype structure ── */
 function HeroFields({ data, onChange }: { data: Record<string, unknown>; onChange: (key: string, val: unknown) => void }) {
+  const stats = (data.stats as Array<Record<string, string>>) || [];
+  const addStat = () => onChange('stats', [...stats, { value: '', label: '' }]);
+  const updateStat = (i: number, field: string, value: string) => {
+    const updated = [...stats]; updated[i] = { ...updated[i], [field]: value }; onChange('stats', updated);
+  };
+  const removeStat = (i: number) => onChange('stats', stats.filter((_, idx) => idx !== i));
+
   return (
     <>
-      <Field label="כותרת ראשית" value={(data.headline as string) || ''} onChange={v => onChange('headline', v)} maxLength={80} placeholder="דרך שקטה לתת" />
+      <Divider label="פס מטה (meta)" />
+      <Field label="טקסט פיל" value={(data.pill_text as string) || ''} onChange={v => onChange('pill_text', v)} placeholder="פעיל · קמפיין פתוח" />
+      <Field label="טקסט מאז" value={(data.since_text as string) || ''} onChange={v => onChange('since_text', v)} placeholder="עמותה רשומה · נוסדה 1994" />
+
+      <Divider label="כותרת" />
+      <Field label="כותרת ראשית" value={(data.headline as string) || ''} onChange={v => onChange('headline', v)} maxLength={80} placeholder="דרך שקטה לתת כתף" />
+      <Field label="אינדקס מילה מודגשת (זהב)" value={String(data.accent_word_index ?? '')} onChange={v => onChange('accent_word_index', v === '' ? undefined : Number(v))} type="number" placeholder="2" />
       <Field label="תת-כותרת" value={(data.subheadline as string) || ''} onChange={v => onChange('subheadline', v)} rows={2} maxLength={200} />
 
       <Divider label="כפתור ראשי" />
@@ -125,12 +161,53 @@ function HeroFields({ data, onChange }: { data: Record<string, unknown>; onChang
 
       <Divider label="כפתור משני (אופציונלי)" />
       <Field label="טקסט כפתור משני" value={(data.secondary_cta_label as string) || ''} onChange={v => onChange('secondary_cta_label', v)} maxLength={24} placeholder="צפו בסיפור שלנו" />
-      <Select label="פעולת כפתור משני" value={(data.secondary_cta_action as string) || 'scroll'} onChange={v => onChange('secondary_cta_action', v)}
-        options={[{ value: 'scroll', label: 'גלילה למטה' }, { value: 'link', label: 'קישור חיצוני' }]} />
+      <Field label="יעד כפתור משני" value={(data.secondary_cta_target as string) || ''} onChange={v => onChange('secondary_cta_target', v)} placeholder="#story" dir="ltr" />
 
-      <Divider label="תמונת רקע" />
-      <Field label="כתובת תמונה (URL)" value={(data.background_image as string) || ''} onChange={v => onChange('background_image', v)} placeholder="https://..." dir="ltr" />
-      <Field label="טקסט חלופי לתמונה" value={(data.background_image_alt as string) || ''} onChange={v => onChange('background_image_alt', v)} />
+      <Divider label="נתונים (hero stats)" />
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-label-sm text-on-surface-variant font-medium">נתונים ({stats.length})</span>
+          <button onClick={addStat} className="flex items-center gap-1 text-body-sm text-primary hover:underline"><Plus className="h-3 w-3" /> הוסף</button>
+        </div>
+        {stats.map((s, i) => (
+          <div key={i} className="border border-outline/20 rounded-lg p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-label-sm text-on-surface-variant">נתון {i + 1}</span>
+              <button onClick={() => removeStat(i)} className="text-error hover:text-error/80"><Minus className="h-3 w-3" /></button>
+            </div>
+            <Field label="ערך" value={s.value || ''} onChange={v => updateStat(i, 'value', v)} placeholder="140" />
+            <Field label="תיאור" value={s.label || ''} onChange={v => updateStat(i, 'label', v)} placeholder="משפחות בשבוע" />
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
+/* ── MARQUEE ── */
+function MarqueeFields({ data, onChange }: { data: Record<string, unknown>; onChange: (key: string, val: unknown) => void }) {
+  const items = (data.items as string[]) || [];
+  const addItem = () => onChange('items', [...items, '']);
+  const updateItem = (i: number, value: string) => {
+    const updated = [...items]; updated[i] = value; onChange('items', updated);
+  };
+  const removeItem = (i: number) => onChange('items', items.filter((_, idx) => idx !== i));
+
+  return (
+    <>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-label-sm text-on-surface-variant font-medium">מילות מפתח ({items.length})</span>
+          <button onClick={addItem} className="flex items-center gap-1 text-body-sm text-primary hover:underline"><Plus className="h-3 w-3" /> הוסף</button>
+        </div>
+        {items.map((item, i) => (
+          <div key={i} className="flex items-center gap-2">
+            <input value={item} onChange={e => updateItem(i, e.target.value)} placeholder={`מילה ${i + 1}`}
+              className="flex-1 px-3 py-2 rounded-lg border border-outline/30 bg-surface text-body-sm" />
+            <button onClick={() => removeItem(i)} className="text-error hover:text-error/80 p-1"><Minus className="h-3 w-3" /></button>
+          </div>
+        ))}
+      </div>
     </>
   );
 }
@@ -146,7 +223,7 @@ function VideoFields({ data, onChange }: { data: Record<string, unknown>; onChan
   );
 }
 
-/* ── 3. ABOUT ── */
+/* ── 3. ABOUT — color-block layout with badge ── */
 function AboutFields({ data, onChange }: { data: Record<string, unknown>; onChange: (key: string, val: unknown) => void }) {
   return (
     <>
@@ -155,6 +232,7 @@ function AboutFields({ data, onChange }: { data: Record<string, unknown>; onChan
       <Divider label="תמונה צדדית" />
       <Field label="כתובת תמונה (URL)" value={(data.side_image as string) || ''} onChange={v => onChange('side_image', v)} placeholder="https://..." dir="ltr" />
       <Field label="טקסט חלופי" value={(data.side_image_alt as string) || ''} onChange={v => onChange('side_image_alt', v)} />
+      <Field label="טקסט תג (badge)" value={(data.badge_text as string) || ''} onChange={v => onChange('badge_text', v)} placeholder="מאז 1994" />
     </>
   );
 }
@@ -354,6 +432,10 @@ function FaqFields({ data, onChange }: { data: Record<string, unknown>; onChange
 function FooterFields({ data, onChange }: { data: Record<string, unknown>; onChange: (key: string, val: unknown) => void }) {
   return (
     <>
+      <Divider label="כותרת גדולה (footer headline)" />
+      <Field label="טקסט ראשי" value={(data.big_text as string) || ''} onChange={v => onChange('big_text', v)} placeholder="לבנות קהילה." />
+      <Field label="טקסט מודגש (זהב)" value={(data.big_accent as string) || ''} onChange={v => onChange('big_accent', v)} placeholder="ביחד." />
+      <Divider label="תיאור" />
       <Field label="תיאור קצר" value={(data.about as string) || ''} onChange={v => onChange('about', v)} rows={2} placeholder="עמותה קהילתית המשרתת את משפחות השכונה..." />
       <Divider label="כתובת וביקור" />
       <Field label="כותרת עמודת ביקור" value={(data.visit_label as string) || ''} onChange={v => onChange('visit_label', v)} placeholder="ביקור" />

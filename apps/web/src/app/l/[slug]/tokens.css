@@ -1,91 +1,65 @@
 /* amutot-tokens.css — Landing page design system
-   Source: landing-page-design-spec.md § 2.1
-   Applied at :root; overridden per theme on a parent element */
+   Source: Amutot Landing - Live Prototype
+   3-color palette: ink, parchment, burnished gold */
 
 :root {
-  /* ─ neutrals (warm-grey, modern theme default) ─ */
-  --n-50:  #FBFAF7;
-  --n-100: #F5F3EE;
-  --n-150: #EDE7DB;
-  --n-200: #DFD8C7;
-  --n-300: #C6BDA8;
-  --n-500: #8E8676;
-  --n-600: #6B645B;
-  --n-700: #3F3B33;
-  --n-800: #26231E;
-  --n-900: #15130F;
+  /* ─ Core 3-color palette ─ */
+  --ink:        #1A1410;
+  --ink-soft:   #2C231C;
+  --paper:      #F4ECD8;
+  --paper-2:    #EADFC4;
+  --paper-3:    #DCCEAA;
+  --coral:      #B8893A;
+  --coral-2:    #976D26;
+  --coral-tint: #ECD9A8;
 
-  /* ─ admin-configurable — defaults overwritten per org ─ */
-  --primary:       #2F5F5C;
-  --primary-hover: #244845;
-  --primary-50:    #E6EFEE;
-  --primary-200:   #BFD6D4;
-  --primary-600:   #244845;
-  --primary-700:   #163330;
-  --accent:        #C8732F;
+  /* ─ Semantic aliases (mapped to 3-color base) ─ */
+  --primary:       var(--ink);
+  --primary-2:     var(--ink-soft);
+  --primary-50:    var(--paper-2);
+  --primary-hover: var(--ink-soft);
+  --accent:        var(--coral);
+  --sun:           var(--coral);
+  --mint:          var(--paper-2);
+  --plum:          var(--ink);
+  --bg:            var(--paper);
+  --surface:       #FFFFFF;
+  --surface-raised:var(--paper-2);
+  --text:          var(--ink);
+  --text-muted:    #6B655C;
+  --border:        rgba(20, 17, 14, 0.10);
+  --border-strong: rgba(20, 17, 14, 0.24);
 
-  /* ─ semantic ─ */
-  --bg:             var(--n-50);
-  --surface:        #FFFFFF;
-  --surface-raised: var(--n-100);
-  --text:           var(--n-900);
-  --text-muted:     var(--n-600);
-  --border:         #E8E3D9;
-  --border-strong:  #D6CFC1;
-  --ring:           color-mix(in oklab, var(--primary) 40%, transparent);
-  --shadow-tint:    color-mix(in oklab, var(--primary) 18%, transparent);
+  /* ─ Type ─ */
+  --font-body:    "Frank Ruhl Libre", "David Libre", "Noto Serif Hebrew", serif;
+  --font-display: "Gutman Stam", "Frank Ruhl Libre", "David Libre", "Noto Serif Hebrew", serif;
 
-  /* ─ type ─ */
-  --font-display: "Instrument Serif", "Frank Ruhl Libre", Georgia, serif;
-  --font-body:    Inter, "Heebo", -apple-system, "Segoe UI", sans-serif;
-  --font-mono:    "JetBrains Mono", ui-monospace, Menlo, monospace;
-
-  /* fluid type scale */
-  --t-display-xl: clamp(3rem, 4vw + 2rem, 6rem);
-  --t-display-lg: clamp(2.25rem, 2.5vw + 1.5rem, 3.5rem);
-  --t-title-md:   clamp(1.25rem, 0.5vw + 1rem, 1.5rem);
-  --t-body-lg:    1.0625rem;
-  --t-body:       1rem;
-  --t-body-sm:    0.875rem;
-  --t-label:      0.6875rem;
-
-  /* ─ spacing · 8pt grid ─ */
-  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px;
-  --s-5: 24px; --s-6: 32px; --s-7: 48px; --s-8: 64px;
-  --s-9: 96px; --s-10: 128px;
-  --section-y:       var(--s-9);
-  --section-y-tight: var(--s-7);
-
-  /* ─ radii ─ */
-  --r-sm:   6px;
-  --r-md:   10px;
-  --r-lg:   16px;
-  --r-xl:   24px;
-  --r-card: 18px;
-  --r-btn:  999px;
-
-  /* ─ elevation ─ */
-  --e-0: none;
+  /* ─ Elevation ─ */
+  --shadow:     0 24px 60px -22px rgba(15, 27, 45, 0.32);
+  --shadow-sm:  0 6px 18px -8px rgba(15, 27, 45, 0.22);
   --e-1: 0 1px 2px rgba(21,19,15,.04), 0 1px 1px rgba(21,19,15,.03);
   --e-2: 0 4px 10px -2px rgba(21,19,15,.06), 0 2px 4px rgba(21,19,15,.04);
   --e-3: 0 12px 28px -8px rgba(21,19,15,.12), 0 4px 8px rgba(21,19,15,.04);
-  --e-4: 0 20px 50px -12px var(--shadow-tint), 0 4px 10px rgba(21,19,15,.05);
-  --e-cta: 0 1px 0 rgba(255,255,255,.15) inset, 0 10px 24px -10px var(--shadow-tint);
+  --e-4: 0 20px 50px -12px rgba(15, 27, 45, 0.25), 0 4px 10px rgba(21,19,15,.05);
+  --e-cta: 0 1px 0 rgba(255,255,255,.15) inset, 0 10px 24px -10px rgba(15, 27, 45, 0.25);
 
-  /* ─ motion ─ */
+  /* ─ Radii ─ */
+  --r-card: 22px;
+  --r-btn:  999px;
+
+  /* ─ Motion ─ */
+  --ease:        cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --dur-fast: 160ms;
   --dur-base: 280ms;
   --dur-slow: 520ms;
-  --ease-default:     cubic-bezier(0.2, 0.7, 0.2, 1);
-  --ease-emphasized:  cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-exit:        cubic-bezier(0.4, 0.0, 1, 1);
-  --stagger:          75ms;
+  --stagger: 75ms;
 }
 
 /* ─ Hebrew RTL font swap ─ */
 [lang="he"], :is([dir="rtl"]) {
-  --font-body: "Heebo", Inter, sans-serif;
-  --font-display: "Frank Ruhl Libre", "Instrument Serif", serif;
+  --font-body: "Gutman Stam", "Frank Ruhl Libre", "David Libre", "Noto Serif Hebrew", serif;
+  --font-display: "Gutman Stam", "Frank Ruhl Libre", "David Libre", "Noto Serif Hebrew", serif;
 }
 
 /* ─ Reduced motion ─ */
@@ -100,24 +74,23 @@
 
 /* ─ Theme: warm ─ */
 [data-theme="warm"] {
-  --n-50:#F7F1E8; --n-100:#FDF9F2; --n-200:#E6D8C2; --n-600:#6E5A44; --n-900:#2B1F14;
-  --bg: var(--n-50); --surface: var(--n-100); --text: var(--n-900); --border: var(--n-200);
+  --paper:#F7F1E8; --paper-2:#FDF9F2; --bg:var(--paper); --surface:var(--paper-2);
   --r-card: 22px; --r-btn: 14px;
 }
 
 /* ─ Theme: minimal ─ */
 [data-theme="minimal"] {
-  --n-50:#FAFAFA; --n-100:#FFFFFF; --n-200:#EAEAEA; --n-600:#757575; --n-900:#0A0A0A;
-  --bg: var(--n-50); --surface: var(--n-100); --text: var(--n-900); --border: var(--n-200);
-  --e-1: 0 0 0 1px var(--n-200);
-  --e-cta: 0 0 0 1px var(--n-900);
+  --paper:#FAFAFA; --paper-2:#FFFFFF; --bg:var(--paper); --surface:var(--paper-2);
+  --border:rgba(0,0,0,0.08);
+  --e-1: 0 0 0 1px rgba(0,0,0,0.08);
+  --e-cta: 0 0 0 1px var(--ink);
   --r-card: 0px; --r-btn: 0px;
 }
 
 /* ─ Theme: bold ─ */
 [data-theme="bold"] {
-  --n-50:#17171A; --n-100:#0E0E10; --n-200:#2A2A30; --n-600:#9A9AA3; --n-900:#FDFDFD;
-  --bg: var(--n-100); --surface: var(--n-50); --text: var(--n-900); --border: var(--n-200);
-  --font-display: Inter;
+  --paper:#0E0E10; --paper-2:#17171A; --ink:#FDFDFD; --ink-soft:#2A2A30;
+  --bg:var(--paper); --surface:var(--paper-2); --text:var(--ink); --border:rgba(255,255,255,0.10);
+  --text-muted:#9A9AA3;
   --r-card: 8px;
 }

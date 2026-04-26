@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import './landing.css';
 import {
   HeroSection,
+  MarqueeSection,
   VideoSection,
   AboutSection,
   ActivitiesSection,
@@ -50,6 +51,7 @@ interface LandingPageData {
     instagramUrl?: string;
     whatsappUrl?: string;
     websiteUrl?: string;
+    youtubeUrl?: string;
     paymentLink?: string;
   };
 }
@@ -57,6 +59,7 @@ interface LandingPageData {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const SECTION_COMPONENTS: Record<string, React.ComponentType<any>> = {
   hero: HeroSection,
+  marquee: MarqueeSection,
   video: VideoSection,
   about: AboutSection,
   activities: ActivitiesSection,
@@ -67,6 +70,14 @@ const SECTION_COMPONENTS: Record<string, React.ComponentType<any>> = {
   join_us: JoinUsSection,
   faq: FaqSection,
   footer: FooterSection,
+};
+
+/* Nav link labels — derived from section types present */
+const NAV_LINKS: Record<string, { href: string; label: string }> = {
+  about: { href: '#about', label: 'אודות' },
+  activities: { href: '#activities', label: 'פעילויות' },
+  gallery: { href: '#gallery', label: 'גלריה' },
+  join_us: { href: '#contact', label: 'צרו קשר' },
 };
 
 export default function PublicLandingPage() {
@@ -105,7 +116,7 @@ export default function PublicLandingPage() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Scroll-reveal (same technique as prototype)
+  // Scroll-reveal
   useEffect(() => {
     if (!landing || typeof window === 'undefined') return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -130,50 +141,92 @@ export default function PublicLandingPage() {
     return () => io.disconnect();
   }, [landing]);
 
+  // Count-up animation for hero stats
+  useEffect(() => {
+    if (!landing || typeof window === 'undefined') return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const statsObs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        statsObs.unobserve(e.target);
+        const el = e.target as HTMLElement;
+        const target = el.dataset.num;
+        if (!target) return;
+        const m = target.match(/^([\d,]+)(.*)$/);
+        if (!m) return;
+        const final = parseInt(m[1].replace(/,/g, ''), 10);
+        const suffix = m[2];
+        const start = performance.now();
+        const dur = 1400;
+        const tick = (t: number) => {
+          const p = Math.min(1, (t - start) / dur);
+          const eased = 1 - Math.pow(1 - p, 3);
+          el.textContent = Math.round(final * eased).toLocaleString() + suffix;
+          if (p < 1) requestAnimationFrame(tick);
+        };
+        el.textContent = '0' + suffix;
+        requestAnimationFrame(tick);
+      });
+    }, { threshold: 0.5 });
+
+    document.querySelectorAll('.lp-hero-stat .n').forEach(el => {
+      const htmlEl = el as HTMLElement;
+      if (!htmlEl.dataset.num) htmlEl.dataset.num = htmlEl.textContent || '';
+      statsObs.observe(htmlEl);
+    });
+
+    return () => statsObs.disconnect();
+  }, [landing]);
+
   if (loading) {
-    return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FBFAF7' }}>
-      <div style={{ width: 32, height: 32, border: '3px solid #DFD8C7', borderTopColor: '#2F5F5C', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+    return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F4ECD8' }}>
+      <div style={{ width: 32, height: 32, border: '3px solid #EADFC4', borderTopColor: '#B8893A', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>;
   }
 
   if (error || !landing) {
-    return <div dir="rtl" lang="he" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#FBFAF7', fontFamily: 'Inter, Heebo, sans-serif', color: '#15130F' }}>
-      <h1 style={{ fontSize: 24, fontWeight: 600, marginBottom: 8 }}>העמוד לא נמצא</h1>
-      <p style={{ color: '#6B645B' }}>ייתכן שהעמוד הוסר או שהכתובת שגויה</p>
+    return <div dir="rtl" lang="he" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#F4ECD8', fontFamily: '"Frank Ruhl Libre", serif', color: '#1A1410' }}>
+      <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8 }}>העמוד לא נמצא</h1>
+      <p style={{ color: '#6B655C' }}>ייתכן שהעמוד הוסר או שהכתובת שגויה</p>
     </div>;
   }
 
   const org = landing.organization;
-  const primaryColor = org.primaryColor || '#2F5F5C';
-  const accentColor = org.accentColor || '#C8732F';
+  const primaryColor = org.primaryColor || '#1A1410';
+  const accentColor = org.accentColor || '#B8893A';
   const themeName = (landing.theme || 'modern').toLowerCase();
 
-  // Inline CSS var overrides for admin colors
-  const colorStyle: React.CSSProperties = {
-    '--primary': primaryColor,
-    '--primary-hover': primaryColor,
-    '--primary-50': `color-mix(in oklab, ${primaryColor} 12%, var(--n-50))`,
-    '--primary-700': `color-mix(in oklab, ${primaryColor} 70%, var(--n-900))`,
-    '--accent': accentColor,
-    '--shadow-tint': `color-mix(in oklab, ${primaryColor} 18%, transparent)`,
-  } as React.CSSProperties;
+  // Build nav links from visible sections
+  const visibleTypes = new Set(landing.sections.filter(s => s.visible).map(s => s.type));
+  const navLinks = Object.entries(NAV_LINKS).filter(([type]) => visibleTypes.has(type));
+  const hasDonate = visibleTypes.has('cta_payment');
 
   return (
-    <div className="lp" dir="rtl" lang="he" data-theme={themeName} style={colorStyle}>
+    <div className="lp" dir="rtl" lang="he" data-theme={themeName} style={{
+      '--coral': accentColor,
+      '--coral-2': accentColor,
+    } as React.CSSProperties}>
       {/* Sticky nav */}
       <nav className={`lp-nav${scrolled ? ' scrolled' : ''}`}>
         <a className="lp-brand" href="#top">
           {org.logoUrl ? (
-            <img src={org.logoUrl} alt="" className="lp-brand-mark" />
+            <img src={org.logoUrl} alt="" className="lp-brand-mark" style={{ objectFit: 'contain' }} />
           ) : (
             <div className="lp-brand-mark" />
           )}
           <div className="lp-brand-name">{org.name}</div>
         </a>
-        {org.paymentLink && (
-          <a href={org.paymentLink} target="_blank" rel="noopener noreferrer" className="lp-btn lp-btn-primary">
-            תרמו
-          </a>
+        {navLinks.length > 0 && (
+          <div className="lp-nav-links">
+            {navLinks.map(([, link]) => (
+              <a key={link.href} href={link.href}>{link.label}</a>
+            ))}
+          </div>
+        )}
+        {hasDonate && (
+          <a href="#donate" className="lp-btn lp-btn-primary"><span>תרמו</span></a>
         )}
       </nav>
 
