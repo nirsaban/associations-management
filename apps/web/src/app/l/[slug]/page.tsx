@@ -23,6 +23,7 @@ interface OrgData {
   name: string;
   legalName?: string;
   paymentLink?: string;
+  hasGrowWallet?: boolean;
   contactPhone?: string;
   contactEmail?: string;
   address?: string;
@@ -39,6 +40,8 @@ interface OrgData {
 interface Section {
   type: string;
   data: Record<string, unknown>;
+  visible: boolean;
+  position: number;
 }
 
 interface LandingData {
@@ -47,7 +50,7 @@ interface LandingData {
     title: string;
     theme: string;
     published: boolean;
-    sections: Array<Section & { visible: boolean; position: number }>;
+    sections: Section[];
     organization: OrgData;
   };
 }
@@ -145,7 +148,7 @@ export default function LandingPage() {
     );
 
     requestAnimationFrame(() => {
-      document.querySelectorAll('.lp-reveal').forEach((el) => {
+      document.querySelectorAll('.lp-landing .reveal').forEach((el) => {
         const r = el.getBoundingClientRect();
         if (r.top >= window.innerHeight || r.bottom <= 0) {
           el.classList.add('pending');
@@ -265,10 +268,10 @@ export default function LandingPage() {
   const hasFooter = sections.some((s) => s.type === 'footer');
 
   return (
-    <div className="lp" dir="rtl" lang="he" ref={wrapperRef}>
+    <div className="lp-landing" dir="rtl" lang="he" ref={wrapperRef}>
       {/* ── Sticky nav ─────────────────────────────────────────────────── */}
-      <nav className={`lp-nav${navScrolled ? ' scrolled' : ''}`} id="lp-nav">
-        <a className="lp-brand" href="#top">
+      <nav className={`nav${navScrolled ? ' scrolled' : ''}`} id="nav">
+        <a className="brand" href="#top">
           {org.logoUrl ? (
             <img
               src={org.logoUrl}
@@ -276,13 +279,13 @@ export default function LandingPage() {
               style={{ width: 30, height: 30, borderRadius: 10, objectFit: 'cover' }}
             />
           ) : (
-            <div className="lp-brand-mark" />
+            <div className="brand-mark" />
           )}
-          <div className="lp-brand-name">{org.name}</div>
+          <div className="brand-name">{org.name}</div>
         </a>
 
         {navLinks.length > 0 && (
-          <div className="lp-nav-links">
+          <div className="nav-links">
             {navLinks
               .filter((l) => l.href !== '#donate')
               .map((link) => (
@@ -293,7 +296,7 @@ export default function LandingPage() {
           </div>
         )}
 
-        <a href="#donate" className="lp-btn lp-btn-primary">
+        <a href="#donate" className="btn btn-primary">
           <span>תרמו</span>
         </a>
       </nav>

@@ -35,10 +35,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .lp-reveal, .lp-reveal.pending { opacity:1; transform:none; transition:none; }
-  .lp-blob { animation:none !important; }
-  .lp-marquee-track { animation:none !important; }
-  .lp-brand-mark { animation:none !important; }
-  .lp .lp-hero h1 .lp-word { opacity:1; transform:none; animation:none; }
-  .lp .lp-hero-sub, .lp .lp-hero-cta, .lp .lp-hero-stats { opacity:1; animation:none; }
+  .lp-landing .reveal,
+  .lp-landing .reveal.pending { opacity:1; transform:none; transition:none; }
+  .lp-landing .blob { animation:none !important; }
+  .lp-landing .marquee-track { animation:none !important; }
+  .lp-landing .brand-mark { animation:none !important; }
+  .lp-landing .hero h1 .word { opacity:1; transform:none; animation:none; }
+  .lp-landing .hero-sub,
+  .lp-landing .hero-cta,
+  .lp-landing .hero-stats { opacity:1; animation:none; }
 }

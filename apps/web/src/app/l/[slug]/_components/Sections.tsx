@@ -11,6 +11,7 @@ interface OrgData {
   name: string;
   legalName?: string;
   paymentLink?: string;
+  hasGrowWallet?: boolean;
   contactPhone?: string;
   contactEmail?: string;
   address?: string;
@@ -106,27 +107,28 @@ export function HeroSection({ data, org }: SectionProps) {
   const words = headline.split(' ');
   const accentIndex =
     typeof data.accent_word_index === 'number' ? data.accent_word_index : -1;
-  const subtext = (data.subtext as string) || '';
-  const pill = (data.pill as string) || 'פעיל · קמפיין פתוח';
-  const since = (data.since as string) || '';
-  const ctaPrimary = (data.cta_primary as string) || 'תרמו עכשיו →';
-  const ctaGhost = (data.cta_ghost as string) || '';
+  const subtext = (data.subtext as string) || (data.subheadline as string) || '';
+  const pill = (data.pill as string) || (data.pill_text as string) || 'פעיל · קמפיין פתוח';
+  const since = (data.since as string) || (data.since_text as string) || '';
+  const ctaPrimary = (data.cta_primary as string) || (data.cta_label as string) || 'תרמו עכשיו →';
+  const ctaGhost = (data.cta_ghost as string) || (data.secondary_cta_label as string) || '';
+  const ctaGhostTarget = (data.secondary_cta_target as string) || '#story';
   const stats = (data.stats as Array<{ value: string; label: string }>) || [];
 
   return (
-    <header className="lp-hero" id="top">
-      <div className="lp-hero-bg" aria-hidden="true">
-        <div className="lp-blob lp-blob-1" />
-        <div className="lp-blob lp-blob-2" />
-        <div className="lp-blob lp-blob-3" />
+    <header className="hero" id="top">
+      <div className="hero-bg" aria-hidden="true">
+        <div className="blob blob-1" />
+        <div className="blob blob-2" />
+        <div className="blob blob-3" />
       </div>
-      <div className="lp-hero-inner">
-        <div className="lp-hero-meta">
-          <span className="lp-hero-pill">
-            <span className="lp-dot" />
+      <div className="hero-inner">
+        <div className="hero-meta">
+          <span className="hero-pill">
+            <span className="dot" />
             <span>{pill}</span>
           </span>
-          {since && <span className="lp-since">{since}</span>}
+          {since && <span className="since">{since}</span>}
         </div>
 
         <h1>
@@ -140,23 +142,23 @@ export function HeroSection({ data, org }: SectionProps) {
           ))}
         </h1>
 
-        {subtext && <p className="lp-hero-sub">{subtext}</p>}
+        {subtext && <p className="hero-sub">{subtext}</p>}
 
-        <div className="lp-hero-cta">
-          <a href="#donate" className="lp-btn lp-btn-primary lp-btn-lg">
+        <div className="hero-cta">
+          <a href="#donate" className="btn btn-primary btn-lg">
             <span>{ctaPrimary}</span>
           </a>
           {ctaGhost && (
-            <a href="#story" className="lp-btn lp-btn-ghost lp-btn-lg">
+            <a href={ctaGhostTarget} className="btn btn-ghost btn-lg">
               {ctaGhost}
             </a>
           )}
         </div>
 
         {stats.length > 0 && (
-          <div className="lp-hero-stats">
+          <div className="hero-stats">
             {stats.map((s, i) => (
-              <div key={i} className="lp-hero-stat">
+              <div key={i} className="hero-stat">
                 <CountUpNumber value={s.value} className="n" />
                 <div className="l">{s.label}</div>
               </div>
@@ -180,8 +182,8 @@ export function MarqueeSection({ data }: SectionProps) {
   const doubled = [...items, ...items];
 
   return (
-    <div className="lp-marquee" aria-hidden="true">
-      <div className="lp-marquee-track">
+    <div className="marquee" aria-hidden="true">
+      <div className="marquee-track">
         {doubled.map((text, i) => (
           <span key={i}>{text}</span>
         ))}
@@ -193,8 +195,8 @@ export function MarqueeSection({ data }: SectionProps) {
 /* ─── 3. VideoSection ───────────────────────────────────────────────────── */
 export function VideoSection({ data }: SectionProps) {
   const eyebrow = (data.eyebrow as string) || 'הסיפור שלנו';
-  const heading = (data.heading as string) || '';
-  const src = (data.src as string) || '';
+  const heading = (data.heading as string) || (data.title as string) || '';
+  const src = (data.src as string) || (data.source as string) || '';
 
   function getEmbedUrl(url: string): string | null {
     if (!url) return null;
@@ -209,13 +211,13 @@ export function VideoSection({ data }: SectionProps) {
   const embedUrl = getEmbedUrl(src);
 
   return (
-    <section className="lp-section" id="story">
-      <div className="lp-container">
-        <div className="lp-eyebrow lp-reveal">{eyebrow}</div>
-        {heading && <h2 className="lp-reveal">{heading}</h2>}
-        <div className="lp-video-wrap lp-reveal">
+    <section className="section" id="story">
+      <div className="container">
+        <div className="eyebrow reveal">{eyebrow}</div>
+        {heading && <h2 className="reveal">{heading}</h2>}
+        <div className="video-wrap reveal">
           {playing && embedUrl ? (
-            <div className="lp-video-frame">
+            <div className="video-frame">
               <iframe
                 src={embedUrl}
                 style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }}
@@ -226,7 +228,7 @@ export function VideoSection({ data }: SectionProps) {
             </div>
           ) : (
             <div
-              className="lp-video-frame lp-imgslot"
+              className="video-frame imgslot"
               tabIndex={0}
               role="button"
               aria-label="הפעל וידאו"
@@ -243,8 +245,8 @@ export function VideoSection({ data }: SectionProps) {
               >
                 video · 16:9
               </span>
-              <div className="lp-video-play">
-                <div className="lp-core">
+              <div className="video-play">
+                <div className="core">
                   <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M8 5v14l11-7L8 5z" />
                   </svg>
@@ -261,16 +263,16 @@ export function VideoSection({ data }: SectionProps) {
 /* ─── 4. AboutSection ───────────────────────────────────────────────────── */
 export function AboutSection({ data, org }: SectionProps) {
   const eyebrow = (data.eyebrow as string) || 'אודות';
-  const heading = (data.heading as string) || '';
+  const heading = (data.heading as string) || (data.title as string) || '';
   const bodyRichText = (data.body_rich_text as string) || '';
-  const imageUrl = (data.image_url as string) || '';
-  const badge = (data.badge as string) || '';
+  const imageUrl = (data.image_url as string) || (data.side_image as string) || '';
+  const badge = (data.badge as string) || (data.badge_text as string) || '';
 
   return (
-    <section className="lp-section lp-about" id="about">
-      <div className="lp-container lp-about-grid">
-        <div className="lp-about-text lp-reveal">
-          <div className="lp-eyebrow">{eyebrow}</div>
+    <section className="section about" id="about">
+      <div className="container about-grid">
+        <div className="about-text reveal">
+          <div className="eyebrow">{eyebrow}</div>
           {heading && <h2>{heading}</h2>}
           {bodyRichText && (
             <div
@@ -278,7 +280,7 @@ export function AboutSection({ data, org }: SectionProps) {
             />
           )}
         </div>
-        <div className="lp-about-visual lp-reveal">
+        <div className="about-visual reveal">
           <div className="layer-color" />
           {imageUrl ? (
             <img
@@ -288,7 +290,7 @@ export function AboutSection({ data, org }: SectionProps) {
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
           ) : (
-            <div className="layer-img lp-imgslot">about · 4:5</div>
+            <div className="layer-img imgslot">about · 4:5</div>
           )}
           {badge && <div className="badge">{badge}</div>}
         </div>
@@ -300,25 +302,27 @@ export function AboutSection({ data, org }: SectionProps) {
 /* ─── 5. ActivitiesSection ──────────────────────────────────────────────── */
 export function ActivitiesSection({ data }: SectionProps) {
   const eyebrow = (data.eyebrow as string) || 'מה אנחנו עושים';
-  const heading = (data.heading as string) || '';
+  const heading = (data.heading as string) || (data.title as string) || '';
   const activities =
-    (data.activities as Array<{ title: string; description: string; imageUrl?: string }>) || [];
+    (data.activities as Array<{ title: string; description: string; imageUrl?: string }>) ||
+    (data.items as Array<{ title: string; description: string; imageUrl?: string }>) ||
+    [];
 
   return (
-    <section className="lp-section lp-activities" id="activities">
-      <div className="lp-container">
-        <div className="lp-section-head">
-          <div className="lp-reveal">
-            <div className="lp-eyebrow">{eyebrow}</div>
+    <section className="section activities" id="activities">
+      <div className="container">
+        <div className="section-head">
+          <div className="reveal">
+            <div className="eyebrow">{eyebrow}</div>
             {heading && <h2>{heading}</h2>}
           </div>
         </div>
-        <div className="lp-activities-grid">
+        <div className="activities-grid">
           {activities.map((act, i) => {
             const num = String(i + 1).padStart(2, '0');
             return (
-              <article key={i} className="lp-activity lp-reveal">
-                <div className="lp-activity-img">
+              <article key={i} className="activity reveal">
+                <div className="activity-img">
                   {act.imageUrl ? (
                     <img
                       src={act.imageUrl}
@@ -326,11 +330,11 @@ export function ActivitiesSection({ data }: SectionProps) {
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                   ) : (
-                    <div className="lp-imgslot">activity {i + 1}</div>
+                    <div className="imgslot">activity {i + 1}</div>
                   )}
-                  <div className="lp-activity-num">{num}</div>
+                  <div className="activity-num">{num}</div>
                 </div>
-                <div className="lp-activity-body">
+                <div className="activity-body">
                   <h3>{act.title}</h3>
                   <p>{act.description}</p>
                 </div>
@@ -346,26 +350,26 @@ export function ActivitiesSection({ data }: SectionProps) {
 /* ─── 6. GallerySection ─────────────────────────────────────────────────── */
 export function GallerySection({ data }: SectionProps) {
   const eyebrow = (data.eyebrow as string) || 'בתוך הרגע';
-  const heading = (data.heading as string) || '';
+  const heading = (data.heading as string) || (data.title as string) || '';
   const images = (data.images as Array<{ url: string; alt?: string }>) || [];
   const heights = [220, 300, 180, 260, 240, 320, 200, 280, 220, 260, 300, 190];
 
   const slots = images.length > 0 ? images : heights.map(() => null);
 
   return (
-    <section className="lp-section lp-gallery" id="gallery">
-      <div className="lp-container">
-        <div className="lp-section-head">
-          <div className="lp-reveal">
-            <div className="lp-eyebrow">{eyebrow}</div>
+    <section className="section gallery" id="gallery">
+      <div className="container">
+        <div className="section-head">
+          <div className="reveal">
+            <div className="eyebrow">{eyebrow}</div>
             {heading && <h2>{heading}</h2>}
           </div>
         </div>
-        <div className="lp-gallery-grid">
+        <div className="gallery-grid">
           {slots.map((img, i) => (
             <div
               key={i}
-              className="lp-reveal"
+              className="reveal"
               style={{ height: img ? undefined : heights[i % heights.length] }}
             >
               {img && (
@@ -386,7 +390,7 @@ export function GallerySection({ data }: SectionProps) {
 /* ─── 7. ReviewsSection ─────────────────────────────────────────────────── */
 export function ReviewsSection({ data }: SectionProps) {
   const eyebrow = (data.eyebrow as string) || 'במילים שלהם';
-  const heading = (data.heading as string) || 'הקהילה, על הקהילה.';
+  const heading = (data.heading as string) || (data.title as string) || 'הקהילה, על הקהילה.';
   const reviews =
     (data.reviews as Array<{ name: string; stars: number; quote: string }>) || [];
 
@@ -401,28 +405,28 @@ export function ReviewsSection({ data }: SectionProps) {
   }
 
   return (
-    <section className="lp-section lp-reviews">
-      <div className="lp-container">
-        <div className="lp-eyebrow lp-reveal">{eyebrow}</div>
-        <h2 className="lp-reveal">{heading}</h2>
-        <div className="lp-reviews-grid">
+    <section className="section reviews">
+      <div className="container">
+        <div className="eyebrow reveal">{eyebrow}</div>
+        <h2 className="reveal">{heading}</h2>
+        <div className="reviews-grid">
           {reviews.map((r, i) => (
-            <article key={i} className="lp-review lp-reveal">
-              <div className="lp-stars" aria-label={`${r.stars} מתוך 5 כוכבים`}>
+            <article key={i} className="review reveal">
+              <div className="stars" aria-label={`${r.stars} מתוך 5 כוכבים`}>
                 {[0, 1, 2, 3, 4].map((s) => (
                   <StarIcon key={s} filled={s < r.stars} />
                 ))}
               </div>
               <p>&ldquo;{r.quote}&rdquo;</p>
-              <div className="lp-review-name">— {r.name}</div>
+              <div className="review-name">— {r.name}</div>
             </article>
           ))}
         </div>
 
-        <div className="lp-reviews-cta lp-reveal">
+        <div className="reviews-cta reveal">
           {!showForm ? (
             <button
-              className="lp-btn lp-btn-secondary"
+              className="btn btn-secondary"
               onClick={() => setShowForm(true)}
             >
               <span>השאירו ביקורת שלכם +</span>
@@ -453,7 +457,7 @@ export function ReviewsSection({ data }: SectionProps) {
                 tabIndex={-1}
                 autoComplete="off"
               />
-              <div className="lp-field">
+              <div className="field">
                 <label>שם</label>
                 <input
                   required
@@ -463,7 +467,7 @@ export function ReviewsSection({ data }: SectionProps) {
                   style={{ background: 'var(--paper-2)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: '12px 14px', fontSize: 15, color: 'var(--ink)' }}
                 />
               </div>
-              <div className="lp-field">
+              <div className="field">
                 <label>ביקורת</label>
                 <textarea
                   required
@@ -473,7 +477,7 @@ export function ReviewsSection({ data }: SectionProps) {
                   style={{ background: 'var(--paper-2)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: '12px 14px', fontSize: 15, color: 'var(--ink)', resize: 'vertical', minHeight: 80 }}
                 />
               </div>
-              <button type="submit" className="lp-btn lp-btn-primary lp-btn-block">
+              <button type="submit" className="btn btn-primary btn-block">
                 <span>שלחו →</span>
               </button>
             </form>
@@ -488,19 +492,21 @@ export function ReviewsSection({ data }: SectionProps) {
 export function StatsSection({ data }: SectionProps) {
   const eyebrow = (data.eyebrow as string) || 'במספרים';
   const stats =
-    (data.stats as Array<{ value: string; label: string }>) || [];
+    (data.stats as Array<{ value: string; label: string }>) ||
+    (data.items as Array<{ value: string; label: string }>) ||
+    [];
 
   return (
-    <section className="lp-section lp-stats">
-      <div className="lp-container">
-        <div className="lp-eyebrow lp-reveal" style={{ color: 'var(--ink)' }}>
+    <section className="section stats">
+      <div className="container">
+        <div className="eyebrow reveal" style={{ color: 'var(--ink)' }}>
           {eyebrow}
         </div>
-        <div className="lp-stats-grid" id="lp-stats-grid">
+        <div className="stats-grid">
           {stats.map((s, i) => (
-            <div key={i} className="lp-stat lp-reveal">
-              <CountUpNumber value={s.value} className="lp-stat-num" />
-              <div className="lp-stat-lbl">{s.label}</div>
+            <div key={i} className="stat reveal">
+              <CountUpNumber value={s.value} className="stat-num" />
+              <div className="stat-lbl">{s.label}</div>
             </div>
           ))}
         </div>
@@ -509,11 +515,42 @@ export function StatsSection({ data }: SectionProps) {
   );
 }
 
+/* ─── Grow Wallet SDK loader ───────────────────────────────────────────── */
+declare global {
+  interface Window {
+    growPayment?: {
+      init: (config: Record<string, unknown>) => void;
+      renderPaymentOptions: (authCode: string) => void;
+    };
+  }
+}
+
+function useGrowSdk() {
+  const [ready, setReady] = useState(false);
+  const loadedRef = useRef(false);
+
+  useEffect(() => {
+    if (loadedRef.current || window.growPayment) {
+      setReady(true);
+      return;
+    }
+    loadedRef.current = true;
+    const s = document.createElement('script');
+    s.type = 'text/javascript';
+    s.async = true;
+    s.src = 'https://cdn.meshulam.co.il/sdk/gs.min.js';
+    s.onload = () => setReady(true);
+    document.head.appendChild(s);
+  }, []);
+
+  return ready;
+}
+
 /* ─── 9. CtaPaymentSection ──────────────────────────────────────────────── */
-export function CtaPaymentSection({ data, org }: SectionProps) {
+export function CtaPaymentSection({ data, org, slug }: SectionProps) {
   const eyebrow = (data.eyebrow as string) || 'תרמו עכשיו';
   const headlineRaw = (data.headline as string) || 'כל שקל, *ישר לעבודה.*';
-  const subtext = (data.subtext as string) || '';
+  const subtext = (data.subtext as string) || (data.subheadline as string) || '';
   const amounts = (data.amounts as number[]) || [100, 250, 500, 1000];
   const defaultAmount = (data.default_amount as number) || amounts[2] || 500;
   const trustItems = (data.trust as string[]) || [
@@ -528,8 +565,79 @@ export function CtaPaymentSection({ data, org }: SectionProps) {
   );
 
   const [selected, setSelected] = useState<number | null>(defaultAmount);
+  const [walletState, setWalletState] = useState<'idle' | 'loading' | 'open' | 'success' | 'error'>('idle');
+  const [errorMsg, setErrorMsg] = useState('');
+  const sdkInitRef = useRef(false);
 
-  function handleDonate() {
+  const hasGrowWallet = !!org.hasGrowWallet;
+  const sdkReady = useGrowSdk();
+
+  // Initialize Grow SDK once loaded
+  useEffect(() => {
+    if (!hasGrowWallet || !sdkReady || sdkInitRef.current || !window.growPayment) return;
+    sdkInitRef.current = true;
+
+    const isProduction = window.location.hostname !== 'localhost';
+    window.growPayment.init({
+      environment: isProduction ? 'PRODUCTION' : 'DEV',
+      version: 1,
+      events: {
+        onSuccess: () => {
+          setWalletState('success');
+        },
+        onFailure: (response: { message?: string }) => {
+          setWalletState('error');
+          setErrorMsg(response?.message || 'התשלום נכשל');
+        },
+        onError: (response: { message?: string }) => {
+          setWalletState('error');
+          setErrorMsg(response?.message || 'שגיאה בתהליך התשלום');
+        },
+        onWalletChange: (state: string) => {
+          if (state === 'open') setWalletState('open');
+          if (state === 'close' || state === 'Close') {
+            setWalletState((prev) => (prev === 'success' ? 'success' : 'idle'));
+          }
+        },
+        onTimeout: () => {
+          setWalletState('error');
+          setErrorMsg('פג תוקף התשלום. נסו שנית.');
+        },
+        onPaymentStart: () => {},
+        onPaymentCancel: () => {
+          setWalletState('idle');
+        },
+      },
+    });
+  }, [hasGrowWallet, sdkReady]);
+
+  async function handleDonate() {
+    if (!selected && selected !== 0) return;
+
+    if (hasGrowWallet && window.growPayment) {
+      setWalletState('loading');
+      setErrorMsg('');
+      try {
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3003/api/v1';
+        const res = await fetch(`${apiBase}/public/landing/${slug}/create-payment`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sum: selected }),
+        });
+        const json = await res.json();
+
+        if (!res.ok || !json.data?.authCode) {
+          throw new Error(json.message || 'שגיאה ביצירת תהליך תשלום');
+        }
+
+        window.growPayment.renderPaymentOptions(json.data.authCode);
+      } catch (err) {
+        setWalletState('error');
+        setErrorMsg(err instanceof Error ? err.message : 'שגיאה בתהליך התשלום');
+      }
+      return;
+    }
+
     const url = org.paymentLink || '#';
     if (selected) {
       window.open(`${url}?amount=${selected}`, '_blank');
@@ -539,47 +647,79 @@ export function CtaPaymentSection({ data, org }: SectionProps) {
   }
 
   return (
-    <section className="lp-section lp-cta" id="donate">
-      <div className="lp-container">
-        <div className="lp-eyebrow lp-reveal">{eyebrow}</div>
+    <section className="section cta" id="donate">
+      <div className="container">
+        <div className="eyebrow reveal">{eyebrow}</div>
         <h2
-          className="lp-reveal"
+          className="reveal"
           dangerouslySetInnerHTML={{ __html: headlineHtml }}
         />
-        {subtext && <p className="lp-cta-sub lp-reveal">{subtext}</p>}
+        {subtext && <p className="cta-sub reveal">{subtext}</p>}
 
-        <div className="lp-chips lp-reveal" role="radiogroup" aria-label="סכום תרומה">
-          {amounts.map((amt) => (
+        {walletState === 'success' ? (
+          <div className="reveal" style={{ textAlign: 'center', padding: '2rem 0' }}>
+            <div style={{ fontSize: 48, marginBottom: 12 }}>✓</div>
+            <p style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--ink)' }}>תודה רבה על תרומתכם!</p>
+            <p style={{ color: 'var(--text-muted)', marginTop: 8 }}>התרומה התקבלה בהצלחה.</p>
             <button
-              key={amt}
-              className={`lp-chip${selected === amt ? ' lp-chip-active' : ''}`}
-              role="radio"
-              aria-checked={selected === amt}
-              data-amount={amt}
-              onClick={() => setSelected(amt)}
+              className="btn"
+              style={{ marginTop: 24 }}
+              onClick={() => setWalletState('idle')}
             >
-              ₪{amt.toLocaleString()}
+              תרומה נוספת
             </button>
-          ))}
-          <button
-            className={`lp-chip${selected === null ? ' lp-chip-active' : ''}`}
-            role="radio"
-            aria-checked={selected === null}
-            onClick={() => setSelected(null)}
-          >
-            אחר
-          </button>
-        </div>
+          </div>
+        ) : (
+          <>
+            <div className="chips reveal" role="radiogroup" aria-label="סכום תרומה">
+              {amounts.map((amt) => (
+                <button
+                  key={amt}
+                  className={`chip${selected === amt ? ' active' : ''}`}
+                  role="radio"
+                  aria-checked={selected === amt}
+                  data-amount={amt}
+                  onClick={() => setSelected(amt)}
+                >
+                  ₪{amt.toLocaleString()}
+                </button>
+              ))}
+              <button
+                className={`chip${selected === null ? ' active' : ''}`}
+                role="radio"
+                aria-checked={selected === null}
+                onClick={() => setSelected(null)}
+              >
+                אחר
+              </button>
+            </div>
 
-        <div className="lp-cta-go lp-reveal">
-          <button className="lp-btn lp-btn-lg" onClick={handleDonate}>
-            <span>
-              תרמו{selected ? ` ₪${selected.toLocaleString()}` : ''} →
-            </span>
-          </button>
-        </div>
+            {walletState === 'error' && errorMsg && (
+              <div className="reveal" style={{ color: '#c53030', textAlign: 'center', padding: '0.75rem', fontSize: '0.9rem' }}>
+                {errorMsg}
+              </div>
+            )}
 
-        <div className="lp-cta-trust lp-reveal">
+            <div className="cta-go reveal">
+              <button
+                className="btn btn-lg"
+                onClick={handleDonate}
+                disabled={walletState === 'loading' || walletState === 'open'}
+                style={walletState === 'loading' || walletState === 'open' ? { opacity: 0.7, cursor: 'wait' } : undefined}
+              >
+                <span>
+                  {walletState === 'loading'
+                    ? 'טוען...'
+                    : walletState === 'open'
+                      ? 'מחכה לתשלום...'
+                      : `תרמו${selected ? ` ₪${selected.toLocaleString()}` : ''} →`}
+                </span>
+              </button>
+            </div>
+          </>
+        )}
+
+        <div className="cta-trust reveal">
           {trustItems.map((item, i) => (
             <span key={i}>{item}{i < trustItems.length - 1 ? <> &nbsp;·&nbsp;</> : null}</span>
           ))}
@@ -592,7 +732,7 @@ export function CtaPaymentSection({ data, org }: SectionProps) {
 /* ─── 10. JoinUsSection ─────────────────────────────────────────────────── */
 export function JoinUsSection({ data }: SectionProps) {
   const eyebrow = (data.eyebrow as string) || 'הצטרפו אלינו';
-  const heading = (data.heading as string) || 'מקום ליד השולחן תמיד פתוח.';
+  const heading = (data.heading as string) || (data.headline as string) || 'מקום ליד השולחן תמיד פתוח.';
   const bodyText = (data.body as string) || '';
 
   const [submitted, setSubmitted] = useState(false);
@@ -611,10 +751,10 @@ export function JoinUsSection({ data }: SectionProps) {
   }
 
   return (
-    <section className="lp-section lp-join" id="contact">
-      <div className="lp-container lp-join-grid">
-        <div className="lp-reveal">
-          <div className="lp-eyebrow">{eyebrow}</div>
+    <section className="section join" id="contact">
+      <div className="container join-grid">
+        <div className="reveal">
+          <div className="eyebrow">{eyebrow}</div>
           <h2>{heading}</h2>
           {bodyText && (
             <p
@@ -631,7 +771,7 @@ export function JoinUsSection({ data }: SectionProps) {
           )}
         </div>
 
-        <form className="lp-form-card lp-reveal" onSubmit={handleSubmit}>
+        <form className="form-card reveal" onSubmit={handleSubmit}>
           {/* Honeypot */}
           <input
             type="text"
@@ -645,7 +785,7 @@ export function JoinUsSection({ data }: SectionProps) {
 
           {!submitted ? (
             <div>
-              <div className="lp-field">
+              <div className="field">
                 <label>שם</label>
                 <input
                   required
@@ -655,7 +795,7 @@ export function JoinUsSection({ data }: SectionProps) {
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                 />
               </div>
-              <div className="lp-field">
+              <div className="field">
                 <label>אימייל</label>
                 <input
                   required
@@ -665,7 +805,7 @@ export function JoinUsSection({ data }: SectionProps) {
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                 />
               </div>
-              <div className="lp-field">
+              <div className="field">
                 <label>טלפון (לא חובה)</label>
                 <input
                   type="tel"
@@ -674,7 +814,7 @@ export function JoinUsSection({ data }: SectionProps) {
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
                 />
               </div>
-              <div className="lp-field">
+              <div className="field">
                 <label>הודעה (לא חובה)</label>
                 <textarea
                   rows={3}
@@ -684,13 +824,13 @@ export function JoinUsSection({ data }: SectionProps) {
                   }
                 />
               </div>
-              <button type="submit" className="lp-btn lp-btn-lg lp-btn-block">
+              <button type="submit" className="btn btn-lg btn-block">
                 <span>שלחו →</span>
               </button>
             </div>
           ) : (
-            <div className="lp-form-success">
-              <div className="lp-check-circle">
+            <div className="form-success">
+              <div className="check-circle">
                 <svg
                   width="32"
                   height="32"
@@ -728,9 +868,11 @@ export function JoinUsSection({ data }: SectionProps) {
 /* ─── 11. FaqSection ────────────────────────────────────────────────────── */
 export function FaqSection({ data }: SectionProps) {
   const eyebrow = (data.eyebrow as string) || 'שאלות';
-  const heading = (data.heading as string) || 'הנפוצות ביותר.';
+  const heading = (data.heading as string) || (data.title as string) || 'הנפוצות ביותר.';
   const faqs =
-    (data.faqs as Array<{ question: string; answer: string }>) || [];
+    (data.faqs as Array<{ question: string; answer: string }>) ||
+    (data.items as Array<{ question: string; answer: string }>) ||
+    [];
 
   const [openIndex, setOpenIndex] = useState<number | null>(1);
 
@@ -739,30 +881,30 @@ export function FaqSection({ data }: SectionProps) {
   }
 
   return (
-    <section className="lp-section lp-faq">
-      <div className="lp-container lp-faq-grid">
-        <div className="lp-reveal">
-          <div className="lp-eyebrow">{eyebrow}</div>
+    <section className="section faq">
+      <div className="container faq-grid">
+        <div className="reveal">
+          <div className="eyebrow">{eyebrow}</div>
           <h2>{heading}</h2>
         </div>
-        <div className="lp-faq-list">
+        <div className="faq-list">
           {faqs.map((faq, i) => {
             const isOpen = openIndex === i;
             return (
               <div
                 key={i}
-                className="lp-faq-item lp-reveal"
+                className="faq-item reveal"
                 data-open={isOpen ? 'true' : 'false'}
               >
                 <button
-                  className="lp-faq-q"
+                  className="faq-q"
                   aria-expanded={isOpen}
                   onClick={() => toggle(i)}
                 >
                   <span>{faq.question}</span>
                   <span className="chev" />
                 </button>
-                <div className="lp-faq-a">
+                <div className="faq-a">
                   <div>
                     <p>{faq.answer}</p>
                   </div>
@@ -778,33 +920,33 @@ export function FaqSection({ data }: SectionProps) {
 
 /* ─── 12. FooterSection ─────────────────────────────────────────────────── */
 export function FooterSection({ data, org }: SectionProps) {
-  const bigLine1 = (data.big_line_1 as string) || 'לבנות קהילה.';
-  const bigLine2 = (data.big_line_2 as string) || 'ביחד.';
-  const tagline = (data.tagline as string) || '';
+  const bigText = (data.big_text as string) || (data.big_line_1 as string) || 'לבנות קהילה.';
+  const bigAccent = (data.big_accent as string) || (data.big_line_2 as string) || 'ביחד.';
+  const tagline = (data.tagline as string) || (data.about as string) || '';
   const year = new Date().getFullYear();
 
   return (
-    <footer className="lp-footer">
-      <div className="lp-footer-big">
-        <span>{bigLine1}</span>
-        <span className="accent"> {bigLine2}</span>
+    <footer className="footer">
+      <div className="footer-big">
+        <span>{bigText}</span>
+        <span className="accent"> {bigAccent}</span>
       </div>
 
-      <div className="lp-footer-grid">
+      <div className="footer-grid">
         {/* Brand column */}
         <div>
-          <div className="lp-footer-brand">
-            <div className="lp-brand-mark" />
-            <div className="lp-brand-name">{org.name}</div>
+          <div className="footer-brand">
+            <div className="brand-mark" />
+            <div className="brand-name">{org.name}</div>
           </div>
-          <div className="lp-footer-tag">
+          <div className="footer-tag">
             {tagline || `עמותה קהילתית המשרתת את משפחות הקהילה.`}
           </div>
         </div>
 
         {/* Visit */}
         {org.address && (
-          <div className="lp-footer-col">
+          <div className="footer-col">
             <h4>ביקור</h4>
             <div>{org.address}</div>
           </div>
@@ -812,7 +954,7 @@ export function FooterSection({ data, org }: SectionProps) {
 
         {/* Contact */}
         {(org.contactEmail || org.contactPhone) && (
-          <div className="lp-footer-col">
+          <div className="footer-col">
             <h4>יצירת קשר</h4>
             {org.contactEmail && (
               <a href={`mailto:${org.contactEmail}`}>{org.contactEmail}</a>
@@ -825,7 +967,7 @@ export function FooterSection({ data, org }: SectionProps) {
 
         {/* Follow */}
         {(org.instagramUrl || org.facebookUrl || org.youtubeUrl) && (
-          <div className="lp-footer-col">
+          <div className="footer-col">
             <h4>עקבו</h4>
             {org.instagramUrl && (
               <a href={org.instagramUrl} target="_blank" rel="noopener noreferrer">
@@ -846,7 +988,7 @@ export function FooterSection({ data, org }: SectionProps) {
         )}
       </div>
 
-      <div className="lp-footer-legal">
+      <div className="footer-legal">
         <div>
           © {year} {org.legalName || org.name} · נבנה עם עמותות
         </div>
