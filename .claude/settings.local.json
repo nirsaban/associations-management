@@ -127,7 +127,9 @@
       "Bash(lsof -ti:3000)",
       "Bash(rm -f \"apps/web/src/app/l/[slug]/_components/Sections.tsx\")",
       "Bash(rmdir \"apps/web/src/app/l/[slug]/_components\")",
-      "Bash(rmdir \"apps/web/src/app/l/[slug]/components\")"
+      "Bash(rmdir \"apps/web/src/app/l/[slug]/components\")",
+      "Bash(psql:*)",
+      "Bash(kill %1)"
     ]
   }
 }

@@ -609,6 +609,195 @@ async function main() {
     },
   );
 
+  // Landing page for or-laam with all 13 sections
+  console.log('\nיוצר דף נחיתה לעמותה B (or-laam)...');
+  const landingPage = await prisma.landingPage.create({
+    data: {
+      organizationId: orgB.org.id,
+      slug: 'or-laam',
+      title: 'עמותת אור לעם — דף נחיתה',
+      theme: 'MODERN',
+      published: true,
+      publishedAt: new Date(),
+      sections: {
+        create: [
+          {
+            type: 'hero',
+            position: 0,
+            visible: true,
+            data: {
+              pill_text: 'פעיל · קמפיין פתוח',
+              since_text: 'עמותה רשומה · נוסדה 1994',
+              headline: 'דרך שקטה לתת כתף',
+              accent_word_index: 2,
+              subheadline: 'חונכות, תכניות אחר־צהריים וביטחון תזונתי למשפחות בקהילה שלנו. ממומן על־ידי שכנים, למען שכנים.',
+              cta_label: 'תרמו עכשיו →',
+              cta_action: 'payment',
+              secondary_cta_label: 'צפו בסיפור שלנו',
+              secondary_cta_target: '#story',
+              stats: [
+                { value: '140', label: 'משפחות בשבוע' },
+                { value: '32', label: 'שנות פעילות' },
+                { value: '68%', label: 'מימון מקומי' },
+                { value: '1,240', label: 'שעות התנדבות' },
+              ],
+            },
+          },
+          {
+            type: 'marquee',
+            position: 1,
+            visible: true,
+            data: { items: ['חונכות', 'מזון', 'חינוך', 'קהילה', 'תקווה'] },
+          },
+          {
+            type: 'video',
+            position: 2,
+            visible: true,
+            data: {
+              eyebrow: 'הסיפור שלנו',
+              title: 'העבודה, במילותיהן של המשפחות שחיו אותה.',
+              description: '',
+              source: '',
+            },
+          },
+          {
+            type: 'about',
+            position: 3,
+            visible: true,
+            data: {
+              eyebrow: 'אודות',
+              title: 'התחלנו סביב שולחן מטבח ב־1994. וכך אנחנו ממשיכים.',
+              body_rich_text: '<p>התחלנו עם ארבע משפחות, ארוחה משותפת אחת בשבוע, ואמונה ששכנים יודעים הכי טוב מה שכנים צריכים.</p><p>שלושה עשורים לאחר מכן אנחנו מפעילים חונכות אחר־צהריים, תכנית מזון שבועית, וקייטנת נוער קיצית — אבל צורת העבודה לא השתנתה הרבה.</p>',
+              badge_text: 'מאז 1994',
+            },
+          },
+          {
+            type: 'activities',
+            position: 4,
+            visible: true,
+            data: {
+              eyebrow: 'מה אנחנו עושים',
+              title: 'שש תכניות, בכל שבוע של השנה.',
+              items: [
+                { title: 'חונכות נוער', description: 'התאמה אישית בין תלמידי תיכון למתנדבים סטודנטים, מדי שבוע לאורך שנת לימודים.' },
+                { title: 'תכנית אחר־צהריים', description: 'חדר חם ובטוח בין 14:00 ל־18:00, עם תגבור, עזרה בשיעורים וארוחה חמה.' },
+                { title: 'סל מזון שבועי', description: 'ירקות ומצרכי יסוד נמסרים ל־140 משפחות בכל יום חמישי, בלי טפסים ובלי שאלות.' },
+                { title: 'קייטנת קיץ', description: 'עשרה ימים של טיולים, מוסיקה וחברות לילדים שמשפחותיהם לא יכולות לשלוח אותם בדרך אחרת.' },
+                { title: 'מטבח קהילתי', description: 'מתנדבים, סטודנטים וסבתות מבשלים יחד עבור שכנים שזקוקים לארוחה.' },
+                { title: 'פעילות חגים', description: 'מבצעי מתנות ומצרכים לפני כל חג, המופעלים על־ידי מועצת המתנדבים הצעירים.' },
+              ],
+            },
+          },
+          {
+            type: 'gallery',
+            position: 5,
+            visible: true,
+            data: {
+              eyebrow: 'בתוך הרגע',
+              title: 'רגעים, שנשמרו על־ידי האנשים שהיו בהם.',
+              images: [],
+            },
+          },
+          {
+            type: 'reviews',
+            position: 6,
+            visible: true,
+            data: {
+              eyebrow: 'במילים שלהם',
+              title: 'הקהילה, על הקהילה.',
+              cta_text: 'השאירו ביקורת שלכם',
+              empty_text: 'היו הראשונים להשאיר הודעה.',
+              items: [
+                { name: 'רונית ל.', text: 'הבן שלי בתכנית אחר־הצהריים שנתיים. המדריכים מכירים אותו בשמו. זה מה שמשנה.', rating: 5 },
+                { name: 'דוד ק.', text: 'אני תורם כאן כי אני יכול להיכנס, לראות את העבודה, ולצאת עם ידיים מלאות ירקות.', rating: 5 },
+                { name: 'מרים א.', text: 'קייטנת הקיץ הייתה הפעם הראשונה שהבת שלי נסעה לבד. היא חזרה גבוהה יותר.', rating: 5 },
+              ],
+            },
+          },
+          {
+            type: 'stats',
+            position: 7,
+            visible: true,
+            data: {
+              eyebrow: 'במספרים',
+              items: [
+                { value: '140', label: 'משפחות בשבוע' },
+                { value: '32', label: 'שנים בשכונה' },
+                { value: '68%', label: 'מהמימון מתורמים מקומיים' },
+                { value: '1,240', label: 'שעות התנדבות אשתקד' },
+              ],
+            },
+          },
+          {
+            type: 'cta_payment',
+            position: 8,
+            visible: true,
+            data: {
+              eyebrow: 'תרמו עכשיו',
+              headline: 'כל שקל, *ישר לעבודה.*',
+              subheadline: 'עיבוד באמצעות שותף הסליקה המאובטח שלנו. עד 12 תשלומים חודשיים ללא ריבית.',
+              amounts: [100, 250, 500, 1000],
+              default_amount_index: 2,
+              allow_custom: true,
+              installments_hint: true,
+              receipt_hint: true,
+              cta_label: 'תרמו',
+              secure_label: 'סליקה מאובטחת',
+              installments_label: 'עד 12 תשלומים',
+              receipt_label: 'קבלה לפי סעיף 46',
+            },
+          },
+          {
+            type: 'join_us',
+            position: 9,
+            visible: true,
+            data: {
+              eyebrow: 'הצטרפו אלינו',
+              headline: 'מקום ליד השולחן תמיד פתוח.',
+              body: 'מתנדבים, שכנים, סטודנטים, סבתות — אם תרצו לעזור, השאירו לנו הודעה ונחזור אליכם תוך שבוע.',
+              submit_label: 'שלחו →',
+              success_title: 'קיבלנו. תודה רבה.',
+              success_message: 'נחזור אליכם תוך מספר ימים.',
+            },
+          },
+          {
+            type: 'faq',
+            position: 10,
+            visible: true,
+            data: {
+              eyebrow: 'שאלות',
+              title: 'הנפוצות ביותר.',
+              items: [
+                { question: 'האם התרומה מוכרת לזיכוי מס?', answer: 'כן. אנחנו עמותה רשומה בעלת אישור סעיף 46; קבלה לצורכי מס מונפקת אוטומטית לאחר כל תרומה.' },
+                { question: 'האם ניתן לתרום בעילום שם?', answer: 'כן. תרומות בעילום שם מתקבלות בברכה ומופיעות בדוח השנתי ללא שם.' },
+                { question: 'איך הכסף מנוצל?', answer: 'כ־82% הולך ישירות לתכניות; השאר מכסה שכר דירה, הוצאות שוטפות, ורכזת.' },
+                { question: 'איך אפשר להתנדב?', answer: 'מלאו את הטופס למעלה או כתבו לנו. אנחנו מקיימים יום הכוונה קצר בתחילת כל חודש.' },
+                { question: 'האם אתם מקבלים תרומות בעין?', answer: 'אנחנו מקבלים מזון, ספרים, וביגוד עונתי. אנא צרו איתנו קשר לפני הבאת פריטים.' },
+              ],
+            },
+          },
+          {
+            type: 'footer',
+            position: 11,
+            visible: true,
+            data: {
+              big_text: 'לבנות קהילה.',
+              big_accent: 'ביחד.',
+              about: 'עמותה קהילתית המשרתת את משפחות השכונה שלנו מאז 1994.',
+              visit_label: 'ביקור',
+              contact_label: 'יצירת קשר',
+              follow_label: 'עקבו',
+              hours: 'א׳–ה׳, 9:00–17:00',
+              registration_number: '',
+              section_46: false,
+            },
+          },
+        ],
+      },
+    },
+  });
+  console.log(`  דף נחיתה: ${landingPage.slug} (${landingPage.id})`);
+
   console.log('\n========================================');
   console.log('Seed הושלם בהצלחה!');
   console.log('========================================');
