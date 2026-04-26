@@ -23,9 +23,10 @@ async function bootstrap(): Promise<void> {
   // Serve uploaded files statically
   app.useStaticAssets(join(process.cwd(), 'uploads'), { prefix: '/uploads/' });
 
-  // Enable CORS
+  // Enable CORS — support comma-separated origins for dev + prod
+  const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:3010';
   app.enableCors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3010',
+    origin: corsOrigin.includes(',') ? corsOrigin.split(',').map(o => o.trim()) : corsOrigin,
     credentials: true,
   });
 
