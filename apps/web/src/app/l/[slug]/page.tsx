@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useParams } from 'next/navigation';
 import './landing.css';
 import {
   HeroSection,
@@ -92,12 +93,9 @@ function renderSection(section: Section, org: OrgData, slug: string, i: number) 
 }
 
 /* ─── Page ───────────────────────────────────────────────────────────────── */
-export default function LandingPage({
-  params,
-}: {
-  params: { slug: string };
-}) {
-  const { slug } = params;
+export default function LandingPage() {
+  const params = useParams();
+  const slug = params.slug as string;
   const [data, setData] = useState<LandingData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
