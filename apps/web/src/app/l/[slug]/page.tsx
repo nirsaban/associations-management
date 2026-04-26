@@ -41,8 +41,14 @@ interface Section {
 }
 
 interface LandingData {
-  org: OrgData;
-  sections: Section[];
+  data: {
+    slug: string;
+    title: string;
+    theme: string;
+    published: boolean;
+    sections: Array<Section & { visible: boolean; position: number }>;
+    organization: OrgData;
+  };
 }
 
 /* ─── Section → nav label map ────────────────────────────────────────────── */
@@ -50,7 +56,7 @@ const NAV_LABELS: Record<string, { href: string; label: string }> = {
   about:       { href: '#about',      label: 'אודות' },
   activities:  { href: '#activities', label: 'פעילויות' },
   gallery:     { href: '#gallery',    label: 'גלריה' },
-  join:        { href: '#contact',    label: 'צרו קשר' },
+  join_us:     { href: '#contact',    label: 'צרו קשר' },
   reviews:     { href: '#reviews',    label: 'המלצות' },
   stats:       { href: '#stats',      label: 'במספרים' },
   faq:         { href: '#faq',        label: 'שאלות' },
@@ -59,13 +65,13 @@ const NAV_LABELS: Record<string, { href: string; label: string }> = {
 };
 
 /* ─── Section renderer ───────────────────────────────────────────────────── */
-function renderSection(section: Section, org: OrgData, i: number) {
+function renderSection(section: Section, org: OrgData, slug: string, i: number) {
   const props = {
     data: section.data,
     org,
     primaryColor: org.primaryColor || '#1A1410',
     accentColor: org.accentColor || '#B8893A',
-    slug: '',
+    slug,
   };
 
   switch (section.type) {
@@ -78,7 +84,7 @@ function renderSection(section: Section, org: OrgData, i: number) {
     case 'reviews':      return <ReviewsSection      key={i} {...props} />;
     case 'stats':        return <StatsSection        key={i} {...props} />;
     case 'cta_payment':  return <CtaPaymentSection   key={i} {...props} />;
-    case 'join':         return <JoinUsSection       key={i} {...props} />;
+    case 'join_us':      return <JoinUsSection       key={i} {...props} />;
     case 'faq':          return <FaqSection          key={i} {...props} />;
     case 'footer':       return <FooterSection       key={i} {...props} />;
     default:             return null;
@@ -103,7 +109,9 @@ export default function LandingPage({
     const apiBase =
       process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3003/api/v1';
 
-    fetch(`${apiBase}/public/landing/${slug}`)
+    const searchParams = new URLSearchParams(window.location.search);
+    const isPreview = searchParams.get('preview') === '1';
+    fetch(`${apiBase}/public/landing/${slug}${isPreview ? '?preview=1' : ''}`)
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json() as Promise<LandingData>;
@@ -160,15 +168,15 @@ export default function LandingPage({
 
   /* ── Color override ─────────────────────────────────────────────────── */
   useEffect(() => {
-    if (!data?.org.accentColor) return;
+    if (!data?.data?.organization?.accentColor) return;
     document.documentElement.style.setProperty(
       '--coral',
-      data.org.accentColor
+      data.data.organization.accentColor
     );
     return () => {
       document.documentElement.style.removeProperty('--coral');
     };
-  }, [data?.org.accentColor]);
+  }, [data?.data?.organization?.accentColor]);
 
   /* ── Loading ────────────────────────────────────────────────────────── */
   if (loading) {
@@ -241,7 +249,11 @@ export default function LandingPage({
     );
   }
 
-  const { org, sections } = data;
+  const landing = data.data;
+  const org = landing.organization;
+  const sections = landing.sections
+    .filter((s) => s.visible)
+    .sort((a, b) => a.position - b.position);
 
   /* ── Nav links derived from section types ───────────────────────────── */
   const navLinks = sections
@@ -289,7 +301,7 @@ export default function LandingPage({
       </nav>
 
       {/* ── Sections ───────────────────────────────────────────────────── */}
-      {sections.map((section, i) => renderSection(section, org, i))}
+      {sections.map((section, i) => renderSection(section, org, slug, i))}
 
       {/* ── Fallback footer if none in sections ────────────────────────── */}
       {!hasFooter && (
