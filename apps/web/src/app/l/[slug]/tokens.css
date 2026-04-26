@@ -2,15 +2,7 @@
    Source: Amutot Landing - Live Prototype
    3-color palette: ink, parchment, burnished gold */
 
-/* Gutman Stam fallback chain — drop fonts/GutmanStam.woff2 to use it */
-@font-face {
-  font-family: "Gutman Stam";
-  src: url("fonts/GutmanStam.woff2") format("woff2"),
-       url("fonts/GutmanStam.woff")  format("woff"),
-       url("fonts/GutmanStam.ttf")   format("truetype");
-  font-display: swap;
-  font-weight: 400 900;
-}
+/* Gutman Stam — custom font, not bundled. Falls through to Frank Ruhl Libre. */
 
 :root {
   /* Strict 3-color Torah/scribal palette: ink, parchment, burnished gold.
