@@ -55,7 +55,6 @@ export function HeroSection({ data, org }: SectionProps) {
 
   // Split headline into animated words
   const words = (data.headline as string).split(/\s+/);
-  // Stats from data
   const stats = (data.stats as Array<Record<string, string>>) || [];
 
   return (
@@ -69,7 +68,10 @@ export function HeroSection({ data, org }: SectionProps) {
         {/* Meta row: pill + since */}
         <div className="lp-hero-meta">
           {data.pill_text && (
-            <span className="lp-hero-pill"><span className="dot" /><span>{data.pill_text}</span></span>
+            <span className="lp-hero-pill">
+              <span className="dot" />
+              <span>{data.pill_text}</span>
+            </span>
           )}
           {data.since_text && <span className="since">{data.since_text}</span>}
         </div>
@@ -77,7 +79,10 @@ export function HeroSection({ data, org }: SectionProps) {
         {/* Headline with per-word animation */}
         <h1>
           {words.map((word, i) => (
-            <span key={i} className={`word${data.accent_word_index !== undefined && i === Number(data.accent_word_index) ? ' accent' : ''}`}>
+            <span
+              key={i}
+              className={`word${data.accent_word_index !== undefined && i === Number(data.accent_word_index) ? ' accent' : ''}`}
+            >
               {word}{' '}
             </span>
           ))}
@@ -118,7 +123,7 @@ export function HeroSection({ data, org }: SectionProps) {
 export function MarqueeSection({ data }: SectionProps) {
   const items = (data.items as string[]) || [];
   if (items.length === 0) return null;
-  // Double for infinite scroll
+  // Double for seamless infinite scroll
   const doubled = [...items, ...items];
 
   return (
@@ -151,22 +156,37 @@ export function VideoSection({ data }: SectionProps) {
       <div className="lp-container">
         {data.eyebrow && <div className="lp-eyebrow lp-reveal">{data.eyebrow}</div>}
         <h2 className="lp-reveal">{data.title}</h2>
-        {data.description && <p className="lp-reveal" style={{ marginTop: 18, color: 'var(--text-muted)', maxWidth: 560, fontSize: 17, lineHeight: 1.55 }}>{data.description}</p>}
-        {embedUrl ? (
-          <div className="lp-video-wrap lp-reveal">
-            <div className="lp-video-frame">
-              <iframe src={embedUrl} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none', zIndex: 1 }}
-                allow="autoplay; fullscreen; picture-in-picture" allowFullScreen loading="lazy" title={data.title || 'Video'} />
-            </div>
-          </div>
-        ) : (
-          <div className="lp-video-wrap lp-reveal">
-            <div className="lp-video-frame lp-imgslot" style={{ minHeight: 300 }}>
-              <span style={{ position: 'absolute', top: 20, right: 20, color: 'rgba(245,240,230,0.5)', zIndex: 2 }}>video · 16:9</span>
-              <div className="lp-video-play"><div className="core"><PlayIcon /></div></div>
-            </div>
-          </div>
+        {data.description && (
+          <p className="lp-reveal" style={{ marginTop: 18, color: 'var(--text-muted)', maxWidth: 560, fontSize: 17, lineHeight: 1.55 }}>
+            {data.description}
+          </p>
         )}
+        <div className="lp-video-wrap lp-reveal">
+          <div
+            className={`lp-video-frame${embedUrl ? '' : ' lp-imgslot'}`}
+            tabIndex={embedUrl ? undefined : 0}
+            role={embedUrl ? undefined : 'button'}
+            aria-label={embedUrl ? undefined : 'Play video'}
+          >
+            {embedUrl ? (
+              <iframe
+                src={embedUrl}
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none', zIndex: 1 }}
+                allow="autoplay; fullscreen; picture-in-picture"
+                allowFullScreen
+                loading="lazy"
+                title={data.title || 'Video'}
+              />
+            ) : (
+              <>
+                <span style={{ position: 'absolute', top: 20, right: 20, color: 'rgba(245,240,230,0.5)', zIndex: 2 }}>video · 16:9</span>
+                <div className="lp-video-play">
+                  <div className="core"><PlayIcon /></div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       </div>
     </section>
   );
@@ -240,7 +260,7 @@ export function ActivitiesSection({ data }: SectionProps) {
 /* ═══ 5. GALLERY ═══ */
 export function GallerySection({ data }: SectionProps) {
   const images = (data.images as Array<Record<string, string>>) || [];
-  // Placeholder heights when no real images
+  // Placeholder heights matching the prototype exactly
   const placeholderHeights = [220, 300, 180, 260, 240, 320, 200, 280, 220, 260, 300, 190];
 
   return (
@@ -256,7 +276,12 @@ export function GallerySection({ data }: SectionProps) {
           {images.length > 0
             ? images.map((img, i) => (
                 <div key={i} className="lp-reveal">
-                  <img src={img.url || img.src} alt={img.alt || `Photo ${i + 1}`} style={{ width: '100%', display: 'block', borderRadius: 14 }} loading="lazy" />
+                  <img
+                    src={img.url || img.src}
+                    alt={img.alt || `תמונה ${i + 1}`}
+                    style={{ width: '100%', display: 'block', borderRadius: 14 }}
+                    loading="lazy"
+                  />
                 </div>
               ))
             : placeholderHeights.map((h, i) => (
@@ -282,7 +307,8 @@ export function ReviewsSection({ data, slug }: SectionProps) {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3003/api/v1';
       await fetch(`${apiUrl}/public/landing/${slug}/reviews`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
       setSubmitted(true);
@@ -299,7 +325,7 @@ export function ReviewsSection({ data, slug }: SectionProps) {
           <div className="lp-reviews-grid">
             {reviews.map((r, i) => (
               <article key={i} className="lp-review lp-reveal">
-                <div className="lp-stars" aria-label={`${r.rating} of 5 stars`}>
+                <div className="lp-stars" aria-label={`${r.rating} מתוך 5 כוכבים`}>
                   {[0, 1, 2, 3, 4].map(j => <StarIcon key={j} filled={j < Number(r.rating)} />)}
                 </div>
                 <p>&ldquo;{r.body}&rdquo;</p>
@@ -311,9 +337,11 @@ export function ReviewsSection({ data, slug }: SectionProps) {
 
         {reviews.length === 0 && !showForm && (
           <div className="lp-reveal" style={{ padding: 60, background: 'var(--paper)', border: '1px dashed var(--border-strong)', borderRadius: 24, textAlign: 'center', color: 'var(--text-muted)', marginTop: 48 }}>
-            {data.empty_text || 'היו הראשונים להשאיר הודעה.'}
+            {data.empty_text || 'היו הראשונים להשאיר ביקורת.'}
             <div style={{ marginTop: 20, display: 'flex', justifyContent: 'center' }}>
-              <button className="lp-btn lp-btn-primary" onClick={() => setShowForm(true)}><span>השאירו ביקורת</span></button>
+              <button className="lp-btn lp-btn-primary" onClick={() => setShowForm(true)}>
+                <span>השאירו ביקורת</span>
+              </button>
             </div>
           </div>
         )}
@@ -329,8 +357,12 @@ export function ReviewsSection({ data, slug }: SectionProps) {
         {showForm && !submitted && (
           <form onSubmit={handleSubmit} className="lp-form-card lp-reveal" style={{ maxWidth: 620, marginTop: 32 }}>
             <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 26, marginBottom: 18, fontWeight: 700 }}>השאירו ביקורת</h3>
-            <div className="lp-field"><label>שם</label><input required value={formData.authorName} onChange={e => setFormData(p => ({ ...p, authorName: e.target.value }))} /></div>
-            <div className="lp-field"><label>דירוג</label>
+            <div className="lp-field">
+              <label>שם</label>
+              <input required value={formData.authorName} onChange={e => setFormData(p => ({ ...p, authorName: e.target.value }))} />
+            </div>
+            <div className="lp-field">
+              <label>דירוג</label>
               <div className="lp-stars" style={{ marginTop: 6 }}>
                 {[0, 1, 2, 3, 4].map(j => (
                   <button key={j} type="button" onClick={() => setFormData(p => ({ ...p, rating: j + 1 }))} style={{ cursor: 'pointer', padding: 2 }}>
@@ -339,15 +371,31 @@ export function ReviewsSection({ data, slug }: SectionProps) {
                 ))}
               </div>
             </div>
-            <div className="lp-field"><label>הביקורת שלכם</label><textarea required rows={4} value={formData.body} onChange={e => setFormData(p => ({ ...p, body: e.target.value }))} /></div>
+            <div className="lp-field">
+              <label>הביקורת שלכם</label>
+              <textarea required rows={4} value={formData.body} onChange={e => setFormData(p => ({ ...p, body: e.target.value }))} />
+            </div>
             {/* honeypot */}
-            <input value={formData.website} onChange={e => setFormData(p => ({ ...p, website: e.target.value }))} style={{ position: 'absolute', opacity: 0, height: 0, width: 0, zIndex: -1 }} tabIndex={-1} autoComplete="off" aria-hidden="true" />
-            <button type="submit" className="lp-btn lp-btn-primary" style={{ marginTop: 6 }}><span>שליחה</span></button>
+            <input
+              value={formData.website}
+              onChange={e => setFormData(p => ({ ...p, website: e.target.value }))}
+              style={{ position: 'absolute', opacity: 0, height: 0, width: 0, zIndex: -1 }}
+              tabIndex={-1}
+              autoComplete="off"
+              aria-hidden="true"
+            />
+            <button type="submit" className="lp-btn lp-btn-primary" style={{ marginTop: 6 }}>
+              <span>שליחה</span>
+            </button>
             <div style={{ fontSize: 12, color: 'rgba(245,240,230,0.6)', marginTop: 8 }}>הביקורות מופיעות לאחר אישור העמותה.</div>
           </form>
         )}
 
-        {submitted && <p className="lp-reveal" style={{ textAlign: 'center', marginTop: 32, color: 'var(--coral)', fontSize: 18, fontWeight: 600 }}>תודה — הביקורת שלכם ממתינה לאישור.</p>}
+        {submitted && (
+          <p className="lp-reveal" style={{ textAlign: 'center', marginTop: 32, color: 'var(--coral)', fontSize: 18, fontWeight: 600 }}>
+            תודה — הביקורת שלכם ממתינה לאישור.
+          </p>
+        )}
       </div>
     </section>
   );
@@ -415,12 +463,14 @@ export function StatsSection({ data }: SectionProps) {
 /* ═══ 8. CTA PAYMENT ═══ */
 export function CtaPaymentSection({ data, org }: SectionProps) {
   const amounts = (data.amounts as number[]) || [100, 250, 500, 1000];
-  const [selected, setSelected] = useState(data.default_amount_index ?? 2);
+  const [selected, setSelected] = useState<number>(data.default_amount_index ?? 2);
 
   const handleDonate = () => {
     if (org.paymentLink) {
       const amt = selected < amounts.length ? amounts[selected] : null;
-      const url = amt ? `${org.paymentLink}${org.paymentLink.includes('?') ? '&' : '?'}amount=${amt}` : org.paymentLink;
+      const url = amt
+        ? `${org.paymentLink}${org.paymentLink.includes('?') ? '&' : '?'}amount=${amt}`
+        : org.paymentLink;
       window.open(url, '_blank', 'noopener');
     }
   };
@@ -430,25 +480,34 @@ export function CtaPaymentSection({ data, org }: SectionProps) {
       <div className="lp-container">
         {data.eyebrow && <div className="lp-eyebrow lp-reveal">{data.eyebrow}</div>}
         {data.headline && (
-          <h2 className="lp-reveal" dangerouslySetInnerHTML={{
-            __html: (data.headline as string).replace(
-              /\*(.+?)\*/g,
-              '<span class="accent">$1</span>'
-            )
-          }} />
+          <h2
+            className="lp-reveal"
+            dangerouslySetInnerHTML={{
+              __html: (data.headline as string).replace(/\*(.+?)\*/g, '<span class="accent">$1</span>'),
+            }}
+          />
         )}
         {data.subheadline && <p className="lp-cta-sub lp-reveal">{data.subheadline}</p>}
 
-        <div className="lp-chips lp-reveal" role="radiogroup" aria-label="Donation amount">
+        <div className="lp-chips lp-reveal" role="radiogroup" aria-label="סכום תרומה">
           {amounts.map((amt, i) => (
-            <button key={amt} className={`lp-chip${selected === i ? ' active' : ''}`} role="radio" aria-checked={selected === i}
-              onClick={() => setSelected(i)}>
+            <button
+              key={amt}
+              className={`lp-chip${selected === i ? ' active' : ''}`}
+              role="radio"
+              aria-checked={selected === i}
+              onClick={() => setSelected(i)}
+            >
               ₪{amt.toLocaleString()}
             </button>
           ))}
           {data.allow_custom && (
-            <button className={`lp-chip${selected === amounts.length ? ' active' : ''}`} role="radio" aria-checked={selected === amounts.length}
-              onClick={() => setSelected(amounts.length)}>
+            <button
+              className={`lp-chip${selected === amounts.length ? ' active' : ''}`}
+              role="radio"
+              aria-checked={selected === amounts.length}
+              onClick={() => setSelected(amounts.length)}
+            >
               אחר
             </button>
           )}
@@ -456,15 +515,24 @@ export function CtaPaymentSection({ data, org }: SectionProps) {
 
         <div className="lp-cta-go lp-reveal">
           <button className="lp-btn lp-btn-lg" onClick={handleDonate}>
-            <span>{data.cta_label || 'תרמו'}&nbsp;{selected < amounts.length ? `₪${amounts[selected].toLocaleString()}` : ''}&nbsp;→</span>
+            <span>
+              {data.cta_label || 'תרמו'}
+              &nbsp;
+              {selected < amounts.length ? `₪${amounts[selected].toLocaleString()}` : ''}
+              &nbsp;→
+            </span>
           </button>
         </div>
 
         <div className="lp-cta-trust lp-reveal">
           <span>🔒 {data.secure_label || 'סליקה מאובטחת'}</span>
           <span>·</span>
-          {data.installments_hint !== false && <><span>{data.installments_label || 'עד 12 תשלומים'}</span><span>·</span></>}
-          {data.receipt_hint !== false && <span>{data.receipt_label || 'קבלה לפי סעיף 46'}</span>}
+          {data.installments_hint !== false && (
+            <><span>{data.installments_label || 'עד 12 תשלומים'}</span><span>·</span></>
+          )}
+          {data.receipt_hint !== false && (
+            <span>{data.receipt_label || 'קבלה לפי סעיף 46'}</span>
+          )}
         </div>
       </div>
     </section>
@@ -482,8 +550,14 @@ export function JoinUsSection({ data, slug }: SectionProps) {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3003/api/v1';
       await fetch(`${apiUrl}/public/landing/${slug}/leads`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: fd.get('name'), email: fd.get('email'), phone: fd.get('phone'), message: fd.get('message') }),
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: fd.get('name'),
+          email: fd.get('email'),
+          phone: fd.get('phone'),
+          message: fd.get('message'),
+        }),
       });
       setSubmitted(true);
     } catch { /* silent */ }
@@ -495,22 +569,44 @@ export function JoinUsSection({ data, slug }: SectionProps) {
         <div className="lp-reveal">
           {data.eyebrow && <div className="lp-eyebrow">{data.eyebrow}</div>}
           {data.headline && <h2>{data.headline}</h2>}
-          {data.body && <p style={{ marginTop: 24, fontSize: 17, lineHeight: 1.65, maxWidth: 480, color: 'var(--text)' }}>{data.body}</p>}
+          {data.body && (
+            <p style={{ marginTop: 24, fontSize: 17, lineHeight: 1.65, maxWidth: 480, color: 'var(--text)' }}>
+              {data.body}
+            </p>
+          )}
         </div>
         <form className="lp-form-card lp-reveal" onSubmit={handleSubmit}>
           {!submitted ? (
             <>
-              <div className="lp-field"><label>שם</label><input required name="name" type="text" autoComplete="name" /></div>
-              <div className="lp-field"><label>אימייל</label><input required name="email" type="email" autoComplete="email" /></div>
-              <div className="lp-field"><label>טלפון (לא חובה)</label><input name="phone" type="tel" autoComplete="tel" /></div>
-              <div className="lp-field"><label>הודעה (לא חובה)</label><textarea name="message" rows={3} /></div>
-              <button type="submit" className="lp-btn lp-btn-lg lp-btn-block"><span>{data.submit_label || 'שלחו →'}</span></button>
+              <div className="lp-field">
+                <label>שם</label>
+                <input required name="name" type="text" autoComplete="name" />
+              </div>
+              <div className="lp-field">
+                <label>אימייל</label>
+                <input required name="email" type="email" autoComplete="email" />
+              </div>
+              <div className="lp-field">
+                <label>טלפון (לא חובה)</label>
+                <input name="phone" type="tel" autoComplete="tel" />
+              </div>
+              <div className="lp-field">
+                <label>הודעה (לא חובה)</label>
+                <textarea name="message" rows={3} />
+              </div>
+              <button type="submit" className="lp-btn lp-btn-lg lp-btn-block">
+                <span>{data.submit_label || 'שלחו →'}</span>
+              </button>
             </>
           ) : (
             <div className="lp-form-success">
               <div className="lp-check-circle"><CheckIcon /></div>
-              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 32, marginBottom: 10, color: 'var(--paper)', fontWeight: 800 }}>{data.success_title || 'קיבלנו. תודה רבה.'}</h3>
-              <div style={{ color: 'rgba(245,240,230,0.7)', fontSize: 15 }}>{data.success_message || 'נחזור אליכם תוך מספר ימים.'}</div>
+              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 32, marginBottom: 10, color: 'var(--paper)', fontWeight: 800 }}>
+                {data.success_title || 'קיבלנו. תודה רבה.'}
+              </h3>
+              <div style={{ color: 'rgba(245,240,230,0.7)', fontSize: 15 }}>
+                {data.success_message || 'נחזור אליכם תוך מספר ימים.'}
+              </div>
             </div>
           )}
         </form>
@@ -534,12 +630,25 @@ export function FaqSection({ data }: SectionProps) {
         </div>
         <div className="lp-faq-list">
           {items.map((faq, i) => (
-            <div key={i} className="lp-faq-item lp-reveal" data-open={openIndex === i ? 'true' : 'false'}>
-              <button className="lp-faq-q" aria-expanded={openIndex === i} onClick={() => setOpenIndex(openIndex === i ? null : i)}>
+            <div
+              key={i}
+              className="lp-faq-item lp-reveal"
+              data-open={openIndex === i ? 'true' : 'false'}
+            >
+              <button
+                className="lp-faq-q"
+                aria-expanded={openIndex === i}
+                onClick={() => setOpenIndex(openIndex === i ? null : i)}
+              >
                 <span>{faq.question || faq.q}</span>
-                <span className="chev">+</span>
+                {/* chev content is rendered via CSS ::before { content:"+" } */}
+                <span className="chev" />
               </button>
-              <div className="lp-faq-a"><div><p>{faq.answer || faq.a}</p></div></div>
+              <div className="lp-faq-a">
+                <div>
+                  <p>{faq.answer || faq.a}</p>
+                </div>
+              </div>
             </div>
           ))}
         </div>
@@ -559,6 +668,7 @@ export function FooterSection({ data, org }: SectionProps) {
       </div>
 
       <div className="lp-footer-grid">
+        {/* Brand column */}
         <div>
           <div className="lp-footer-brand">
             {org.logoUrl ? (
@@ -568,8 +678,12 @@ export function FooterSection({ data, org }: SectionProps) {
             )}
             <div className="lp-brand-name">{org.name}</div>
           </div>
-          <div className="lp-footer-tag">{data.about || `עמותה קהילתית המשרתת את משפחות השכונה שלנו.`}</div>
+          <div className="lp-footer-tag">
+            {data.about || 'עמותה קהילתית המשרתת את משפחות השכונה שלנו.'}
+          </div>
         </div>
+
+        {/* Visit column */}
         {(org.address || data.hours) && (
           <div className="lp-footer-col">
             <h4>{data.visit_label || 'ביקור'}</h4>
@@ -577,19 +691,40 @@ export function FooterSection({ data, org }: SectionProps) {
             {data.hours && <div>{data.hours}</div>}
           </div>
         )}
+
+        {/* Contact column */}
         <div className="lp-footer-col">
           <h4>{data.contact_label || 'יצירת קשר'}</h4>
           {org.contactEmail && <a href={`mailto:${org.contactEmail}`}>{org.contactEmail}</a>}
           {org.contactPhone && <a href={`tel:${org.contactPhone}`}>{org.contactPhone}</a>}
         </div>
+
+        {/* Follow column */}
         <div className="lp-footer-col">
           <h4>{data.follow_label || 'עקבו'}</h4>
-          {org.instagramUrl && <a href={org.instagramUrl} target="_blank" rel="noopener noreferrer" aria-label="Instagram">Instagram</a>}
-          {org.facebookUrl && <a href={org.facebookUrl} target="_blank" rel="noopener noreferrer" aria-label="Facebook">Facebook</a>}
-          {org.youtubeUrl && <a href={org.youtubeUrl} target="_blank" rel="noopener noreferrer" aria-label="YouTube">YouTube</a>}
-          {org.whatsappUrl && <a href={org.whatsappUrl} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">WhatsApp</a>}
+          {org.instagramUrl && (
+            <a href={org.instagramUrl} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+              Instagram
+            </a>
+          )}
+          {org.facebookUrl && (
+            <a href={org.facebookUrl} target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+              Facebook
+            </a>
+          )}
+          {org.youtubeUrl && (
+            <a href={org.youtubeUrl} target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+              YouTube
+            </a>
+          )}
+          {org.whatsappUrl && (
+            <a href={org.whatsappUrl} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
+              WhatsApp
+            </a>
+          )}
         </div>
       </div>
+
       <div className="lp-footer-legal">
         <div>
           {org.legalName && <>{org.legalName} · </>}

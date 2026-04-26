@@ -72,12 +72,12 @@ const SECTION_COMPONENTS: Record<string, React.ComponentType<any>> = {
   footer: FooterSection,
 };
 
-/* Nav link labels — derived from section types present */
+/* Nav link labels — derived from section types present in the page */
 const NAV_LINKS: Record<string, { href: string; label: string }> = {
-  about: { href: '#about', label: 'אודות' },
+  about:      { href: '#about',      label: 'אודות'    },
   activities: { href: '#activities', label: 'פעילויות' },
-  gallery: { href: '#gallery', label: 'גלריה' },
-  join_us: { href: '#contact', label: 'צרו קשר' },
+  gallery:    { href: '#gallery',    label: 'גלריה'    },
+  join_us:    { href: '#contact',    label: 'צרו קשר'  },
 };
 
 export default function PublicLandingPage() {
@@ -88,7 +88,7 @@ export default function PublicLandingPage() {
   const [loading, setLoading] = useState(true);
   const [scrolled, setScrolled] = useState(false);
 
-  // Fetch landing data
+  /* ── Fetch landing data ── */
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const isPreview = searchParams.get('preview') === '1';
@@ -99,7 +99,7 @@ export default function PublicLandingPage() {
       .catch(() => { setError(true); setLoading(false); });
   }, [slug]);
 
-  // Track view
+  /* ── Track view (once per session) ── */
   useEffect(() => {
     if (!landing || !landing.published) return;
     const key = `_lp_viewed_${slug}`;
@@ -109,14 +109,14 @@ export default function PublicLandingPage() {
     sessionStorage.setItem(key, '1');
   }, [landing, slug]);
 
-  // Sticky nav scroll listener
+  /* ── Sticky nav scroll listener ── */
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Scroll-reveal
+  /* ── Scroll-reveal via IntersectionObserver ── */
   useEffect(() => {
     if (!landing || typeof window === 'undefined') return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -124,7 +124,10 @@ export default function PublicLandingPage() {
 
     const io = new IntersectionObserver((entries) => {
       entries.forEach(e => {
-        if (e.isIntersecting) { e.target.classList.remove('pending'); io.unobserve(e.target); }
+        if (e.isIntersecting) {
+          e.target.classList.remove('pending');
+          io.unobserve(e.target);
+        }
       });
     }, { threshold: 0.05 });
 
@@ -141,7 +144,7 @@ export default function PublicLandingPage() {
     return () => io.disconnect();
   }, [landing]);
 
-  // Count-up animation for hero stats
+  /* ── Count-up animation for hero stat .n elements ── */
   useEffect(() => {
     if (!landing || typeof window === 'undefined') return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -170,6 +173,7 @@ export default function PublicLandingPage() {
       });
     }, { threshold: 0.5 });
 
+    // Observe hero stat number elements
     document.querySelectorAll('.lp-hero-stat .n').forEach(el => {
       const htmlEl = el as HTMLElement;
       if (!htmlEl.dataset.num) htmlEl.dataset.num = htmlEl.textContent || '';
@@ -179,18 +183,24 @@ export default function PublicLandingPage() {
     return () => statsObs.disconnect();
   }, [landing]);
 
+  /* ── Loading state ── */
   if (loading) {
-    return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F4ECD8' }}>
-      <div style={{ width: 32, height: 32, border: '3px solid #EADFC4', borderTopColor: '#B8893A', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-    </div>;
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F4ECD8' }}>
+        <div style={{ width: 32, height: 32, border: '3px solid #EADFC4', borderTopColor: '#B8893A', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
   }
 
+  /* ── Error / not found state ── */
   if (error || !landing) {
-    return <div dir="rtl" lang="he" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#F4ECD8', fontFamily: '"Frank Ruhl Libre", serif', color: '#1A1410' }}>
-      <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8 }}>העמוד לא נמצא</h1>
-      <p style={{ color: '#6B655C' }}>ייתכן שהעמוד הוסר או שהכתובת שגויה</p>
-    </div>;
+    return (
+      <div dir="rtl" lang="he" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#F4ECD8', fontFamily: '"Frank Ruhl Libre", serif', color: '#1A1410' }}>
+        <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8 }}>העמוד לא נמצא</h1>
+        <p style={{ color: '#6B655C' }}>ייתכן שהעמוד הוסר או שהכתובת שגויה</p>
+      </div>
+    );
   }
 
   const org = landing.organization;
@@ -198,17 +208,20 @@ export default function PublicLandingPage() {
   const accentColor = org.accentColor || '#B8893A';
   const themeName = (landing.theme || 'modern').toLowerCase();
 
-  // Build nav links from visible sections
+  /* Build nav links from visible section types */
   const visibleTypes = new Set(landing.sections.filter(s => s.visible).map(s => s.type));
   const navLinks = Object.entries(NAV_LINKS).filter(([type]) => visibleTypes.has(type));
   const hasDonate = visibleTypes.has('cta_payment');
 
   return (
-    <div className="lp" dir="rtl" lang="he" data-theme={themeName} style={{
-      '--coral': accentColor,
-      '--coral-2': accentColor,
-    } as React.CSSProperties}>
-      {/* Sticky nav */}
+    <div
+      className="lp"
+      dir="rtl"
+      lang="he"
+      data-theme={themeName}
+      style={{ '--coral': accentColor, '--coral-2': accentColor } as React.CSSProperties}
+    >
+      {/* ── Sticky nav — mirrors prototype exactly ── */}
       <nav className={`lp-nav${scrolled ? ' scrolled' : ''}`}>
         <a className="lp-brand" href="#top">
           {org.logoUrl ? (
@@ -218,6 +231,7 @@ export default function PublicLandingPage() {
           )}
           <div className="lp-brand-name">{org.name}</div>
         </a>
+
         {navLinks.length > 0 && (
           <div className="lp-nav-links">
             {navLinks.map(([, link]) => (
@@ -225,12 +239,15 @@ export default function PublicLandingPage() {
             ))}
           </div>
         )}
+
         {hasDonate && (
-          <a href="#donate" className="lp-btn lp-btn-primary"><span>תרמו</span></a>
+          <a href="#donate" className="lp-btn lp-btn-primary">
+            <span>תרמו</span>
+          </a>
         )}
       </nav>
 
-      {/* Sections */}
+      {/* ── Sections ── */}
       {landing.sections
         .filter(s => s.visible)
         .sort((a, b) => a.position - b.position)

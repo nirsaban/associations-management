@@ -2,62 +2,50 @@
    Source: Amutot Landing - Live Prototype
    3-color palette: ink, parchment, burnished gold */
 
+/* Gutman Stam fallback chain — drop fonts/GutmanStam.woff2 to use it */
+@font-face {
+  font-family: "Gutman Stam";
+  src: url("fonts/GutmanStam.woff2") format("woff2"),
+       url("fonts/GutmanStam.woff")  format("woff"),
+       url("fonts/GutmanStam.ttf")   format("truetype");
+  font-display: swap;
+  font-weight: 400 900;
+}
+
 :root {
-  /* ─ Core 3-color palette ─ */
-  --ink:        #1A1410;
+  /* Strict 3-color Torah/scribal palette: ink, parchment, burnished gold.
+     Everything else is a tonal variant of these three. */
+  --ink:        #1A1410;     /* deep scribal ink */
   --ink-soft:   #2C231C;
-  --paper:      #F4ECD8;
-  --paper-2:    #EADFC4;
+  --paper:      #F4ECD8;     /* parchment */
+  --paper-2:    #EADFC4;     /* deeper parchment */
   --paper-3:    #DCCEAA;
-  --coral:      #B8893A;
+  --coral:      #B8893A;     /* burnished gold accent */
   --coral-2:    #976D26;
   --coral-tint: #ECD9A8;
-
-  /* ─ Semantic aliases (mapped to 3-color base) ─ */
-  --primary:       var(--ink);
-  --primary-2:     var(--ink-soft);
-  --primary-50:    var(--paper-2);
-  --primary-hover: var(--ink-soft);
-  --accent:        var(--coral);
-  --sun:           var(--coral);
-  --mint:          var(--paper-2);
-  --plum:          var(--ink);
-  --bg:            var(--paper);
-  --surface:       #FFFFFF;
-  --surface-raised:var(--paper-2);
-  --text:          var(--ink);
-  --text-muted:    #6B655C;
-  --border:        rgba(20, 17, 14, 0.10);
+  /* Aliases — kept so existing rules compile, but mapped to the 3-color base */
+  --primary:    var(--ink);
+  --primary-2:  var(--ink-soft);
+  --primary-50: var(--paper-2);
+  --sun:        var(--coral);
+  --mint:       var(--paper-2);
+  --plum:       var(--ink);
+  --text:       var(--ink);
+  --text-muted: #6B655C;
+  --border:     rgba(20, 17, 14, 0.10);
   --border-strong: rgba(20, 17, 14, 0.24);
-
-  /* ─ Type ─ */
-  --font-body:    "Frank Ruhl Libre", "David Libre", "Noto Serif Hebrew", serif;
-  --font-display: "Gutman Stam", "Frank Ruhl Libre", "David Libre", "Noto Serif Hebrew", serif;
-
-  /* ─ Elevation ─ */
   --shadow:     0 24px 60px -22px rgba(15, 27, 45, 0.32);
   --shadow-sm:  0 6px 18px -8px rgba(15, 27, 45, 0.22);
-  --e-1: 0 1px 2px rgba(21,19,15,.04), 0 1px 1px rgba(21,19,15,.03);
-  --e-2: 0 4px 10px -2px rgba(21,19,15,.06), 0 2px 4px rgba(21,19,15,.04);
-  --e-3: 0 12px 28px -8px rgba(21,19,15,.12), 0 4px 8px rgba(21,19,15,.04);
-  --e-4: 0 20px 50px -12px rgba(15, 27, 45, 0.25), 0 4px 10px rgba(21,19,15,.05);
-  --e-cta: 0 1px 0 rgba(255,255,255,.15) inset, 0 10px 24px -10px rgba(15, 27, 45, 0.25);
-
-  /* ─ Radii ─ */
-  --r-card: 22px;
-  --r-btn:  999px;
-
-  /* ─ Motion ─ */
-  --ease:        cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --dur-fast: 160ms;
-  --dur-base: 280ms;
-  --dur-slow: 520ms;
-  --stagger: 75ms;
+  --r-card:     22px;
+  --r-btn:      999px;
+  --font-body:  "Frank Ruhl Libre", "David Libre", "Noto Serif Hebrew", serif;
+  --font-display: "Gutman Stam", "Frank Ruhl Libre", "David Libre", "Noto Serif Hebrew", serif;
+  --ease:       cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring:cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* ─ Hebrew RTL font swap ─ */
-[lang="he"], :is([dir="rtl"]) {
+[lang="he"], [dir="rtl"] {
   --font-body: "Gutman Stam", "Frank Ruhl Libre", "David Libre", "Noto Serif Hebrew", serif;
   --font-display: "Gutman Stam", "Frank Ruhl Libre", "David Libre", "Noto Serif Hebrew", serif;
 }
@@ -65,32 +53,7 @@
 /* ─ Reduced motion ─ */
 @media (prefers-reduced-motion: reduce) {
   :root {
-    --dur-fast: 0ms;
-    --dur-base: 0ms;
-    --dur-slow: 0ms;
-    --stagger: 0ms;
+    --ease: linear;
+    --ease-spring: linear;
   }
-}
-
-/* ─ Theme: warm ─ */
-[data-theme="warm"] {
-  --paper:#F7F1E8; --paper-2:#FDF9F2; --bg:var(--paper); --surface:var(--paper-2);
-  --r-card: 22px; --r-btn: 14px;
-}
-
-/* ─ Theme: minimal ─ */
-[data-theme="minimal"] {
-  --paper:#FAFAFA; --paper-2:#FFFFFF; --bg:var(--paper); --surface:var(--paper-2);
-  --border:rgba(0,0,0,0.08);
-  --e-1: 0 0 0 1px rgba(0,0,0,0.08);
-  --e-cta: 0 0 0 1px var(--ink);
-  --r-card: 0px; --r-btn: 0px;
-}
-
-/* ─ Theme: bold ─ */
-[data-theme="bold"] {
-  --paper:#0E0E10; --paper-2:#17171A; --ink:#FDFDFD; --ink-soft:#2A2A30;
-  --bg:var(--paper); --surface:var(--paper-2); --text:var(--ink); --border:rgba(255,255,255,0.10);
-  --text-muted:#9A9AA3;
-  --r-card: 8px;
 }
