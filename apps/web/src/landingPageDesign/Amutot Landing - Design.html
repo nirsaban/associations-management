@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Amutot · Landing page design</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700;800&family=Heebo:wght@400;500;700&family=Frank+Ruhl+Libre:wght@400;500&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <style>
+    html,body { margin: 0; background: #f0eee9; font-family: Inter, sans-serif; color: #15130F; }
+    * { box-sizing: border-box; }
+  </style>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel" src="tokens.jsx"></script>
+  <script type="text/babel" src="primitives.jsx"></script>
+  <script type="text/babel" src="section-tokens.jsx"></script>
+  <script type="text/babel" src="sections-top.jsx"></script>
+  <script type="text/babel" src="sections-bottom.jsx"></script>
+  <script type="text/babel" src="themes-secondary.jsx"></script>
+  <script type="text/babel" src="design-canvas.jsx"></script>
+
+  <script type="text/babel">
+    const {
+      TokenBoard,
+      HeroDesktop, HeroMobile, VideoSection, AboutSection, ActivitiesSection, ActivitiesMobile,
+      GallerySection, ReviewsSection, StatsSection, CtaPayment, JoinUsSection, FaqSection, FooterSection,
+      WarmHero, MinimalHero, BoldHero,
+    } = window;
+
+    function App() {
+      return (
+        <DesignCanvas>
+          {/* ─── Overview & System ─── */}
+          <DCSection
+            id="overview"
+            title="Amutot · Landing page system"
+            subtitle="A conversion-focused public page each non-profit admin composes from a section library. Primary theme: modern. Every field, image, number, and review is admin-supplied — designs below demonstrate behavior across realistic content variability.">
+            <DCArtboard id="tokens" label="Design tokens · colors, type, spacing, elevation" width={1200} height={900}>
+              <TokenBoard />
+            </DCArtboard>
+          </DCSection>
+
+          {/* ─── Modern theme · primary ─── */}
+          <DCSection
+            id="modern-desktop"
+            title="Modern theme · desktop · 1440"
+            subtitle="All 11 sections, top-to-bottom, as they would appear on a published page.">
+            <DCArtboard id="hero-d" label="1 · Hero — default (4-word headline)" width={1440} height={900}>
+              <HeroDesktop />
+            </DCArtboard>
+            <DCArtboard id="hero-d-long" label="1b · Hero — 14-word headline (variability)" width={1440} height={900}>
+              <HeroDesktop longHeadline />
+            </DCArtboard>
+            <DCArtboard id="video-d" label="2 · Video — 16:9" width={1440} height={820}>
+              <VideoSection orient="16:9" />
+            </DCArtboard>
+            <DCArtboard id="video-v" label="2b · Video — 9:16 vertical" width={1440} height={820}>
+              <VideoSection orient="9:16" />
+            </DCArtboard>
+            <DCArtboard id="about-d" label="3 · About — two column" width={1440} height={680}>
+              <AboutSection />
+            </DCArtboard>
+            <DCArtboard id="activities-3" label="4 · Activities — 3 items" width={1440} height={680}>
+              <ActivitiesSection count={3} />
+            </DCArtboard>
+            <DCArtboard id="activities-6" label="4b · Activities — 6 items" width={1440} height={820}>
+              <ActivitiesSection count={6} />
+            </DCArtboard>
+            <DCArtboard id="activities-12" label="4c · Activities — 12 items (max density)" width={1440} height={1120}>
+              <ActivitiesSection count={12} />
+            </DCArtboard>
+            <DCArtboard id="gallery-4" label="5 · Gallery — 4 photos" width={1440} height={540}>
+              <GallerySection count={4} />
+            </DCArtboard>
+            <DCArtboard id="gallery-12" label="5b · Gallery — 12 photos" width={1440} height={820}>
+              <GallerySection count={12} />
+            </DCArtboard>
+            <DCArtboard id="gallery-30" label="5c · Gallery — 30 photos" width={1440} height={1600}>
+              <GallerySection count={30} />
+            </DCArtboard>
+            <DCArtboard id="reviews-d" label="6 · Reviews — populated" width={1440} height={700}>
+              <ReviewsSection state="populated" />
+            </DCArtboard>
+            <DCArtboard id="reviews-empty" label="6b · Reviews — empty state" width={1440} height={600}>
+              <ReviewsSection state="empty" />
+            </DCArtboard>
+            <DCArtboard id="reviews-form" label="6c · Reviews — inline form" width={1440} height={720}>
+              <ReviewsSection state="form" />
+            </DCArtboard>
+            <DCArtboard id="stats" label="7 · Stats band" width={1440} height={440}>
+              <StatsSection />
+            </DCArtboard>
+            <DCArtboard id="cta-d" label="8 · CTA payment (the conversion engine)" width={1440} height={720}>
+              <CtaPayment />
+            </DCArtboard>
+            <DCArtboard id="join" label="9 · Join us — lead form" width={1440} height={640}>
+              <JoinUsSection />
+            </DCArtboard>
+            <DCArtboard id="join-success" label="9b · Join us — success state" width={1440} height={640}>
+              <JoinUsSection state="success" />
+            </DCArtboard>
+            <DCArtboard id="faq-c" label="10 · FAQ — all collapsed" width={1440} height={620}>
+              <FaqSection mode="collapsed" />
+            </DCArtboard>
+            <DCArtboard id="faq-o" label="10b · FAQ — one open" width={1440} height={660}>
+              <FaqSection mode="one-open" />
+            </DCArtboard>
+            <DCArtboard id="faq-a" label="10c · FAQ — all open" width={1440} height={900}>
+              <FaqSection mode="all-open" />
+            </DCArtboard>
+            <DCArtboard id="footer" label="11 · Footer" width={1440} height={400}>
+              <FooterSection />
+            </DCArtboard>
+          </DCSection>
+
+          {/* ─── Mobile / Tablet / RTL ─── */}
+          <DCSection
+            id="responsive"
+            title="Key sections · mobile + RTL"
+            subtitle="Modern theme · hero, activities, and cta_payment at 390px. RTL variants of hero and cta_payment demonstrate Hebrew layout.">
+            <DCArtboard id="hero-m" label="Hero · mobile 390" width={390} height={780}>
+              <HeroMobile />
+            </DCArtboard>
+            <DCArtboard id="hero-m-rtl" label="Hero · mobile 390 · RTL (Hebrew)" width={390} height={780}>
+              <HeroMobile rtl />
+            </DCArtboard>
+            <DCArtboard id="hero-d-rtl" label="Hero · desktop · RTL" width={1440} height={900}>
+              <HeroDesktop rtl />
+            </DCArtboard>
+            <DCArtboard id="act-m" label="Activities · mobile" width={390} height={1300}>
+              <ActivitiesMobile />
+            </DCArtboard>
+            <DCArtboard id="cta-m" label="CTA payment · mobile" width={390} height={720}>
+              <CtaPayment mobile />
+            </DCArtboard>
+            <DCArtboard id="cta-d-rtl" label="CTA payment · desktop · RTL" width={1440} height={720}>
+              <CtaPayment rtl />
+            </DCArtboard>
+          </DCSection>
+
+          {/* ─── Secondary themes ─── */}
+          <DCSection
+            id="themes"
+            title="Secondary themes · concept boards"
+            subtitle="Palette + hero-only mock per theme. Each accepts the admin&rsquo;s primary/accent via CSS variables. Token overrides are specified in landing-page-design-spec.md § 5.">
+            <DCArtboard id="warm" label="warm · earthy community brand" width={1200} height={680}>
+              <WarmHero />
+            </DCArtboard>
+            <DCArtboard id="minimal" label="minimal · editorial / cultural" width={1200} height={680}>
+              <MinimalHero />
+            </DCArtboard>
+            <DCArtboard id="bold" label="bold · activist / campaigning" width={1200} height={680}>
+              <BoldHero />
+            </DCArtboard>
+          </DCSection>
+
+          {/* ─── Handoff ─── */}
+          <DCSection
+            id="handoff"
+            title="Written spec for implementation"
+            subtitle="The markdown file below is the self-contained engineering handoff. Give it to Claude Code along with these mocks.">
+            <DCArtboard id="spec-link" label="landing-page-design-spec.md" width={720} height={320}>
+              <div style={{ background: '#15130F', color: '#F5F3EE', height: '100%', padding: 40, fontFamily: 'JetBrains Mono, monospace', fontSize: 13, lineHeight: 1.6 }}>
+                <div style={{ opacity: 0.5, fontSize: 11, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 18 }}>/ deliverable</div>
+                <div style={{ fontFamily: 'Instrument Serif, serif', fontSize: 34, lineHeight: 1.1, marginBottom: 16 }}>landing-page-design-spec.md</div>
+                <div style={{ color: 'rgba(245,243,238,0.7)', fontSize: 13 }}>
+                  Design philosophy · tokens (CSS + JS) · type system · motion system ·<br/>
+                  four theme definitions · eleven section specs · component primitives ·<br/>
+                  a11y checklist · open questions for the implementer.
+                </div>
+                <div style={{ marginTop: 24, padding: '10px 14px', border: '1px solid rgba(245,243,238,0.25)', borderRadius: 8, display: 'inline-block' }}>
+                  → open landing-page-design-spec.md
+                </div>
+              </div>
+            </DCArtboard>
+          </DCSection>
+        </DesignCanvas>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

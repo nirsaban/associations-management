@@ -1,15 +1,14 @@
+/* ─── Design tokens — verbatim from Amutot Landing Live Prototype :root ─── */
+
 :root {
-  /* Strict 3-color Torah/scribal palette: ink, parchment, burnished gold.
-     Everything else is a tonal variant of these three. */
-  --ink:        #1A1410;     /* deep scribal ink */
+  --ink:        #1A1410;
   --ink-soft:   #2C231C;
-  --paper:      #F4ECD8;     /* parchment */
-  --paper-2:    #EADFC4;     /* deeper parchment */
+  --paper:      #F4ECD8;
+  --paper-2:    #EADFC4;
   --paper-3:    #DCCEAA;
-  --coral:      #B8893A;     /* burnished gold accent */
+  --coral:      #B8893A;
   --coral-2:    #976D26;
   --coral-tint: #ECD9A8;
-  /* Aliases — kept so existing rules compile, but mapped to the 3-color base */
   --primary:    var(--ink);
   --primary-2:  var(--ink-soft);
   --primary-50: var(--paper-2);
@@ -29,16 +28,8 @@
   --ease:       cubic-bezier(0.22, 1, 0.36, 1);
   --ease-spring:cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+
 [lang="he"], [dir="rtl"] {
   --font-body: "Gutman Stam", "Frank Ruhl Libre", "David Libre", "Noto Serif Hebrew", serif;
   --font-display: "Gutman Stam", "Frank Ruhl Libre", "David Libre", "Noto Serif Hebrew", serif;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .lp-reveal, .lp-reveal.pending { opacity:1; transform:none; transition:none; }
-  .lp-blob { animation:none !important; }
-  .lp-marquee-track { animation:none !important; }
-  .lp-brand-mark { animation:none !important; }
-  .lp .lp-hero h1 .lp-word { opacity:1; transform:none; animation:none; }
-  .lp .lp-hero-sub, .lp .lp-hero-cta, .lp .lp-hero-stats { opacity:1; animation:none; }
 }

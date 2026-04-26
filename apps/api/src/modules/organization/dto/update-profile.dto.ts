@@ -101,6 +101,18 @@ export class UpdateOrgProfileDto {
   @IsString()
   paymentDescription?: string;
 
+  @ApiPropertyOptional({ description: 'Grow Payment userId' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  growUserId?: string;
+
+  @ApiPropertyOptional({ description: 'Grow Payment Wallet pageCode' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  growPageCode?: string;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsUrl()

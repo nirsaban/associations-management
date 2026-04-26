@@ -27,6 +27,7 @@ import { UpdateLandingDto } from './dto/update-landing.dto';
 import { CreateSectionDto, UpdateSectionDto, ReorderSectionsDto } from './dto/section.dto';
 import { SubmitReviewDto, ModerateReviewDto } from './dto/review.dto';
 import { SubmitLeadDto } from './dto/lead.dto';
+import { CreatePaymentDto } from './dto/create-payment.dto';
 import { diskStorage } from 'multer';
 import { extname, join } from 'path';
 import { randomUUID } from 'crypto';
@@ -210,6 +211,15 @@ export class PublicLandingController {
     const userAgent = req.headers['user-agent'];
     const lead = await this.landingService.submitLead(slug, dto, ip, userAgent);
     return { data: { success: true, id: lead.id } };
+  }
+
+  @Post(':slug/create-payment')
+  @Public()
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @ApiOperation({ summary: 'Create Grow payment process for Wallet SDK' })
+  async createPayment(@Param('slug') slug: string, @Body() dto: CreatePaymentDto) {
+    const result = await this.landingService.createGrowPayment(slug, dto);
+    return { data: result };
   }
 
   @Post(':slug/track')

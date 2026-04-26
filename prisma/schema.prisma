@@ -153,6 +153,8 @@ model Organization {
   paymentLink     String?  @db.VarChar(500)
   defaultPaymentLink String? @db.VarChar(500)
   paymentDescription String? @db.Text
+  growUserId      String?  @db.VarChar(100)
+  growPageCode    String?  @db.VarChar(100)
   facebookUrl     String?  @db.VarChar(500)
   instagramUrl    String?  @db.VarChar(500)
   whatsappUrl     String?  @db.VarChar(500)
