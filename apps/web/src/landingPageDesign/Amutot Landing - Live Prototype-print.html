@@ -1,0 +1,848 @@
+<!DOCTYPE html><html lang="he" dir="rtl"><head>
+
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>שורשים · עמותה קהילתית</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700;800;900&amp;family=David+Libre:wght@400;500;700&amp;family=Noto+Serif+Hebrew:wght@400;500;600;700;800;900&amp;family=Bellefair&amp;display=swap" rel="stylesheet">
+  <style>
+    /* Gutman Stam fallback chain — drop fonts/GutmanStam.woff2 to use it */
+    @font-face {
+      font-family: "Gutman Stam";
+      src: url("fonts/GutmanStam.woff2") format("woff2"),
+           url("fonts/GutmanStam.woff")  format("woff"),
+           url("fonts/GutmanStam.ttf")   format("truetype");
+      font-display: swap;
+      font-weight: 400 900;
+    }
+
+    :root {
+      /* Strict 3-color Torah/scribal palette: ink, parchment, burnished gold.
+         Everything else is a tonal variant of these three. */
+      --ink:        #1A1410;     /* deep scribal ink */
+      --ink-soft:   #2C231C;
+      --paper:      #F4ECD8;     /* parchment */
+      --paper-2:    #EADFC4;     /* deeper parchment */
+      --paper-3:    #DCCEAA;
+      --coral:      #B8893A;     /* burnished gold accent */
+      --coral-2:    #976D26;
+      --coral-tint: #ECD9A8;
+      /* Aliases — kept so existing rules compile, but mapped to the 3-color base */
+      --primary:    var(--ink);
+      --primary-2:  var(--ink-soft);
+      --primary-50: var(--paper-2);
+      --sun:        var(--coral);
+      --mint:       var(--paper-2);
+      --plum:       var(--ink);
+      --text:       var(--ink);
+      --text-muted: #6B655C;
+      --border:     rgba(20, 17, 14, 0.10);
+      --border-strong: rgba(20, 17, 14, 0.24);
+      --shadow:     0 24px 60px -22px rgba(15, 27, 45, 0.32);
+      --shadow-sm:  0 6px 18px -8px rgba(15, 27, 45, 0.22);
+      --r-card:     22px;
+      --r-btn:      999px;
+      --font-body:  "Frank Ruhl Libre", "David Libre", "Noto Serif Hebrew", serif;
+      --font-display: "Gutman Stam", "Frank Ruhl Libre", "David Libre", "Noto Serif Hebrew", serif;
+      --ease:       cubic-bezier(0.22, 1, 0.36, 1);
+      --ease-spring:cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    [lang="he"], [dir="rtl"] {
+      --font-body: "Gutman Stam", "Frank Ruhl Libre", "David Libre", "Noto Serif Hebrew", serif;
+      --font-display: "Gutman Stam", "Frank Ruhl Libre", "David Libre", "Noto Serif Hebrew", serif;
+    }
+    h1, h2, h3, p, label, button, input, textarea, .brand-name, .nav-links a, .hero-pill, .footer-tag, .footer-col a, .footer-col div, .stat-num, .stat-lbl, .review p, .review-name, .activity h3, .activity p, .faq-q, .faq-a p, .hero-stat .n, .hero-stat .l, .cta-sub, .cta-trust, .hero-sub, .footer-legal { font-family: var(--font-display); }
+
+    * { box-sizing: border-box; }
+    html, body { margin:0; padding:0; background:var(--paper); color:var(--text); font-family:var(--font-body); -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+    img { max-width:100%; display:block; }
+    a { color:inherit; text-decoration:none; }
+    button { font:inherit; cursor:pointer; border:0; background:none; color:inherit; }
+
+    .section { padding: clamp(56px, 8vw, 120px) clamp(20px, 5vw, 64px); position:relative; }
+    .container { max-width:1280px; margin:0 auto; position:relative; }
+    .eyebrow { display:inline-flex; align-items:center; gap:10px; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:1.6px; color:var(--primary); margin-bottom:18px; }
+    .eyebrow::before { content:""; width:24px; height:2px; background:var(--primary); }
+
+    h1, h2, h3 { font-family:var(--font-display); margin:0; letter-spacing:-0.02em; text-wrap:balance; }
+    h1 { font-size:clamp(50px, 7.2vw, 124px); line-height:0.94; font-weight:800; letter-spacing:-0.035em; }
+    h2 { font-size:clamp(36px, 4.8vw, 76px); line-height:1; font-weight:700; letter-spacing:-0.025em; }
+    h3 { font-family:var(--font-body); font-weight:700; font-size:20px; line-height:1.2; letter-spacing:-0.01em; }
+    p { margin:0; line-height:1.55; }
+
+    /* nav */
+    .nav { position:sticky; top:0; z-index:50; display:flex; align-items:center; justify-content:space-between; padding:18px clamp(20px, 5vw, 64px); background:rgba(245, 240, 230, 0.78); backdrop-filter: saturate(140%) blur(14px); transition:box-shadow 240ms; }
+    .nav.scrolled { box-shadow:0 1px 0 var(--border); }
+    .brand { display:flex; align-items:center; gap:12px; }
+    .brand-mark { width:30px; height:30px; border-radius:10px; background: var(--coral); animation: spinmark 18s linear infinite; }
+    @keyframes spinmark { to { transform:rotate(360deg); } }
+    .brand-name { font-family:var(--font-display); font-size:24px; font-weight:800; letter-spacing:-0.02em; }
+    .nav-links { display:flex; gap:32px; color:var(--text); font-size:14px; font-weight:500; }
+    .nav-links a { position:relative; padding:6px 0; }
+    .nav-links a::after { content:""; position:absolute; left:0; right:0; bottom:0; height:2px; background:var(--primary); transform:scaleX(0); transform-origin:right; transition:transform 280ms var(--ease); }
+    .nav-links a:hover::after { transform:scaleX(1); transform-origin:left; }
+    @media (max-width:760px) { .nav-links { display:none; } }
+
+    /* buttons */
+    .btn { display:inline-flex; align-items:center; gap:10px; border-radius:var(--r-btn); padding:14px 26px; font-size:15px; font-weight:600; transition:transform 200ms var(--ease), box-shadow 200ms var(--ease), background-color 200ms; border:1px solid transparent; position:relative; overflow:hidden; }
+    .btn:active { transform:scale(0.97); }
+    .btn:focus-visible { outline:3px solid var(--primary); outline-offset:3px; }
+    .btn-primary { background:var(--ink); color:var(--paper); }
+    .btn-primary::before { content:""; position:absolute; inset:0; background:var(--coral); transform:translateY(101%); transition:transform 380ms var(--ease); z-index:0; }
+    .btn-primary > * { position:relative; z-index:1; }
+    .btn-primary:hover { color:#fff; transform:translateY(-2px); box-shadow:var(--shadow-sm); }
+    .btn-primary:hover::before { transform:translateY(0); }
+    .btn-secondary { background:transparent; color:var(--ink); border-color:var(--ink); }
+    .btn-secondary:hover { background:var(--ink); color:var(--paper); transform:translateY(-2px); }
+    .btn-ghost { background:transparent; color:var(--ink); padding:14px 12px; }
+    .btn-ghost:hover { color:var(--primary); }
+    .btn-ghost .arrow { transition:transform 240ms var(--ease); }
+    .btn-ghost:hover .arrow { transform:translateX(-6px); }
+    [dir="ltr"] .btn-ghost:hover .arrow { transform:translateX(6px); }
+    .btn-lg { padding:18px 34px; font-size:16px; }
+    .btn-block { width:100%; justify-content:center; }
+
+    /* HERO */
+    .hero { padding:24px clamp(20px, 5vw, 64px) clamp(56px, 8vw, 120px); position:relative; overflow:hidden; }
+    .hero-bg { position:absolute; inset:0; pointer-events:none; }
+    .blob { position:absolute; border-radius:50%; filter:blur(60px); opacity:0.7; will-change:transform; }
+    .blob-1 { width:560px; height:560px; background:var(--coral); top:-180px; left:-120px; opacity:0.18; animation: float1 18s ease-in-out infinite alternate; }
+    .blob-2 { width:480px; height:480px; background:var(--paper-3); top:80px; right:-160px; opacity:0.55; animation: float2 22s ease-in-out infinite alternate; }
+    .blob-3 { width:380px; height:380px; background:var(--coral); bottom:-160px; left:30%; opacity:0.12; animation: float3 26s ease-in-out infinite alternate; }
+    @keyframes float1 { to { transform:translate(80px, 60px) scale(1.15); } }
+    @keyframes float2 { to { transform:translate(-90px, 100px) scale(0.9); } }
+    @keyframes float3 { to { transform:translate(40px, -80px) scale(1.1); } }
+
+    .hero-inner { position:relative; max-width:1280px; margin:0 auto; padding-top:24px; }
+    .hero-meta { display:flex; align-items:center; gap:14px; margin-bottom:22px; flex-wrap:wrap; }
+    .hero-pill { display:inline-flex; align-items:center; gap:8px; background:var(--ink); color:var(--paper); padding:8px 16px; border-radius:999px; font-size:12px; font-weight:600; letter-spacing:0.5px; }
+    .hero-pill .dot { width:8px; height:8px; border-radius:50%; background:var(--mint); animation:pulse 2.4s ease-in-out infinite; }
+    @keyframes pulse { 0%,100% { transform:scale(1); opacity:1; } 50% { transform:scale(1.3); opacity:.6; } }
+    .hero-meta .since { font-size:13px; color:var(--text-muted); }
+
+    .hero h1 { max-width:14ch; }
+    .hero h1 .accent { color:var(--coral); font-style:italic; }
+    .hero h1 .word { display:inline-block; opacity:0; transform:translateY(40px) rotate(2deg); animation:wordIn 800ms var(--ease) forwards; }
+    .hero h1 .word:nth-child(1) { animation-delay:60ms; }
+    .hero h1 .word:nth-child(2) { animation-delay:160ms; }
+    .hero h1 .word:nth-child(3) { animation-delay:260ms; }
+    .hero h1 .word:nth-child(4) { animation-delay:360ms; }
+    @keyframes wordIn { to { opacity:1; transform:none; } }
+    .hero-sub { margin-top:28px; max-width:540px; font-size:clamp(17px, 1.3vw, 20px); color:var(--text); opacity:0.78; opacity:0; animation:fadeUp 700ms 500ms var(--ease) forwards; }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:0.78; transform:none; } }
+    .hero-cta { margin-top:40px; display:flex; gap:14px; flex-wrap:wrap; opacity:0; animation:fadeUp 700ms 700ms var(--ease) forwards; }
+
+    .hero-stats { margin-top:64px; display:grid; grid-template-columns:repeat(4, 1fr); gap:20px; opacity:0; animation:fadeUp 700ms 900ms var(--ease) forwards; }
+    @media (max-width:780px) { .hero-stats { grid-template-columns:repeat(2, 1fr); gap:16px; } }
+    .hero-stat { background:rgba(255,255,255,0.5); border:1px solid var(--border); border-radius:18px; padding:18px 22px; backdrop-filter: blur(8px); }
+    .hero-stat .n { font-family:var(--font-display); font-size:44px; line-height:1; font-weight:800; letter-spacing:-0.03em; }
+    .hero-stat .l { font-size:13px; color:var(--text-muted); margin-top:6px; }
+
+    /* MARQUEE */
+    .marquee { background:var(--ink); color:var(--paper); padding:24px 0; overflow:hidden; border-block:1px solid var(--ink); }
+    .marquee-track { display:flex; gap:48px; white-space:nowrap; animation:marquee 38s linear infinite; }
+    [dir="rtl"] .marquee-track { animation-direction:reverse; }
+    .marquee-track span { font-family:var(--font-display); font-size:clamp(36px, 5vw, 64px); font-weight:700; letter-spacing:-0.02em; display:flex; align-items:center; gap:48px; }
+    .marquee-track span::after { content:"✦"; color:var(--coral); font-size:0.6em; }
+    @keyframes marquee { to { transform:translateX(-50%); } }
+
+    /* VIDEO */
+    .video-wrap { display:flex; justify-content:center; margin-top:48px; }
+    .video-frame { position:relative; max-width:1000px; width:100%; aspect-ratio:16/9; border-radius:28px; overflow:hidden; box-shadow:var(--shadow); cursor:pointer; background:#0a0a0a; }
+    .video-frame::after { content:""; position:absolute; inset:0; background:linear-gradient(160deg, transparent 40%, rgba(39,71,255,0.25)); pointer-events:none; }
+    .video-play { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; z-index:2; }
+    .video-play .core { width:96px; height:96px; border-radius:50%; background:var(--coral); color:#fff; display:flex; align-items:center; justify-content:center; transition:transform 320ms var(--ease-spring); position:relative; }
+    .video-play .core::before, .video-play .core::after { content:""; position:absolute; inset:-12px; border-radius:50%; border:2px solid var(--coral); opacity:0.6; animation:ringPulse 2.4s ease-out infinite; }
+    .video-play .core::after { animation-delay:1.2s; }
+    @keyframes ringPulse { 0% { transform:scale(0.8); opacity:0.7; } 100% { transform:scale(1.6); opacity:0; } }
+    .video-frame:hover .video-play .core { transform:scale(1.08); }
+
+    /* image placeholder */
+    .imgslot { background:linear-gradient(135deg, var(--paper-2), var(--paper)); display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-family:ui-monospace, Menlo, monospace; font-size:11px; letter-spacing:0.4px; text-transform:uppercase; position:relative; overflow:hidden; }
+    .imgslot::before { content:""; position:absolute; inset:0; background:repeating-linear-gradient(135deg, rgba(15,27,45,0.04) 0 1px, transparent 1px 16px); }
+
+    /* ABOUT — color-block layout */
+    .about { background:var(--paper); }
+    .about-grid { display:grid; grid-template-columns:1fr 1fr; gap:64px; align-items:center; }
+    @media (max-width:880px) { .about-grid { grid-template-columns:1fr; gap:40px; } }
+    .about-text p { margin-top:18px; font-size:17px; line-height:1.7; max-width:520px; color:var(--text); }
+    .about-visual { position:relative; aspect-ratio:4/5; }
+    .about-visual .layer-color { position:absolute; inset:0; background:var(--primary); border-radius:24px; transform:rotate(-3deg) translate(-12px, 10px); }
+    [dir="rtl"] .about-visual .layer-color { transform:rotate(3deg) translate(12px, 10px); }
+    .about-visual .layer-img { position:absolute; inset:0; border-radius:24px; box-shadow:var(--shadow); }
+    .about-visual .badge { position:absolute; bottom:-20px; left:-20px; background:var(--sun); color:var(--ink); padding:14px 22px; border-radius:14px; font-family:var(--font-display); font-size:22px; font-weight:800; transform:rotate(-6deg); box-shadow:var(--shadow-sm); }
+    [dir="rtl"] .about-visual .badge { left:auto; right:-20px; transform:rotate(6deg); }
+
+    /* ACTIVITIES */
+    .activities { background:var(--ink); color:var(--paper); border-radius:48px 48px 0 0; }
+    .activities .eyebrow { color:var(--coral); }
+    .activities .eyebrow::before { background:var(--coral); }
+    .section-head { display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:48px; gap:24px; flex-wrap:wrap; }
+    .activities-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:18px; }
+    @media (max-width:1000px) { .activities-grid { grid-template-columns:repeat(2, 1fr); } }
+    @media (max-width:640px) { .activities-grid { grid-template-columns:1fr; } }
+    .activity { background:var(--ink-soft); border-radius:var(--r-card); padding:0; display:flex; flex-direction:column; overflow:hidden; transition:transform 380ms var(--ease), background-color 380ms; position:relative; }
+    .activity:hover { transform:translateY(-6px); background:var(--coral); }
+    .activity .activity-img { aspect-ratio:4/3; position:relative; overflow:hidden; }
+    .activity .activity-img .imgslot { background:linear-gradient(135deg, var(--ink), var(--ink-soft)); color:rgba(245,240,230,0.4); height:100%; }
+    .activity:nth-child(3n+1) .activity-img .imgslot { background:linear-gradient(135deg, var(--ink), var(--ink-soft)); }
+    .activity:nth-child(3n+2) .activity-img .imgslot { background:linear-gradient(135deg, var(--coral-2), var(--coral)); color:rgba(255,255,255,0.7); }
+    .activity:nth-child(3n+3) .activity-img .imgslot { background:linear-gradient(135deg, var(--paper-3), var(--paper-2)); color:rgba(20,17,14,0.5); }
+    .activity-num { position:absolute; top:14px; right:14px; width:34px; height:34px; border-radius:50%; background:rgba(245,240,230,0.95); color:var(--ink); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; }
+    [dir="rtl"] .activity-num { right:auto; left:14px; }
+    .activity-body { padding:24px; }
+    .activity h3 { color:var(--paper); }
+    .activity p { color:rgba(245,240,230,0.7); font-size:14.5px; margin-top:10px; }
+    .activity:hover p { color:rgba(255,255,255,0.85); }
+
+    /* GALLERY */
+    .gallery { background:var(--paper); }
+    .gallery-grid { columns:4; column-gap:14px; }
+    .gallery-grid > div { break-inside:avoid; margin-bottom:14px; border-radius:14px; transition:transform 380ms var(--ease), box-shadow 380ms; cursor:pointer; }
+    .gallery-grid > div:hover { transform:scale(1.02); box-shadow:var(--shadow-sm); }
+    .gallery-grid > div:nth-child(5n+1) { background:linear-gradient(140deg, var(--ink), var(--ink-soft)); }
+    .gallery-grid > div:nth-child(5n+2) { background:linear-gradient(140deg, var(--coral-2), var(--coral)); }
+    .gallery-grid > div:nth-child(5n+3) { background:linear-gradient(140deg, var(--paper-3), var(--paper-2)); }
+    .gallery-grid > div:nth-child(5n+4) { background:linear-gradient(140deg, var(--ink-soft), var(--ink)); }
+    .gallery-grid > div:nth-child(5n+5) { background:linear-gradient(140deg, var(--coral), var(--coral-tint)); }
+    .gallery-grid > div { color:rgba(255,255,255,0.6); }
+    @media (max-width:1000px) { .gallery-grid { columns:3; } }
+    @media (max-width:640px) { .gallery-grid { columns:2; } }
+
+    /* REVIEWS */
+    .reviews { background:var(--paper-2); position:relative; overflow:hidden; }
+    .reviews::before { content:"”"; position:absolute; font-family:var(--font-display); font-size:600px; line-height:0.7; color:var(--coral); opacity:0.12; top:-40px; right:-30px; pointer-events:none; }
+    [dir="rtl"] .reviews::before { right:auto; left:-30px; transform:scaleX(-1); }
+    .reviews-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:20px; margin-top:48px; position:relative; }
+    @media (max-width:1000px) { .reviews-grid { grid-template-columns:1fr; } }
+    .review { background:var(--paper); border-radius:24px; padding:32px; display:flex; flex-direction:column; gap:18px; min-height:260px; transition:transform 320ms var(--ease); }
+    .review:hover { transform:translateY(-4px) rotate(-0.5deg); }
+    .review:nth-child(2):hover { transform:translateY(-4px) rotate(0.5deg); }
+    .stars { display:flex; gap:3px; color:var(--coral); }
+    .review p { font-family:var(--font-display); font-size:23px; line-height:1.35; letter-spacing:-0.01em; font-weight:500; }
+    .review-name { margin-top:auto; font-size:14px; color:var(--text-muted); font-weight:500; }
+    .reviews-cta { margin-top:36px; display:flex; justify-content:center; }
+
+    /* STATS BAND */
+    .stats { background:var(--coral); color:#fff; }
+    .stats-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:28px; }
+    @media (max-width:880px) { .stats-grid { grid-template-columns:repeat(2, 1fr); } }
+    .stat { border-top:2px solid rgba(255,255,255,0.3); padding-top:24px; }
+    .stat-num { font-family:var(--font-display); font-size:clamp(64px, 7vw, 110px); line-height:1; letter-spacing:-0.04em; font-weight:800; }
+    .stat-lbl { margin-top:12px; font-size:15px; max-width:200px; line-height:1.45; font-weight:500; }
+
+    /* CTA PAYMENT */
+    .cta { background:var(--ink); color:var(--paper); position:relative; overflow:hidden; }
+    .cta::before { content:""; position:absolute; inset:0; background:radial-gradient(ellipse at 30% 30%, rgba(232,74,42,0.30), transparent 60%), radial-gradient(ellipse at 70% 70%, rgba(232,74,42,0.18), transparent 60%); }
+    .cta .container { max-width:760px; text-align:center; position:relative; }
+    .cta .eyebrow { color:var(--coral); justify-content:center; margin-inline:auto; }
+    .cta .eyebrow::before { background:var(--coral); }
+    .cta h2 { font-size:clamp(44px, 6vw, 88px); }
+    .cta h2 .accent { color:var(--coral); font-style:italic; }
+    .cta-sub { margin:24px auto 0; max-width:560px; font-size:clamp(15px, 1.3vw, 18px); color:rgba(245,240,230,0.7); }
+    .chips { margin-top:36px; display:flex; flex-wrap:wrap; justify-content:center; gap:12px; }
+    .chip { padding:14px 26px; border-radius:999px; background:transparent; border:1px solid rgba(245,240,230,0.25); color:var(--paper); font-size:15px; font-weight:600; cursor:pointer; transition:all 280ms var(--ease); }
+    .chip:hover { border-color:var(--paper); transform:translateY(-2px); }
+    .chip.active { background:var(--coral); color:#fff; border-color:var(--coral); transform:translateY(-2px) scale(1.04); box-shadow:0 14px 28px -10px rgba(255,90,54,0.55); }
+    .cta-go { margin-top:32px; }
+    .cta-go .btn { background:var(--coral); color:#fff; }
+    .cta-go .btn::before { background:var(--paper); }
+    .cta-go .btn:hover { color:var(--ink); }
+    .cta-trust { margin-top:24px; display:flex; gap:18px; justify-content:center; color:rgba(245,240,230,0.55); font-size:12px; flex-wrap:wrap; }
+
+    /* JOIN US */
+    .join { background:var(--paper); }
+    .join-grid { display:grid; grid-template-columns:1fr 1fr; gap:80px; align-items:start; }
+    @media (max-width:880px) { .join-grid { grid-template-columns:1fr; gap:48px; } }
+    .form-card { background:var(--ink); color:var(--paper); border-radius:32px; padding:36px; box-shadow:var(--shadow); }
+    .field { display:flex; flex-direction:column; gap:8px; margin-bottom:16px; }
+    .field label { font-size:12px; color:rgba(245,240,230,0.6); text-transform:uppercase; letter-spacing:1.2px; font-weight:600; }
+    .field input, .field textarea { background:rgba(245,240,230,0.06); border:1px solid rgba(245,240,230,0.15); border-radius:12px; padding:14px 16px; font-size:15px; font-family:inherit; color:var(--paper); transition:all 200ms; }
+    .field input:focus, .field textarea:focus { outline:none; border-color:var(--coral); background:rgba(245,240,230,0.10); }
+    .field textarea { resize:vertical; min-height:90px; }
+    .form-card .btn { background:var(--coral); color:#fff; }
+    .form-card .btn::before { background:var(--paper); }
+    .form-card .btn:hover { color:var(--ink); }
+    .form-success { padding:48px 16px; text-align:center; }
+    .check-circle { width:72px; height:72px; border-radius:50%; background:var(--coral); color:#fff; display:inline-flex; align-items:center; justify-content:center; margin:0 auto 22px; animation:popIn 600ms var(--ease-spring); }
+    @keyframes popIn { from { transform:scale(0); } to { transform:scale(1); } }
+
+    /* FAQ */
+    .faq { background:var(--paper-2); }
+    .faq-grid { display:grid; grid-template-columns:1fr 2fr; gap:80px; }
+    @media (max-width:880px) { .faq-grid { grid-template-columns:1fr; gap:40px; } }
+    .faq-list { border-top:2px solid var(--ink); }
+    .faq-item { border-bottom:1px solid var(--border); padding:24px 0; transition:padding-inline 280ms var(--ease); }
+    .faq-item[data-open="true"] { padding-inline:8px; }
+    .faq-q { display:flex; justify-content:space-between; align-items:center; gap:24px; width:100%; text-align:start; font-size:21px; font-weight:600; padding:0; transition:color 200ms; }
+    .faq-q:hover { color:var(--primary); }
+    .faq-q .chev { transition:transform 320ms var(--ease); color:var(--text-muted); flex-shrink:0; width:36px; height:36px; border-radius:50%; background:transparent; border:1px solid var(--border-strong); display:flex; align-items:center; justify-content:center; }
+    .faq-item[data-open="true"] .chev { transform:rotate(45deg); background:var(--ink); color:var(--paper); border-color:var(--ink); }
+    .faq-q .chev::before { content:"+"; font-size:22px; line-height:1; }
+    .faq-q .chev svg { display:none; }
+    .faq-a { display:grid; grid-template-rows:0fr; opacity:0; transition:grid-template-rows 360ms var(--ease), opacity 360ms var(--ease), margin-top 360ms var(--ease); }
+    .faq-item[data-open="true"] .faq-a { grid-template-rows:1fr; opacity:1; margin-top:16px; }
+    .faq-a > div { overflow:hidden; }
+    .faq-a p { color:var(--text-muted); font-size:16px; line-height:1.65; max-width:620px; }
+
+    /* FOOTER */
+    .footer { background:var(--ink); color:var(--paper); padding:80px clamp(20px, 5vw, 64px) 32px; position:relative; overflow:hidden; }
+    .footer::before { content:""; position:absolute; top:0; left:50%; transform:translateX(-50%); width:120%; height:80px; background:radial-gradient(ellipse, rgba(232,74,42,0.35), transparent 70%); }
+    .footer-big { font-family:var(--font-display); font-size:clamp(56px, 9vw, 140px); line-height:0.95; font-weight:800; letter-spacing:-0.04em; margin-bottom:48px; max-width:1280px; margin-inline:auto; position:relative; }
+    .footer-big .accent { color:var(--coral); font-style:italic; }
+    .footer-grid { max-width:1280px; margin:0 auto; display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:40px; }
+    @media (max-width:880px) { .footer-grid { grid-template-columns:1fr 1fr; } }
+    @media (max-width:560px) { .footer-grid { grid-template-columns:1fr; } }
+    .footer-brand { display:flex; align-items:center; gap:12px; margin-bottom:18px; }
+    .footer-brand .brand-name { font-size:24px; }
+    .footer-tag { color:rgba(245,240,230,0.6); font-size:14.5px; line-height:1.6; max-width:360px; }
+    .footer-col h4 { font-family:var(--font-body); font-size:11px; text-transform:uppercase; letter-spacing:1.5px; color:var(--coral); margin:0 0 18px; font-weight:700; }
+    .footer-col div { color:rgba(245,240,230,0.8); font-size:14px; margin-bottom:10px; }
+    .footer-col a { display:block; color:rgba(245,240,230,0.8); margin-bottom:10px; transition:color 200ms; }
+    .footer-col a:hover { color:var(--coral); }
+    .footer-legal { max-width:1280px; margin:64px auto 0; padding-top:24px; border-top:1px solid rgba(245,240,230,0.12); display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; font-size:12px; color:rgba(245,240,230,0.55); }
+
+    /* reveal */
+    .reveal { transition:opacity 600ms var(--ease), transform 600ms var(--ease); }
+    .reveal.pending { opacity:0; transform:translateY(28px); }
+    @media (prefers-reduced-motion: reduce) {
+      .reveal, .reveal.pending { opacity:1; transform:none; transition:none; }
+      .blob { animation:none !important; }
+      .marquee-track { animation:none !important; }
+      .brand-mark { animation:none !important; }
+      .hero h1 .word { opacity:1; transform:none; animation:none; }
+      .hero-sub, .hero-cta, .hero-stats { opacity:1; animation:none; }
+    }
+
+    /* lang toggle */
+    .lang-toggle { position:fixed; bottom:18px; right:18px; z-index:100; background:var(--ink); color:var(--paper); border-radius:999px; padding:5px; display:flex; gap:2px; box-shadow:var(--shadow-sm); }
+    [dir="rtl"] .lang-toggle { right:auto; left:18px; }
+    .lang-toggle button { padding:8px 14px; border-radius:999px; font-size:12.5px; color:rgba(245,240,230,0.6); transition:all 200ms; font-weight:600; }
+    .lang-toggle button.active { background:var(--coral); color:#fff; }
+  </style>
+<link id="gfont-Montserrat" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&amp;display=swap"></head>
+<body data-cc-id="cc-1" style="cursor: crosshair; font-family: Montserrat;">
+
+  <nav class="nav scrolled" id="nav">
+    <a class="brand" href="#top">
+      <div class="brand-mark"></div>
+      <div class="brand-name" data-en="Shorashim" data-he="שורשים">שורשים</div>
+    </a>
+    <div class="nav-links">
+      <a href="#about" data-en="About" data-he="אודות">אודות</a>
+      <a href="#activities" data-en="Activities" data-he="פעילויות">פעילויות</a>
+      <a href="#gallery" data-en="Gallery" data-he="גלריה">גלריה</a>
+      <a href="#contact" data-en="Contact" data-he="צרו קשר">צרו קשר</a>
+    </div>
+    <a href="#donate" class="btn btn-primary" data-en="Donate" data-he="תרמו"><span>תרמו</span></a>
+  </nav>
+
+  <header class="hero" id="top">
+    <div class="hero-bg" aria-hidden="true">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+    </div>
+    <div class="hero-inner">
+      <div class="hero-meta">
+        <span class="hero-pill"><span class="dot"></span><span data-en="Live · giving open" data-he="פעיל · קמפיין פתוח">פעיל · קמפיין פתוח</span></span>
+        <span class="since" data-en="Registered non-profit · est. 1994" data-he="עמותה רשומה · נוסדה 1994">עמותה רשומה · נוסדה 1994</span>
+      </div>
+      <h1>
+        <span class="word" data-en="A&nbsp;quieter" data-he="דרך">דרך</span>
+        <span class="word" data-en="kind" data-he="שקטה">שקטה</span>
+        <span class="word accent" data-en="of" data-he="לתת">לתת</span>
+        <span class="word" data-en="giving" data-he="כתף">כתף</span>
+      </h1>
+      <p class="hero-sub" data-en="Mentorship, after-school programs, and food security for families in our community — funded by neighbors, for neighbors." data-he="חונכות, תכניות אחר־צהריים וביטחון תזונתי למשפחות בקהילה שלנו. ממומן על־ידי שכנים, למען שכנים.">חונכות, תכניות אחר־צהריים וביטחון תזונתי למשפחות בקהילה שלנו. ממומן על־ידי שכנים, למען שכנים.</p>
+      <div class="hero-cta">
+        <a href="#donate" class="btn btn-primary btn-lg" data-en="Donate now →" data-he="תרמו עכשיו →"><span>תרמו עכשיו →</span></a>
+        <a href="#story" class="btn btn-ghost btn-lg" data-en="Watch our story" data-he="צפו בסיפור שלנו">צפו בסיפור שלנו</a>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><div class="n" data-num="140">140</div><div class="l" data-en="families weekly" data-he="משפחות בשבוע">משפחות בשבוע</div></div>
+        <div class="hero-stat"><div class="n" data-num="32">32</div><div class="l" data-en="years running" data-he="שנות פעילות">שנות פעילות</div></div>
+        <div class="hero-stat"><div class="n" data-num="68%">68%</div><div class="l" data-en="local funding" data-he="מימון מקומי">מימון מקומי</div></div>
+        <div class="hero-stat"><div class="n" data-num="1,240">1,240</div><div class="l" data-en="volunteer hrs" data-he="שעות התנדבות">שעות התנדבות</div></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MARQUEE -->
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee-track">
+      <span data-en="MENTORSHIP" data-he="חונכות">חונכות</span>
+      <span data-en="FOOD" data-he="מזון">מזון</span>
+      <span data-en="EDUCATION" data-he="חינוך">חינוך</span>
+      <span data-en="COMMUNITY" data-he="קהילה">קהילה</span>
+      <span data-en="HOPE" data-he="תקווה">תקווה</span>
+      <span data-en="MENTORSHIP" data-he="חונכות">חונכות</span>
+      <span data-en="FOOD" data-he="מזון">מזון</span>
+      <span data-en="EDUCATION" data-he="חינוך">חינוך</span>
+      <span data-en="COMMUNITY" data-he="קהילה">קהילה</span>
+      <span data-en="HOPE" data-he="תקווה">תקווה</span>
+    </div>
+  </div>
+
+  <!-- VIDEO -->
+  <section class="section" id="story">
+    <div class="container">
+      <div class="eyebrow reveal" data-en="OUR STORY" data-he="הסיפור שלנו">הסיפור שלנו</div>
+      <h2 class="reveal" data-en="The work, in the words of the families who lived it." data-he="העבודה, במילותיהן של המשפחות שחיו אותה.">העבודה, במילותיהן של המשפחות שחיו אותה.</h2>
+      <div class="video-wrap reveal">
+        <div class="video-frame imgslot" tabindex="0" role="button" aria-label="Play video">
+          <span style="position:absolute; top:20px; right:20px; color:rgba(245,240,230,0.5);">video · 16:9</span>
+          <div class="video-play"><div class="core"><svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7L8 5z"></path></svg></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="section about" id="about">
+    <div class="container about-grid">
+      <div class="about-text reveal">
+        <div class="eyebrow" data-en="ABOUT" data-he="אודות">אודות</div>
+        <h2 data-en="Started at a kitchen table in 1994. Still run like one." data-he="התחלנו סביב שולחן מטבח ב־1994. וכך אנחנו ממשיכים.">התחלנו סביב שולחן מטבח ב־1994. וכך אנחנו ממשיכים.</h2>
+        <p data-en="We began with four families, one shared meal a week, and a belief that neighbors know best what neighbors need." data-he="התחלנו עם ארבע משפחות, ארוחה משותפת אחת בשבוע, ואמונה ששכנים יודעים הכי טוב מה שכנים צריכים.">התחלנו עם ארבע משפחות, ארוחה משותפת אחת בשבוע, ואמונה ששכנים יודעים הכי טוב מה שכנים צריכים.</p>
+        <p data-en="Three decades later we run after-school mentorship, a weekly food program, and a summer youth camp — but the shape of the work hasn't changed much." data-he="שלושה עשורים לאחר מכן אנחנו מפעילים חונכות אחר־צהריים, תכנית מזון שבועית, וקייטנת נוער קיצית — אבל צורת העבודה לא השתנתה הרבה.">שלושה עשורים לאחר מכן אנחנו מפעילים חונכות אחר־צהריים, תכנית מזון שבועית, וקייטנת נוער קיצית — אבל צורת העבודה לא השתנתה הרבה.</p>
+      </div>
+      <div class="about-visual reveal">
+        <div class="layer-color"></div>
+        <div class="layer-img imgslot">about · 4:5</div>
+        <div class="badge" data-en="Since 1994" data-he="מאז 1994">מאז 1994</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ACTIVITIES -->
+  <section class="section activities" id="activities">
+    <div class="container">
+      <div class="section-head">
+        <div class="reveal">
+          <div class="eyebrow" data-en="WHAT WE DO" data-he="מה אנחנו עושים">מה אנחנו עושים</div>
+          <h2 data-en="Six programs, every week of the year." data-he="שש תכניות, בכל שבוע של השנה.">שש תכניות, בכל שבוע של השנה.</h2>
+        </div>
+      </div>
+      <div class="activities-grid" id="activities-grid">
+      <article class="activity reveal">
+        <div class="activity-img"><div class="imgslot">activity 1</div><div class="activity-num">01</div></div>
+        <div class="activity-body">
+          <h3 data-en="Youth mentorship" data-he="חונכות נוער">חונכות נוער</h3>
+          <p data-en="One-on-one pairings between high-schoolers and university volunteers, weekly for a full academic year." data-he="התאמה אישית בין תלמידי תיכון למתנדבים סטודנטים, מדי שבוע לאורך שנת לימודים.">התאמה אישית בין תלמידי תיכון למתנדבים סטודנטים, מדי שבוע לאורך שנת לימודים.</p>
+        </div>
+      </article>
+    
+      <article class="activity reveal">
+        <div class="activity-img"><div class="imgslot">activity 2</div><div class="activity-num">02</div></div>
+        <div class="activity-body">
+          <h3 data-en="After-school program" data-he="תכנית אחר־צהריים">תכנית אחר־צהריים</h3>
+          <p data-en="A safe, warm room from 14:00 to 18:00 with tutoring, homework help, and a hot meal." data-he="חדר חם ובטוח בין 14:00 ל־18:00, עם תגבור, עזרה בשיעורים וארוחה חמה.">חדר חם ובטוח בין 14:00 ל־18:00, עם תגבור, עזרה בשיעורים וארוחה חמה.</p>
+        </div>
+      </article>
+    
+      <article class="activity reveal">
+        <div class="activity-img"><div class="imgslot">activity 3</div><div class="activity-num">03</div></div>
+        <div class="activity-body">
+          <h3 data-en="Weekly food basket" data-he="סל מזון שבועי">סל מזון שבועי</h3>
+          <p data-en="Fresh produce and staples delivered to 140 families every Thursday, no paperwork, no questions." data-he="ירקות ומצרכי יסוד נמסרים ל־140 משפחות בכל יום חמישי, בלי טפסים ובלי שאלות.">ירקות ומצרכי יסוד נמסרים ל־140 משפחות בכל יום חמישי, בלי טפסים ובלי שאלות.</p>
+        </div>
+      </article>
+    
+      <article class="activity reveal">
+        <div class="activity-img"><div class="imgslot">activity 4</div><div class="activity-num">04</div></div>
+        <div class="activity-body">
+          <h3 data-en="Summer camp" data-he="קייטנת קיץ">קייטנת קיץ</h3>
+          <p data-en="Ten days of hiking, music, and friendship for kids whose families can't otherwise send them." data-he="עשרה ימים של טיולים, מוסיקה וחברות לילדים שמשפחותיהם לא יכולות לשלוח אותם בדרך אחרת.">עשרה ימים של טיולים, מוסיקה וחברות לילדים שמשפחותיהם לא יכולות לשלוח אותם בדרך אחרת.</p>
+        </div>
+      </article>
+    
+      <article class="activity reveal">
+        <div class="activity-img"><div class="imgslot">activity 5</div><div class="activity-num">05</div></div>
+        <div class="activity-body">
+          <h3 data-en="Community kitchen" data-he="מטבח קהילתי">מטבח קהילתי</h3>
+          <p data-en="Volunteers, students, and grandmothers cooking together for neighbors who need a meal." data-he="מתנדבים, סטודנטים וסבתות מבשלים יחד עבור שכנים שזקוקים לארוחה.">מתנדבים, סטודנטים וסבתות מבשלים יחד עבור שכנים שזקוקים לארוחה.</p>
+        </div>
+      </article>
+    
+      <article class="activity reveal">
+        <div class="activity-img"><div class="imgslot">activity 6</div><div class="activity-num">06</div></div>
+        <div class="activity-body">
+          <h3 data-en="Holiday outreach" data-he="פעילות חגים">פעילות חגים</h3>
+          <p data-en="Gift and grocery drives before each major holiday, run entirely by our teen volunteer council." data-he="מבצעי מתנות ומצרכים לפני כל חג, המופעלים על־ידי מועצת המתנדבים הצעירים.">מבצעי מתנות ומצרכים לפני כל חג, המופעלים על־ידי מועצת המתנדבים הצעירים.</p>
+        </div>
+      </article>
+    </div>
+    </div>
+  </section>
+
+  <!-- GALLERY -->
+  <section class="section gallery" id="gallery">
+    <div class="container">
+      <div class="section-head">
+        <div class="reveal">
+          <div class="eyebrow" data-en="IN THE ROOM" data-he="בתוך הרגע">בתוך הרגע</div>
+          <h2 data-en="Moments, kept by the people in them." data-he="רגעים, שנשמרו על־ידי האנשים שהיו בהם.">רגעים, שנשמרו על־ידי האנשים שהיו בהם.</h2>
+        </div>
+      </div>
+      <div class="gallery-grid" id="gallery-grid"><div class="reveal" style="height:220px;"></div><div class="reveal" style="height:300px;"></div><div class="reveal" style="height:180px;"></div><div class="reveal" style="height:260px;"></div><div class="reveal" style="height:240px;"></div><div class="reveal" style="height:320px;"></div><div class="reveal" style="height:200px;"></div><div class="reveal" style="height:280px;"></div><div class="reveal" style="height:220px;"></div><div class="reveal" style="height:260px;"></div><div class="reveal" style="height:300px;"></div><div class="reveal" style="height:190px;"></div></div>
+    </div>
+  </section>
+
+  <!-- REVIEWS -->
+  <section class="section reviews">
+    <div class="container">
+      <div class="eyebrow reveal" data-en="IN THEIR WORDS" data-he="במילים שלהם">במילים שלהם</div>
+      <h2 class="reveal" data-en="The community, on the community." data-he="הקהילה, על הקהילה.">הקהילה, על הקהילה.</h2>
+      <div class="reviews-grid" id="reviews-grid">
+      <article class="review reveal">
+        <div class="stars" aria-label="5 of 5 stars"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 3l2.6 6 6.4.6-4.9 4.3 1.5 6.3L12 17l-5.6 3.2 1.5-6.3L3 9.6l6.4-.6L12 3z"></path></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 3l2.6 6 6.4.6-4.9 4.3 1.5 6.3L12 17l-5.6 3.2 1.5-6.3L3 9.6l6.4-.6L12 3z"></path></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 3l2.6 6 6.4.6-4.9 4.3 1.5 6.3L12 17l-5.6 3.2 1.5-6.3L3 9.6l6.4-.6L12 3z"></path></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 3l2.6 6 6.4.6-4.9 4.3 1.5 6.3L12 17l-5.6 3.2 1.5-6.3L3 9.6l6.4-.6L12 3z"></path></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 3l2.6 6 6.4.6-4.9 4.3 1.5 6.3L12 17l-5.6 3.2 1.5-6.3L3 9.6l6.4-.6L12 3z"></path></svg></div>
+        <p data-en="“My son has been in the after-school program for two years. The tutors know him by name. That is what changes things.”" data-he="“הבן שלי בתכנית אחר־הצהריים שנתיים. המדריכים מכירים אותו בשמו. זה מה שמשנה.”">“הבן שלי בתכנית אחר־הצהריים שנתיים. המדריכים מכירים אותו בשמו. זה מה שמשנה.”</p>
+        <div class="review-name" data-en="— Ronit L." data-he="— רונית ל.">— רונית ל.</div>
+      </article>
+    
+      <article class="review reveal">
+        <div class="stars" aria-label="5 of 5 stars"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 3l2.6 6 6.4.6-4.9 4.3 1.5 6.3L12 17l-5.6 3.2 1.5-6.3L3 9.6l6.4-.6L12 3z"></path></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 3l2.6 6 6.4.6-4.9 4.3 1.5 6.3L12 17l-5.6 3.2 1.5-6.3L3 9.6l6.4-.6L12 3z"></path></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 3l2.6 6 6.4.6-4.9 4.3 1.5 6.3L12 17l-5.6 3.2 1.5-6.3L3 9.6l6.4-.6L12 3z"></path></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 3l2.6 6 6.4.6-4.9 4.3 1.5 6.3L12 17l-5.6 3.2 1.5-6.3L3 9.6l6.4-.6L12 3z"></path></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 3l2.6 6 6.4.6-4.9 4.3 1.5 6.3L12 17l-5.6 3.2 1.5-6.3L3 9.6l6.4-.6L12 3z"></path></svg></div>
+        <p data-en="“I donate here because I can walk in, see the work, and leave with my hands full of vegetables for someone down the street.”" data-he="“אני תורם כאן כי אני יכול להיכנס, לראות את העבודה, ולצאת עם ידיים מלאות ירקות.”">“אני תורם כאן כי אני יכול להיכנס, לראות את העבודה, ולצאת עם ידיים מלאות ירקות.”</p>
+        <div class="review-name" data-en="— David K." data-he="— דוד ק.">— דוד ק.</div>
+      </article>
+    
+      <article class="review reveal">
+        <div class="stars" aria-label="5 of 5 stars"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 3l2.6 6 6.4.6-4.9 4.3 1.5 6.3L12 17l-5.6 3.2 1.5-6.3L3 9.6l6.4-.6L12 3z"></path></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 3l2.6 6 6.4.6-4.9 4.3 1.5 6.3L12 17l-5.6 3.2 1.5-6.3L3 9.6l6.4-.6L12 3z"></path></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 3l2.6 6 6.4.6-4.9 4.3 1.5 6.3L12 17l-5.6 3.2 1.5-6.3L3 9.6l6.4-.6L12 3z"></path></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 3l2.6 6 6.4.6-4.9 4.3 1.5 6.3L12 17l-5.6 3.2 1.5-6.3L3 9.6l6.4-.6L12 3z"></path></svg><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 3l2.6 6 6.4.6-4.9 4.3 1.5 6.3L12 17l-5.6 3.2 1.5-6.3L3 9.6l6.4-.6L12 3z"></path></svg></div>
+        <p data-en="“The summer camp was the first time my daughter went anywhere alone. She came back taller.”" data-he="“קייטנת הקיץ הייתה הפעם הראשונה שהבת שלי נסעה לבד. היא חזרה גבוהה יותר.”">“קייטנת הקיץ הייתה הפעם הראשונה שהבת שלי נסעה לבד. היא חזרה גבוהה יותר.”</p>
+        <div class="review-name" data-en="— Miriam A." data-he="— מרים א.">— מרים א.</div>
+      </article>
+    </div>
+      <div class="reviews-cta reveal"><button class="btn btn-secondary" data-en="Leave your own review +" data-he="השאירו ביקורת שלכם +"><span>השאירו ביקורת שלכם +</span></button></div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section class="section stats">
+    <div class="container">
+      <div class="eyebrow reveal" style="color:var(--ink);" data-en="BY THE NUMBERS" data-he="במספרים">במספרים</div>
+      <div class="stats-grid" id="stats-grid">
+      <div class="stat reveal">
+        <div class="stat-num" data-num="140">140</div>
+        <div class="stat-lbl" data-en="families served weekly" data-he="משפחות בשבוע">משפחות בשבוע</div>
+      </div>
+    
+      <div class="stat reveal">
+        <div class="stat-num" data-num="32">32</div>
+        <div class="stat-lbl" data-en="years in the neighborhood" data-he="שנים בשכונה">שנים בשכונה</div>
+      </div>
+    
+      <div class="stat reveal">
+        <div class="stat-num" data-num="68%">68%</div>
+        <div class="stat-lbl" data-en="of funding from local donors" data-he="מהמימון מתורמים מקומיים">מהמימון מתורמים מקומיים</div>
+      </div>
+    
+      <div class="stat reveal">
+        <div class="stat-num" data-num="1,240">1,240</div>
+        <div class="stat-lbl" data-en="volunteer hours last year" data-he="שעות התנדבות אשתקד">שעות התנדבות אשתקד</div>
+      </div>
+    </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="section cta" id="donate">
+    <div class="container">
+      <div class="eyebrow reveal" data-en="GIVE NOW" data-he="תרמו עכשיו">תרמו עכשיו</div>
+      <h2 class="reveal" data-en="Every shekel, &lt;span class=&quot;accent&quot;&gt;straight to the work.&lt;/span&gt;" data-he="כל שקל, &lt;span class=&quot;accent&quot;&gt;ישר לעבודה.&lt;/span&gt;">כל שקל, <span class="accent">ישר לעבודה.</span></h2>
+      <p class="cta-sub reveal" data-en="Processed through our secure payment partner. Split into up to 12 monthly payments, no interest." data-he="עיבוד באמצעות שותף הסליקה המאובטח שלנו. עד 12 תשלומים חודשיים ללא ריבית.">עיבוד באמצעות שותף הסליקה המאובטח שלנו. עד 12 תשלומים חודשיים ללא ריבית.</p>
+      <div class="chips reveal" role="radiogroup" aria-label="Donation amount">
+        <button class="chip" role="radio" aria-checked="false" data-amount="100">₪100</button>
+        <button class="chip" role="radio" aria-checked="false" data-amount="250">₪250</button>
+        <button class="chip active" role="radio" aria-checked="true" data-amount="500">₪500</button>
+        <button class="chip" role="radio" aria-checked="false" data-amount="1000">₪1,000</button>
+        <button class="chip" role="radio" aria-checked="false" data-en="Other" data-he="אחר">אחר</button>
+      </div>
+      <div class="cta-go reveal">
+        <button class="btn btn-lg" id="donate-btn">
+          <span><span data-en="Donate" data-he="תרמו">תרמו</span>&nbsp;<span id="donate-amount">₪500</span>&nbsp;→</span>
+        </button>
+      </div>
+      <div class="cta-trust reveal">
+        <span>🔒 <span data-en="Secure checkout" data-he="סליקה מאובטחת">סליקה מאובטחת</span></span>
+        <span>·</span>
+        <span data-en="Up to 12 installments" data-he="עד 12 תשלומים">עד 12 תשלומים</span>
+        <span>·</span>
+        <span data-en="§46 tax receipt" data-he="קבלה לפי סעיף 46">קבלה לפי סעיף 46</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- JOIN -->
+  <section class="section join" id="contact">
+    <div class="container join-grid">
+      <div class="reveal">
+        <div class="eyebrow" data-en="JOIN US" data-he="הצטרפו אלינו">הצטרפו אלינו</div>
+        <h2 data-en="A seat at the table is always open." data-he="מקום ליד השולחן תמיד פתוח.">מקום ליד השולחן תמיד פתוח.</h2>
+        <p style="margin-top:24px; font-size:17px; line-height:1.65; max-width:480px; color:var(--text);" data-en="Volunteers, neighbors, students, grandmothers — if you'd like to help, leave us a note and we'll be in touch within the week." data-he="מתנדבים, שכנים, סטודנטים, סבתות — אם תרצו לעזור, השאירו לנו הודעה ונחזור אליכם תוך שבוע.">מתנדבים, שכנים, סטודנטים, סבתות — אם תרצו לעזור, השאירו לנו הודעה ונחזור אליכם תוך שבוע.</p>
+      </div>
+      <form class="form-card reveal" id="join-form">
+        <div id="join-default">
+          <div class="field"><label data-en="Name" data-he="שם">שם</label><input required="" type="text" autocomplete="name"></div>
+          <div class="field"><label data-en="Email" data-he="אימייל">אימייל</label><input required="" type="email" autocomplete="email"></div>
+          <div class="field"><label data-en="Phone (optional)" data-he="טלפון (לא חובה)">טלפון (לא חובה)</label><input type="tel" autocomplete="tel"></div>
+          <div class="field"><label data-en="A note (optional)" data-he="הודעה (לא חובה)">הודעה (לא חובה)</label><textarea rows="3"></textarea></div>
+          <button type="submit" class="btn btn-lg btn-block" data-en="Send →" data-he="שלחו →"><span>שלחו →</span></button>
+        </div>
+        <div class="form-success" id="join-success" hidden="">
+          <div class="check-circle"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-11"></path></svg></div>
+          <h3 style="font-family:var(--font-display); font-size:32px; margin-bottom:10px; color:var(--paper);" data-en="Got it. Thank you." data-he="קיבלנו. תודה רבה.">קיבלנו. תודה רבה.</h3>
+          <div style="color:rgba(245,240,230,0.7); font-size:15px;" data-en="We'll reach out to you within a few days." data-he="נחזור אליכם תוך מספר ימים.">נחזור אליכם תוך מספר ימים.</div>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section faq">
+    <div class="container faq-grid">
+      <div class="reveal">
+        <div class="eyebrow" data-en="QUESTIONS" data-he="שאלות">שאלות</div>
+        <h2 data-en="The ones we're asked most." data-he="הנפוצות ביותר.">הנפוצות ביותר.</h2>
+      </div>
+      <div class="faq-list" id="faq-list">
+      <div class="faq-item reveal" data-open="false">
+        <button class="faq-q" aria-expanded="false" onclick="toggleFaq(this)">
+          <span data-en="Is my donation tax-deductible?" data-he="האם התרומה מוכרת לזיכוי מס?">האם התרומה מוכרת לזיכוי מס?</span>
+          <span class="chev"></span>
+        </button>
+        <div class="faq-a"><div><p data-en="Yes. We are a registered §46 non-profit; a tax receipt is issued automatically after each donation." data-he="כן. אנחנו עמותה רשומה בעלת אישור סעיף 46; קבלה לצורכי מס מונפקת אוטומטית לאחר כל תרומה.">כן. אנחנו עמותה רשומה בעלת אישור סעיף 46; קבלה לצורכי מס מונפקת אוטומטית לאחר כל תרומה.</p></div></div>
+      </div>
+    
+      <div class="faq-item reveal" data-open="true">
+        <button class="faq-q" aria-expanded="true" onclick="toggleFaq(this)">
+          <span data-en="Can I donate anonymously?" data-he="האם ניתן לתרום בעילום שם?">האם ניתן לתרום בעילום שם?</span>
+          <span class="chev"></span>
+        </button>
+        <div class="faq-a"><div><p data-en="Yes. Anonymous donations are welcome and listed on our annual report without a name." data-he="כן. תרומות בעילום שם מתקבלות בברכה ומופיעות בדוח השנתי ללא שם.">כן. תרומות בעילום שם מתקבלות בברכה ומופיעות בדוח השנתי ללא שם.</p></div></div>
+      </div>
+    
+      <div class="faq-item reveal" data-open="false">
+        <button class="faq-q" aria-expanded="false" onclick="toggleFaq(this)">
+          <span data-en="How do you use the money?" data-he="איך הכסף מנוצל?">איך הכסף מנוצל?</span>
+          <span class="chev"></span>
+        </button>
+        <div class="faq-a"><div><p data-en="Roughly 82% goes directly to programs; the remainder covers rent, utilities, and a part-time coordinator." data-he="כ־82% הולך ישירות לתכניות; השאר מכסה שכר דירה, הוצאות שוטפות, ורכזת.">כ־82% הולך ישירות לתכניות; השאר מכסה שכר דירה, הוצאות שוטפות, ורכזת.</p></div></div>
+      </div>
+    
+      <div class="faq-item reveal" data-open="false">
+        <button class="faq-q" aria-expanded="false" onclick="toggleFaq(this)">
+          <span data-en="How do I volunteer?" data-he="איך אפשר להתנדב?">איך אפשר להתנדב?</span>
+          <span class="chev"></span>
+        </button>
+        <div class="faq-a"><div><p data-en="Use the form above or write to us. We run a short orientation at the start of every month." data-he="מלאו את הטופס למעלה או כתבו לנו. אנחנו מקיימים יום הכוונה קצר בתחילת כל חודש.">מלאו את הטופס למעלה או כתבו לנו. אנחנו מקיימים יום הכוונה קצר בתחילת כל חודש.</p></div></div>
+      </div>
+    
+      <div class="faq-item reveal" data-open="false">
+        <button class="faq-q" aria-expanded="false" onclick="toggleFaq(this)">
+          <span data-en="Do you accept in-kind donations?" data-he="האם אתם מקבלים תרומות בעין?">האם אתם מקבלים תרומות בעין?</span>
+          <span class="chev"></span>
+        </button>
+        <div class="faq-a"><div><p data-en="We accept food, books, and seasonal clothing. Please message us before dropping items off." data-he="אנחנו מקבלים מזון, ספרים, וביגוד עונתי. אנא צרו איתנו קשר לפני הבאת פריטים.">אנחנו מקבלים מזון, ספרים, וביגוד עונתי. אנא צרו איתנו קשר לפני הבאת פריטים.</p></div></div>
+      </div>
+    </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-big">
+      <span data-en="Build community." data-he="לבנות קהילה.">לבנות קהילה.</span>
+      <span class="accent" data-en="Together." data-he="ביחד.">ביחד.</span>
+    </div>
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">
+          <div class="brand-mark"></div>
+          <div class="brand-name" data-en="Shorashim" data-he="שורשים">שורשים</div>
+        </div>
+        <div class="footer-tag" data-en="A community non-profit serving the families of our neighborhood since 1994." data-he="עמותה קהילתית המשרתת את משפחות השכונה שלנו מאז 1994.">עמותה קהילתית המשרתת את משפחות השכונה שלנו מאז 1994.</div>
+      </div>
+      <div class="footer-col">
+        <h4 data-en="VISIT" data-he="ביקור">ביקור</h4>
+        <div data-en="12 HaZayit St., Haifa" data-he="רח׳ הזית 12, חיפה">רח׳ הזית 12, חיפה</div>
+        <div data-en="Sun–Thu, 9:00–17:00" data-he="א׳–ה׳, 9:00–17:00">א׳–ה׳, 9:00–17:00</div>
+      </div>
+      <div class="footer-col">
+        <h4 data-en="CONTACT" data-he="יצירת קשר">יצירת קשר</h4>
+        <a href="mailto:hello@shorashim.org">hello@shorashim.org</a>
+        <a href="tel:+97240000000">+972 4 000 0000</a>
+      </div>
+      <div class="footer-col">
+        <h4 data-en="FOLLOW" data-he="עקבו">עקבו</h4>
+        <a href="#">Instagram</a>
+        <a href="#">Facebook</a>
+        <a href="#">YouTube</a>
+      </div>
+    </div>
+    <div class="footer-legal">
+      <div data-en="© 2026 Shorashim · Reg. No. 58-000-000-0 · Authorized under §46" data-he="© 2026 עמותת שורשים לקהילה (ע.ר.) · מס׳ 58-000-000-0 · אישור סעיף 46">© 2026 עמותת שורשים לקהילה (ע.ר.) · מס׳ 58-000-000-0 · אישור סעיף 46</div>
+      <div data-en="Built with Amutot" data-he="נבנה עם עמותות">נבנה עם עמותות</div>
+    </div>
+  </footer>
+
+  <div class="lang-toggle" role="radiogroup" aria-label="Language">
+    <button data-lang="en">EN</button>
+    <button class="active" data-lang="he">עב</button>
+  </div>
+
+  <script>
+    const activities = [
+      ['Youth mentorship', 'One-on-one pairings between high-schoolers and university volunteers, weekly for a full academic year.', 'חונכות נוער', 'התאמה אישית בין תלמידי תיכון למתנדבים סטודנטים, מדי שבוע לאורך שנת לימודים.'],
+      ['After-school program', 'A safe, warm room from 14:00 to 18:00 with tutoring, homework help, and a hot meal.', 'תכנית אחר־צהריים', 'חדר חם ובטוח בין 14:00 ל־18:00, עם תגבור, עזרה בשיעורים וארוחה חמה.'],
+      ['Weekly food basket', 'Fresh produce and staples delivered to 140 families every Thursday, no paperwork, no questions.', 'סל מזון שבועי', 'ירקות ומצרכי יסוד נמסרים ל־140 משפחות בכל יום חמישי, בלי טפסים ובלי שאלות.'],
+      ['Summer camp', 'Ten days of hiking, music, and friendship for kids whose families can\'t otherwise send them.', 'קייטנת קיץ', 'עשרה ימים של טיולים, מוסיקה וחברות לילדים שמשפחותיהם לא יכולות לשלוח אותם בדרך אחרת.'],
+      ['Community kitchen', 'Volunteers, students, and grandmothers cooking together for neighbors who need a meal.', 'מטבח קהילתי', 'מתנדבים, סטודנטים וסבתות מבשלים יחד עבור שכנים שזקוקים לארוחה.'],
+      ['Holiday outreach', 'Gift and grocery drives before each major holiday, run entirely by our teen volunteer council.', 'פעילות חגים', 'מבצעי מתנות ומצרכים לפני כל חג, המופעלים על־ידי מועצת המתנדבים הצעירים.'],
+    ];
+    const reviews = [
+      ['Ronit L.', 5, 'My son has been in the after-school program for two years. The tutors know him by name. That is what changes things.', 'רונית ל.', 'הבן שלי בתכנית אחר־הצהריים שנתיים. המדריכים מכירים אותו בשמו. זה מה שמשנה.'],
+      ['David K.', 5, 'I donate here because I can walk in, see the work, and leave with my hands full of vegetables for someone down the street.', 'דוד ק.', 'אני תורם כאן כי אני יכול להיכנס, לראות את העבודה, ולצאת עם ידיים מלאות ירקות.'],
+      ['Miriam A.', 5, 'The summer camp was the first time my daughter went anywhere alone. She came back taller.', 'מרים א.', 'קייטנת הקיץ הייתה הפעם הראשונה שהבת שלי נסעה לבד. היא חזרה גבוהה יותר.'],
+    ];
+    const stats = [
+      ['140', 'families served weekly', '140', 'משפחות בשבוע'],
+      ['32', 'years in the neighborhood', '32', 'שנים בשכונה'],
+      ['68%', 'of funding from local donors', '68%', 'מהמימון מתורמים מקומיים'],
+      ['1,240', 'volunteer hours last year', '1,240', 'שעות התנדבות אשתקד'],
+    ];
+    const faqs = [
+      ['Is my donation tax-deductible?', 'Yes. We are a registered §46 non-profit; a tax receipt is issued automatically after each donation.', 'האם התרומה מוכרת לזיכוי מס?', 'כן. אנחנו עמותה רשומה בעלת אישור סעיף 46; קבלה לצורכי מס מונפקת אוטומטית לאחר כל תרומה.'],
+      ['Can I donate anonymously?', 'Yes. Anonymous donations are welcome and listed on our annual report without a name.', 'האם ניתן לתרום בעילום שם?', 'כן. תרומות בעילום שם מתקבלות בברכה ומופיעות בדוח השנתי ללא שם.'],
+      ['How do you use the money?', 'Roughly 82% goes directly to programs; the remainder covers rent, utilities, and a part-time coordinator.', 'איך הכסף מנוצל?', 'כ־82% הולך ישירות לתכניות; השאר מכסה שכר דירה, הוצאות שוטפות, ורכזת.'],
+      ['How do I volunteer?', 'Use the form above or write to us. We run a short orientation at the start of every month.', 'איך אפשר להתנדב?', 'מלאו את הטופס למעלה או כתבו לנו. אנחנו מקיימים יום הכוונה קצר בתחילת כל חודש.'],
+      ['Do you accept in-kind donations?', 'We accept food, books, and seasonal clothing. Please message us before dropping items off.', 'האם אתם מקבלים תרומות בעין?', 'אנחנו מקבלים מזון, ספרים, וביגוד עונתי. אנא צרו איתנו קשר לפני הבאת פריטים.'],
+    ];
+    const galleryHeights = [220, 300, 180, 260, 240, 320, 200, 280, 220, 260, 300, 190];
+    const star = (filled) => `<svg width="16" height="16" viewBox="0 0 24 24" fill="${filled ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 3l2.6 6 6.4.6-4.9 4.3 1.5 6.3L12 17l-5.6 3.2 1.5-6.3L3 9.6l6.4-.6L12 3z"/></svg>`;
+
+    document.getElementById('activities-grid').innerHTML = activities.map((a, i) => `
+      <article class="activity reveal">
+        <div class="activity-img"><div class="imgslot">activity ${i+1}</div><div class="activity-num">0${i+1}</div></div>
+        <div class="activity-body">
+          <h3 data-en="${a[0]}" data-he="${a[2]}">${a[2]}</h3>
+          <p data-en="${a[1]}" data-he="${a[3]}">${a[3]}</p>
+        </div>
+      </article>
+    `).join('');
+
+    document.getElementById('gallery-grid').innerHTML = galleryHeights.map((h, i) => `<div class="reveal" style="height:${h}px;"></div>`).join('');
+
+    document.getElementById('reviews-grid').innerHTML = reviews.map((r) => `
+      <article class="review reveal">
+        <div class="stars" aria-label="${r[1]} of 5 stars">${[0,1,2,3,4].map(i => star(i < r[1])).join('')}</div>
+        <p data-en="&ldquo;${r[2]}&rdquo;" data-he="&ldquo;${r[4]}&rdquo;">&ldquo;${r[4]}&rdquo;</p>
+        <div class="review-name" data-en="— ${r[0]}" data-he="— ${r[3]}">— ${r[3]}</div>
+      </article>
+    `).join('');
+
+    document.getElementById('stats-grid').innerHTML = stats.map((s) => `
+      <div class="stat reveal">
+        <div class="stat-num" data-num="${s[0]}">${s[0]}</div>
+        <div class="stat-lbl" data-en="${s[1]}" data-he="${s[3]}">${s[3]}</div>
+      </div>
+    `).join('');
+
+    document.getElementById('faq-list').innerHTML = faqs.map((f, i) => `
+      <div class="faq-item reveal" data-open="${i===1?'true':'false'}">
+        <button class="faq-q" aria-expanded="${i===1}" onclick="toggleFaq(this)">
+          <span data-en="${f[0]}" data-he="${f[2]}">${f[2]}</span>
+          <span class="chev"></span>
+        </button>
+        <div class="faq-a"><div><p data-en="${f[1]}" data-he="${f[3]}">${f[3]}</p></div></div>
+      </div>
+    `).join('');
+
+    function toggleFaq(btn) {
+      const item = btn.parentElement;
+      const open = item.dataset.open === 'true';
+      item.dataset.open = open ? 'false' : 'true';
+      btn.setAttribute('aria-expanded', !open);
+    }
+
+    addEventListener('scroll', () => {
+      document.getElementById('nav').classList.toggle('scrolled', scrollY > 8);
+    }, { passive: true });
+
+    if ('IntersectionObserver' in window && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach(e => { if (e.isIntersecting) { e.target.classList.remove('pending'); io.unobserve(e.target); } });
+      }, { threshold: 0.05 });
+      requestAnimationFrame(() => {
+        document.querySelectorAll('.reveal').forEach(el => {
+          const r = el.getBoundingClientRect();
+          if (r.top >= innerHeight || r.bottom <= 0) { el.classList.add('pending'); io.observe(el); }
+        });
+      });
+    }
+
+    document.querySelectorAll('.chip').forEach(c => {
+      c.addEventListener('click', () => {
+        document.querySelectorAll('.chip').forEach(x => { x.classList.remove('active'); x.setAttribute('aria-checked', 'false'); });
+        c.classList.add('active');
+        c.setAttribute('aria-checked', 'true');
+        const amt = c.dataset.amount;
+        document.getElementById('donate-amount').textContent = amt ? `₪${Number(amt).toLocaleString()}` : '';
+      });
+    });
+
+    const statsObs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        statsObs.unobserve(e.target);
+        if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        const target = e.target.dataset.num;
+        const m = target.match(/^([\d,]+)(.*)$/); if (!m) return;
+        const final = parseInt(m[1].replace(/,/g, ''), 10);
+        const suffix = m[2];
+        const start = performance.now(); const dur = 1400;
+        const tick = (t) => {
+          const p = Math.min(1, (t - start) / dur);
+          const eased = 1 - Math.pow(1 - p, 3);
+          e.target.textContent = Math.round(final * eased).toLocaleString() + suffix;
+          if (p < 1) requestAnimationFrame(tick);
+        };
+        e.target.textContent = '0' + suffix;
+        requestAnimationFrame(tick);
+      });
+    }, { threshold: 0.5 });
+    document.querySelectorAll('.stat-num, .hero-stat .n').forEach(el => {
+      if (!el.dataset.num) el.dataset.num = el.textContent;
+      statsObs.observe(el);
+    });
+
+    document.getElementById('join-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      document.getElementById('join-default').hidden = true;
+      document.getElementById('join-success').hidden = false;
+    });
+
+    function setLang(lang) {
+      document.documentElement.lang = lang;
+      document.documentElement.dir = lang === 'he' ? 'rtl' : 'ltr';
+      document.querySelectorAll('[data-en]').forEach(el => {
+        const v = lang === 'he' ? el.dataset.he : el.dataset.en;
+        if (v && v.includes('<')) el.innerHTML = v.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
+        else if (el.children.length === 0) el.textContent = v;
+        else if (el.children.length === 1 && el.firstElementChild.tagName === 'SPAN' && !el.firstElementChild.classList.length) el.firstElementChild.textContent = v;
+        else el.textContent = v;
+      });
+      document.querySelectorAll('.lang-toggle button').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+      localStorage.setItem('amutot-lang', lang);
+    }
+    document.querySelectorAll('.lang-toggle button').forEach(b => {
+      b.addEventListener('click', () => setLang(b.dataset.lang));
+    });
+    const saved = localStorage.getItem('amutot-lang');
+    setLang(saved || 'he');
+  </script>
+
+
+</body></html>

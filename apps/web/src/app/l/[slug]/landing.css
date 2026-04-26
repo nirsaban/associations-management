@@ -23,9 +23,18 @@
 /* ── Global font-family override (prototype line 56) ── */
 .lp-landing h1, .lp-landing h2, .lp-landing h3, .lp-landing p,
 .lp-landing label, .lp-landing button, .lp-landing input, .lp-landing textarea,
-.lp-landing .brand-name, .lp-landing .nav-links a {
+.lp-landing .brand-name, .lp-landing .nav-links a,
+.lp-landing .hero-pill, .lp-landing .hero-stat .n, .lp-landing .hero-stat .l,
+.lp-landing .hero-sub {
   font-family: var(--font-display);
 }
+
+/* ── Typography (prototype lines 69-73) ── */
+.lp-landing h1, .lp-landing h2, .lp-landing h3 { font-family: var(--font-display); margin: 0; letter-spacing: -0.02em; text-wrap: balance; }
+.lp-landing h1 { font-size: clamp(50px, 7.2vw, 124px); line-height: 0.94; font-weight: 800; letter-spacing: -0.035em; }
+.lp-landing h2 { font-size: clamp(36px, 4.8vw, 76px); line-height: 1; font-weight: 700; letter-spacing: -0.025em; }
+.lp-landing h3 { font-family: var(--font-body); font-weight: 700; font-size: 20px; line-height: 1.2; letter-spacing: -0.01em; }
+.lp-landing p { margin: 0; line-height: 1.55; }
 
 /* ── Nav ── */
 .lp-landing .nav {
@@ -95,8 +104,68 @@
 }
 .lp-landing .btn-primary:hover::before { transform: translateY(0); }
 
+/* ── Button variants ── */
+.lp-landing .btn-lg { padding: 18px 34px; font-size: 16px; }
+.lp-landing .btn-ghost { background: transparent; color: var(--ink); padding: 14px 12px; }
+.lp-landing .btn-ghost:hover { color: var(--primary); }
+.lp-landing .btn-ghost .arrow { transition: transform 240ms var(--ease); }
+.lp-landing .btn-ghost:hover .arrow { transform: translateX(-6px); }
+.lp-landing[dir="ltr"] .btn-ghost:hover .arrow { transform: translateX(6px); }
+
+/* ═══ HERO ═══ */
+.lp-landing .hero { padding: 24px clamp(20px, 5vw, 64px) clamp(56px, 8vw, 120px); position: relative; overflow: hidden; }
+
+/* ── Blob field ── */
+.lp-landing .hero-bg { position: absolute; inset: 0; pointer-events: none; }
+.lp-landing .blob { position: absolute; border-radius: 50%; filter: blur(60px); opacity: 0.7; will-change: transform; }
+.lp-landing .blob-1 { width: 560px; height: 560px; background: var(--coral); top: -180px; left: -120px; opacity: 0.18; animation: float1 18s ease-in-out infinite alternate; }
+.lp-landing .blob-2 { width: 480px; height: 480px; background: var(--paper-3); top: 80px; right: -160px; opacity: 0.55; animation: float2 22s ease-in-out infinite alternate; }
+.lp-landing .blob-3 { width: 380px; height: 380px; background: var(--coral); bottom: -160px; left: 30%; opacity: 0.12; animation: float3 26s ease-in-out infinite alternate; }
+@keyframes float1 { to { transform: translate(80px, 60px) scale(1.15); } }
+@keyframes float2 { to { transform: translate(-90px, 100px) scale(0.9); } }
+@keyframes float3 { to { transform: translate(40px, -80px) scale(1.1); } }
+
+/* ── Hero inner ── */
+.lp-landing .hero-inner { position: relative; max-width: 1280px; margin: 0 auto; padding-top: 24px; }
+
+/* ── Pill + meta ── */
+.lp-landing .hero-meta { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; flex-wrap: wrap; }
+.lp-landing .hero-pill { display: inline-flex; align-items: center; gap: 8px; background: var(--ink); color: var(--paper); padding: 8px 16px; border-radius: 999px; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; }
+.lp-landing .hero-pill .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--mint); animation: pulse 2.4s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.3); opacity: .6; } }
+.lp-landing .hero-meta .since { font-size: 13px; color: var(--text-muted); }
+
+/* ── Headline ── */
+.lp-landing .hero h1 { max-width: 14ch; }
+.lp-landing .hero h1 .accent { color: var(--coral); font-style: italic; }
+.lp-landing .hero h1 .word { display: inline-block; opacity: 0; transform: translateY(40px) rotate(2deg); animation: wordIn 800ms var(--ease) forwards; }
+.lp-landing .hero h1 .word:nth-child(1) { animation-delay: 60ms; }
+.lp-landing .hero h1 .word:nth-child(2) { animation-delay: 160ms; }
+.lp-landing .hero h1 .word:nth-child(3) { animation-delay: 260ms; }
+.lp-landing .hero h1 .word:nth-child(4) { animation-delay: 360ms; }
+@keyframes wordIn { to { opacity: 1; transform: none; } }
+
+/* ── Subheadline ── */
+.lp-landing .hero-sub { margin-top: 28px; max-width: 540px; font-size: clamp(17px, 1.3vw, 20px); color: var(--text); opacity: 0; animation: fadeUp 700ms 500ms var(--ease) forwards; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 0.78; transform: none; } }
+
+/* ── CTA row ── */
+.lp-landing .hero-cta { margin-top: 40px; display: flex; gap: 14px; flex-wrap: wrap; opacity: 0; animation: fadeUp 700ms 700ms var(--ease) forwards; }
+
+/* ── Stats grid ── */
+.lp-landing .hero-stats { margin-top: 64px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; opacity: 0; animation: fadeUp 700ms 900ms var(--ease) forwards; }
+@media (max-width: 780px) { .lp-landing .hero-stats { grid-template-columns: repeat(2, 1fr); gap: 16px; } }
+.lp-landing .hero-stat { background: rgba(255,255,255,0.5); border: 1px solid var(--border); border-radius: 18px; padding: 18px 22px; backdrop-filter: blur(8px); }
+.lp-landing .hero-stat .n { font-family: var(--font-display); font-size: 44px; line-height: 1; font-weight: 800; letter-spacing: -0.03em; }
+.lp-landing .hero-stat .l { font-size: 13px; color: var(--text-muted); margin-top: 6px; }
+
 /* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
   .lp-landing .brand-mark { animation: none !important; }
   .lp-landing .btn-primary:hover { transform: none; }
+  .lp-landing .blob { animation: none !important; }
+  .lp-landing .hero h1 .word { opacity: 1; transform: none; animation: none; }
+  .lp-landing .hero-sub,
+  .lp-landing .hero-cta,
+  .lp-landing .hero-stats { opacity: 1; animation: none; }
 }

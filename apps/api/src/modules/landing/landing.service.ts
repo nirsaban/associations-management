@@ -248,6 +248,7 @@ export class LandingService {
             whatsappUrl: true,
             websiteUrl: true,
             paymentLink: true,
+            growUserId: true,
           },
         },
       },
@@ -256,7 +257,15 @@ export class LandingService {
     if (!landing) throw new NotFoundException('Page not found');
     if (!landing.published) throw new NotFoundException('Page not found');
 
-    return landing;
+    // Add hasGrowWallet flag without exposing credentials
+    const hasGrowWallet = !!(landing.organization as Record<string, unknown>).growUserId;
+    return {
+      ...landing,
+      organization: {
+        ...landing.organization,
+        hasGrowWallet,
+      },
+    };
   }
 
   async getPreviewPage(slug: string) {
@@ -284,13 +293,85 @@ export class LandingService {
             whatsappUrl: true,
             websiteUrl: true,
             paymentLink: true,
+            growUserId: true,
           },
         },
       },
     });
 
     if (!landing) throw new NotFoundException('Page not found');
-    return landing;
+
+    const hasGrowWallet = !!(landing.organization as Record<string, unknown>).growUserId;
+    return {
+      ...landing,
+      organization: {
+        ...landing.organization,
+        hasGrowWallet,
+      },
+    };
+  }
+
+  // =============== GROW WALLET SDK ===============
+
+  async createGrowPayment(slug: string, dto: { sum: number; description?: string; fullName?: string; phone?: string; email?: string }) {
+    const landing = await this.prisma.landingPage.findUnique({
+      where: { slug },
+      include: {
+        organization: {
+          select: { id: true, name: true, growUserId: true, growPageCode: true, paymentLink: true },
+        },
+      },
+    });
+
+    if (!landing) throw new NotFoundException('Page not found');
+    if (!landing.published) throw new NotFoundException('Page not found');
+
+    const org = landing.organization;
+    if (!org.growUserId || !org.growPageCode) {
+      throw new BadRequestException('GROW_NOT_CONFIGURED');
+    }
+
+    // Determine environment based on NODE_ENV
+    const isProduction = process.env.NODE_ENV === 'production';
+    const apiUrl = isProduction
+      ? 'https://grow-il.com/api/light/server/1.0/createPaymentProcess'
+      : 'https://sandbox.meshulam.co.il/api/light/server/1.0/createPaymentProcess';
+
+    const baseUrl = process.env.FRONTEND_URL || process.env.CORS_ORIGIN?.split(',')[0] || 'http://localhost:3010';
+    const successUrl = `${baseUrl}/l/${slug}?payment=success`;
+    const cancelUrl = `${baseUrl}/l/${slug}?payment=cancel`;
+
+    const formData = new FormData();
+    formData.append('pageCode', org.growPageCode);
+    formData.append('userId', org.growUserId);
+    formData.append('sum', String(dto.sum));
+    formData.append('description', dto.description || `תרומה ל${org.name}`);
+    formData.append('successUrl', successUrl);
+    formData.append('cancelUrl', cancelUrl);
+    if (dto.fullName) formData.append('pageField[fullName]', dto.fullName);
+    if (dto.phone) formData.append('pageField[phone]', dto.phone);
+    if (dto.email) formData.append('pageField[email]', dto.email);
+    formData.append('cField1', landing.organizationId);
+    formData.append('cField2', `landing_${slug}`);
+
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      body: formData,
+    });
+
+    const result = await response.json() as {
+      status: number;
+      err?: { message?: string };
+      data?: { authCode?: string };
+    };
+
+    if (result.status !== 1) {
+      throw new BadRequestException(result.err?.message || 'Payment process creation failed');
+    }
+
+    return {
+      authCode: result.data?.authCode,
+    };
   }
 
   async trackView(slug: string) {

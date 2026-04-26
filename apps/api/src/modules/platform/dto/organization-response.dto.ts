@@ -73,7 +73,13 @@ export class OrganizationResponseDto {
   @ApiPropertyOptional({ description: 'תיאור מטרת התרומה' })
   paymentDescription?: string;
 
-  @ApiPropertyOptional({ description: 'קישור לפייסבוק' })
+  @ApiPropertyOptional({ description: 'Grow Payment userId' })
+  growUserId?: string;
+
+  @ApiPropertyOptional({ description: 'Grow Payment Wallet pageCode' })
+  growPageCode?: string;
+
+  @ApiPropertyOptional({ description: 'ק��שור לפייסבוק' })
   facebookUrl?: string;
 
   @ApiPropertyOptional({ description: 'קישור לאינסטגרם' })

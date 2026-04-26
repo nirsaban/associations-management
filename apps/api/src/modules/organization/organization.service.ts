@@ -199,6 +199,8 @@ export class OrganizationService {
     if (dto.defaultPaymentLink !== undefined) updateData.defaultPaymentLink = dto.defaultPaymentLink;
     if (dto.paymentLink !== undefined) updateData.paymentLink = dto.paymentLink;
     if (dto.paymentDescription !== undefined) updateData.paymentDescription = dto.paymentDescription;
+    if (dto.growUserId !== undefined) updateData.growUserId = dto.growUserId || null;
+    if (dto.growPageCode !== undefined) updateData.growPageCode = dto.growPageCode || null;
     if (dto.facebookUrl !== undefined) updateData.facebookUrl = dto.facebookUrl;
     if (dto.instagramUrl !== undefined) updateData.instagramUrl = dto.instagramUrl;
     if (dto.whatsappUrl !== undefined) updateData.whatsappUrl = dto.whatsappUrl;
@@ -318,6 +320,8 @@ export class OrganizationService {
       paymentLink: (organization.paymentLink as string) || undefined,
       defaultPaymentLink: (organization.defaultPaymentLink as string) || undefined,
       paymentDescription: (organization.paymentDescription as string) || undefined,
+      growUserId: (organization.growUserId as string) || undefined,
+      growPageCode: (organization.growPageCode as string) || undefined,
       facebookUrl: (organization.facebookUrl as string) || undefined,
       instagramUrl: (organization.instagramUrl as string) || undefined,
       whatsappUrl: (organization.whatsappUrl as string) || undefined,

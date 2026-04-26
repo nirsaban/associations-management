@@ -28,6 +28,8 @@ interface OrgProfile {
   paymentLink?: string;
   defaultPaymentLink?: string;
   paymentDescription?: string;
+  growUserId?: string;
+  growPageCode?: string;
   facebookUrl?: string;
   instagramUrl?: string;
   whatsappUrl?: string;
@@ -293,6 +295,14 @@ export default function OrgProfilePage() {
             <FormField label="קישור תשלום ברירת מחדל" value={form.defaultPaymentLink || ''} onChange={v => updateField('defaultPaymentLink', v)} placeholder="https://..." />
             <FormField label="קישור תשלום (קיים)" value={form.paymentLink || ''} onChange={v => updateField('paymentLink', v)} placeholder="https://..." />
             <FormTextarea label="תיאור מטרת התרומה" value={form.paymentDescription || ''} onChange={v => updateField('paymentDescription', v)} rows={2} />
+            <div className="border-t border-outline/10 pt-4 mt-4">
+              <p className="text-label-sm text-on-surface-variant mb-3 font-medium">Grow Wallet SDK (סליקה מתקדמת)</p>
+              <div className="space-y-4">
+                <FormField label="Grow User ID" value={form.growUserId || ''} onChange={v => updateField('growUserId', v)} placeholder="4ec1d595ae764243" />
+                <FormField label="Grow Page Code (Wallet)" value={form.growPageCode || ''} onChange={v => updateField('growPageCode', v)} placeholder="c34d1f4a546f" />
+              </div>
+              <p className="text-[11px] text-on-surface-variant mt-2">כאשר מוגדר, דף הנחיתה ישתמש ב-Grow Wallet SDK לסליקה ישירה במקום הפניה לדף חיצוני.</p>
+            </div>
           </div>
         </section>
       </div>
