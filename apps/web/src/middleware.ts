@@ -76,6 +76,11 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Landing pages are always public — no auth required
+  if (pathname.startsWith('/l/')) {
+    return NextResponse.next();
+  }
+
   const rawToken = request.cookies.get('auth_token')?.value ?? null;
   const payload = rawToken ? decodeJwtPayload(rawToken) : null;
   const isAuthenticated = payload !== null;
