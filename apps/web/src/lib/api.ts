@@ -58,7 +58,8 @@ api.interceptors.response.use(
       } catch (refreshError) {
         useAuthStore.getState().logout();
         if (typeof document !== 'undefined') {
-          document.cookie = 'auth_token=; path=/; max-age=0; SameSite=Strict';
+          const secureClear = window.location.protocol === 'https:' ? '; Secure' : '';
+          document.cookie = `auth_token=; path=/; max-age=0; SameSite=Strict${secureClear}`;
         }
         if (typeof window !== 'undefined') {
           window.location.href = '/login';

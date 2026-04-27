@@ -76,7 +76,8 @@ export default function PlatformLayout({ children }: { children: ReactNode }) {
   const handleLogout = () => {
     logout();
     if (typeof document !== 'undefined') {
-      document.cookie = 'auth_token=; path=/; max-age=0; SameSite=Strict';
+      const secureClear = window.location.protocol === 'https:' ? '; Secure' : '';
+      document.cookie = `auth_token=; path=/; max-age=0; SameSite=Strict${secureClear}`;
     }
     router.replace('/login');
   };

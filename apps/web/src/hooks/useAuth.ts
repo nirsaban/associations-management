@@ -107,7 +107,8 @@ export function useAuth() {
     } finally {
       logout();
       // Clear the auth_token cookie used by middleware
-      document.cookie = 'auth_token=; path=/; max-age=0; SameSite=Strict';
+      const secureClear = window.location.protocol === 'https:' ? '; Secure' : '';
+      document.cookie = `auth_token=; path=/; max-age=0; SameSite=Strict${secureClear}`;
       window.location.href = '/login';
     }
   }, [logout]);

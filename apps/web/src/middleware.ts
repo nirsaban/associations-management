@@ -83,7 +83,9 @@ export function middleware(request: NextRequest) {
 
   const rawToken = request.cookies.get('auth_token')?.value ?? null;
   const payload = rawToken ? decodeJwtPayload(rawToken) : null;
-  const isAuthenticated = payload !== null;
+  // Check token is not expired (exp is in seconds)
+  const isExpired = payload?.exp ? (payload.exp as number) * 1000 < Date.now() : false;
+  const isAuthenticated = payload !== null && !isExpired;
   const isSuperAdmin = payload?.platformRole === 'SUPER_ADMIN';
 
   // ── Public routes ──────────────────────────────────────────────────────────
@@ -98,7 +100,12 @@ export function middleware(request: NextRequest) {
 
   // ── Unauthenticated ────────────────────────────────────────────────────────
   if (!isAuthenticated) {
-    return NextResponse.redirect(new URL('/login', request.url));
+    const response = NextResponse.redirect(new URL('/login', request.url));
+    // Clear stale/expired cookie to prevent redirect loops
+    if (rawToken) {
+      response.cookies.set('auth_token', '', { path: '/', maxAge: 0 });
+    }
+    return response;
   }
 
   // ── Activation flow — all roles allowed ──────────────────────────────────
