@@ -157,12 +157,7 @@ export class AuthService {
       throw new BadRequestException('Invalid OTP format');
     }
 
-    // Accept default dev password "123456" only when explicitly enabled
-    const isDevBypass =
-      process.env.ALLOW_DEV_OTP === 'true' &&
-      process.env.NODE_ENV !== 'production' &&
-      otp === '123456';
-    if (!isDevBypass && otp !== session.otp) {
+    if (otp !== session.otp) {
       throw new UnauthorizedException('Invalid OTP code');
     }
 
