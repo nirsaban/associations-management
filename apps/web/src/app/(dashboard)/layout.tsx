@@ -8,6 +8,7 @@ import { Menu, LogOut, Home, Users, CreditCard, Upload, Bell, Truck, ShoppingCar
 import { useAuth } from '@/hooks/useAuth';
 import Link from 'next/link';
 import { api } from '@/lib/api';
+import { AutoPushSubscribe } from '@/components/pwa/AutoPushSubscribe';
 
 // Full navigation items per role
 const NAVIGATION = {
@@ -249,6 +250,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex h-screen bg-surface" dir="rtl">
+      <AutoPushSubscribe />
       {/* Desktop Sidebar — hidden on mobile */}
       <aside className="hidden md:flex md:flex-col md:w-64 border-s border-outline/30 bg-surface-container-low">
         <div className="border-b border-outline/30 px-6 py-5">

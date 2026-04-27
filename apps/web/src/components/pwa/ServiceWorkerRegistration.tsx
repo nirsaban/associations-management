@@ -12,15 +12,6 @@ export function ServiceWorkerRegistration() {
   const [, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    // Only register in production or when explicitly enabled
-    const shouldRegister =
-      process.env.NODE_ENV === 'production' || process.env.NEXT_PUBLIC_ENABLE_SW === 'true';
-
-    if (!shouldRegister) {
-      console.log('[PWA] Service worker disabled in development');
-      return;
-    }
-
     if (!('serviceWorker' in navigator)) {
       console.warn('[PWA] Service workers are not supported in this browser');
       return;

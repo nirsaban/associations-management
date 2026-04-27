@@ -122,8 +122,8 @@ export async function subscribeToPushNotifications(
 
   // Get VAPID public key if not provided
   if (!vapidPublicKey) {
-    const response = await api.get<{ publicKey: string }>('/push/vapid-public-key');
-    vapidPublicKey = response.data.publicKey;
+    const response = await api.get('/activation/push/vapid-public-key');
+    vapidPublicKey = response.data?.data?.vapidPublicKey || response.data?.publicKey;
   }
 
   // Get push subscription
@@ -132,14 +132,11 @@ export async function subscribeToPushNotifications(
   // Convert subscription to format expected by backend
   const subscriptionData = subscriptionToData(subscription);
 
-  // Send subscription to backend
-  await api.post('/push/subscribe', {
-    subscription: subscriptionData,
-    deviceInfo: {
-      userAgent: navigator.userAgent,
-      platform: navigator.platform,
-      language: navigator.language,
-    },
+  // Send subscription to backend (flat format matching PushSubscribeDto)
+  await api.post('/activation/push/subscribe', {
+    endpoint: subscriptionData.endpoint,
+    keys: subscriptionData.keys,
+    userAgent: navigator.userAgent,
   });
 
   return subscriptionData;
@@ -164,8 +161,8 @@ export async function unsubscribeFromPushNotifications(): Promise<void> {
 
     // Notify backend
     try {
-      await api.post('/push/unsubscribe', {
-        endpoint: subscriptionData.endpoint,
+      await api.delete('/activation/push/unsubscribe', {
+        params: { endpoint: subscriptionData.endpoint },
       });
     } catch (error) {
       console.error('Failed to notify backend of unsubscription:', error);
