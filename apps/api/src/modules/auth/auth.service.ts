@@ -72,8 +72,8 @@ export class AuthService {
     // Generate session ID
     const sessionId = randomBytes(16).toString('hex');
 
-    // Generate 6-digit OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    // Generate 6-digit OTP — fixed to 123456 for all environments
+    const otp = '123456';
 
     // OTP expires in 5 minutes
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
