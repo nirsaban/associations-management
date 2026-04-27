@@ -79,7 +79,7 @@ export default function LoginPage() {
         {/* Header */}
         <div className="mb-12 text-center">
           <h1 className="text-headline-lg font-headline mb-2">ניהול עמותות</h1>
-          <p className="text-body-md text-on-surface-variant">מערכת ניהול לעמותות ישראליות</p>
+          <p className="text-body-md text-on-surface-variant">ברוכים הבאים למערכת ניהול העמותות</p>
         </div>
 
         {/* Card */}
