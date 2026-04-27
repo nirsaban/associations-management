@@ -9,12 +9,13 @@ import api from './api';
 export async function isWebAuthnSupported(): Promise<boolean> {
   try {
     if (!browserSupportsWebAuthn()) return false;
-    // platformAuthenticatorIsAvailable can throw on some mobile browsers
+    // iOS always has Face ID / Touch ID
+    if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) return true;
+    // Android devices with biometrics
+    if (/Android/i.test(navigator.userAgent)) return true;
     const available = await platformAuthenticatorIsAvailable();
     return available;
   } catch {
-    // Fallback: if the check throws, assume platform authenticator is available
-    // on devices that at least support WebAuthn (most modern phones have biometrics)
     return browserSupportsWebAuthn();
   }
 }
