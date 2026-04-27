@@ -125,7 +125,23 @@ export default function OrgProfilePage() {
   };
 
   const handleSave = () => {
-    const { id, slug, logoUrl, ...updateData } = form;
+    // Only send editable fields — exclude read-only DB fields
+    const editableFields: (keyof OrgProfile)[] = [
+      'name', 'legalName', 'taxId', 'contactEmail', 'contactPhone',
+      'address', 'addressLine2', 'city', 'postalCode', 'country',
+      'primaryColor', 'accentColor', 'aboutShort', 'aboutLong', 'description',
+      'paymentLink', 'defaultPaymentLink', 'paymentDescription',
+      'growUserId', 'growPageCode',
+      'facebookUrl', 'instagramUrl', 'whatsappUrl', 'websiteUrl',
+    ];
+    const updateData: Record<string, unknown> = {};
+    for (const key of editableFields) {
+      if (form[key] !== undefined) {
+        // Send empty strings as null for optional URL fields
+        const val = form[key];
+        updateData[key] = val === '' ? null : val;
+      }
+    }
     saveMutation.mutate(updateData);
   };
 
