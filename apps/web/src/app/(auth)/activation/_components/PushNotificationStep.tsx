@@ -47,11 +47,18 @@ export function PushNotificationStep({ onComplete }: PushNotificationStepProps) 
     check();
   }, []);
 
-  // Auto-advance if already subscribed
+  // Auto-advance if already subscribed or unsupported on desktop
   useEffect(() => {
     if (status === 'done') {
       const timer = setTimeout(onComplete, 500);
       return () => clearTimeout(timer);
+    }
+    if (status === 'unsupported') {
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (!isMobile) {
+        const timer = setTimeout(onComplete, 500);
+        return () => clearTimeout(timer);
+      }
     }
   }, [status, onComplete]);
 
