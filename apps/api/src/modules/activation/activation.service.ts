@@ -17,16 +17,24 @@ import { WebauthnAuthenticateOptionsDto, WebauthnAuthenticateVerifyDto } from '.
 // In-memory challenge store (per-user, short-lived)
 const challengeStore = new Map<string, { challenge: string; expiresAt: Date }>();
 
-function getRpId(): string {
-  return process.env.WEBAUTHN_RP_ID || 'localhost';
+function getRpId(requestOrigin?: string): string {
+  if (process.env.WEBAUTHN_RP_ID) return process.env.WEBAUTHN_RP_ID;
+  if (requestOrigin) {
+    try {
+      return new URL(requestOrigin).hostname;
+    } catch { /* fall through */ }
+  }
+  return 'localhost';
 }
 
 function getRpName(): string {
   return process.env.WEBAUTHN_RP_NAME || 'ניהול עמותות';
 }
 
-function getOrigin(): string {
-  return process.env.WEBAUTHN_ORIGIN || 'http://localhost:3010';
+function getOrigin(requestOrigin?: string): string {
+  if (process.env.WEBAUTHN_ORIGIN) return process.env.WEBAUTHN_ORIGIN;
+  if (requestOrigin) return requestOrigin;
+  return 'http://localhost:3010';
 }
 
 @Injectable()
@@ -74,17 +82,13 @@ export class ActivationService {
     return { ok: true };
   }
 
-  getVapidPublicKey(): string {
-    const key = process.env.VAPID_PUBLIC_KEY;
-    if (!key) {
-      throw new BadRequestException('VAPID public key not configured');
-    }
-    return key;
+  getVapidPublicKey(): string | null {
+    return process.env.VAPID_PUBLIC_KEY || null;
   }
 
   // ── WebAuthn Registration ────────────────────────────────────────────────
 
-  async generateRegisterOptions(userId: string) {
+  async generateRegisterOptions(userId: string, requestOrigin?: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { id: true, phone: true, fullName: true },
@@ -101,7 +105,7 @@ export class ActivationService {
 
     const options = await generateRegistrationOptions({
       rpName: getRpName(),
-      rpID: getRpId(),
+      rpID: getRpId(requestOrigin),
       userID: new TextEncoder().encode(user.id),
       userName: user.phone,
       userDisplayName: user.fullName,
@@ -126,7 +130,7 @@ export class ActivationService {
     return options;
   }
 
-  async verifyRegister(userId: string, dto: WebauthnRegisterVerifyDto) {
+  async verifyRegister(userId: string, dto: WebauthnRegisterVerifyDto, requestOrigin?: string) {
     const stored = challengeStore.get(`reg:${userId}`);
     if (!stored || new Date() > stored.expiresAt) {
       challengeStore.delete(`reg:${userId}`);
@@ -136,8 +140,8 @@ export class ActivationService {
     const verification = await verifyRegistrationResponse({
       response: dto.attestation as unknown as RegistrationResponseJSON,
       expectedChallenge: stored.challenge,
-      expectedOrigin: getOrigin(),
-      expectedRPID: getRpId(),
+      expectedOrigin: getOrigin(requestOrigin),
+      expectedRPID: getRpId(requestOrigin),
     });
 
     challengeStore.delete(`reg:${userId}`);
@@ -167,7 +171,7 @@ export class ActivationService {
 
   // ── WebAuthn Authentication ──────────────────────────────────────────────
 
-  async generateAuthenticateOptions(dto: WebauthnAuthenticateOptionsDto) {
+  async generateAuthenticateOptions(dto: WebauthnAuthenticateOptionsDto, requestOrigin?: string) {
     // Find all users with this phone (across orgs)
     const users = await this.prisma.user.findMany({
       where: { phone: dto.phone, deletedAt: null, isActive: true },
@@ -190,7 +194,7 @@ export class ActivationService {
     }
 
     const options = await generateAuthenticationOptions({
-      rpID: getRpId(),
+      rpID: getRpId(requestOrigin),
       allowCredentials: credentials.map((cred) => ({
         id: cred.credentialId,
         transports: cred.transports as AuthenticatorTransportFuture[],
@@ -207,7 +211,7 @@ export class ActivationService {
     return options;
   }
 
-  async verifyAuthenticate(dto: WebauthnAuthenticateVerifyDto) {
+  async verifyAuthenticate(dto: WebauthnAuthenticateVerifyDto, requestOrigin?: string) {
     const stored = challengeStore.get(`auth:${dto.phone}`);
     if (!stored || new Date() > stored.expiresAt) {
       challengeStore.delete(`auth:${dto.phone}`);
@@ -247,8 +251,8 @@ export class ActivationService {
       verification = await verifyAuthenticationResponse({
         response: assertion,
         expectedChallenge: stored.challenge,
-        expectedOrigin: getOrigin(),
-        expectedRPID: getRpId(),
+        expectedOrigin: getOrigin(requestOrigin),
+        expectedRPID: getRpId(requestOrigin),
         credential: {
           id: credential.credentialId,
           publicKey: new Uint8Array(credential.publicKey),

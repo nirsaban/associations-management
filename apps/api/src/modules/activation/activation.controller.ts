@@ -1,4 +1,5 @@
-import { Controller, Post, Get, Delete, Body, HttpCode, UseGuards, Query, Param } from '@nestjs/common';
+import { Controller, Post, Get, Delete, Body, HttpCode, UseGuards, Query, Param, Req } from '@nestjs/common';
+import { Request } from 'express';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { Public } from '@common/decorators/public.decorator';
@@ -58,8 +59,9 @@ export class ActivationController {
   @HttpCode(200)
   @ApiOperation({ summary: 'Generate WebAuthn registration options' })
   @ApiResponse({ status: 200, description: 'Registration options generated' })
-  async webauthnRegisterOptions(@CurrentUser() user: ICurrentUser) {
-    return { data: await this.activationService.generateRegisterOptions(user.sub) };
+  async webauthnRegisterOptions(@CurrentUser() user: ICurrentUser, @Req() req: Request) {
+    const origin = req.headers.origin || req.headers.referer?.replace(/\/$/, '') || undefined;
+    return { data: await this.activationService.generateRegisterOptions(user.sub, origin) };
   }
 
   @Post('webauthn/register/verify')
@@ -68,8 +70,9 @@ export class ActivationController {
   @HttpCode(200)
   @ApiOperation({ summary: 'Verify WebAuthn registration' })
   @ApiResponse({ status: 200, description: 'Registration verified' })
-  async webauthnRegisterVerify(@CurrentUser() user: ICurrentUser, @Body() dto: WebauthnRegisterVerifyDto) {
-    return { data: await this.activationService.verifyRegister(user.sub, dto) };
+  async webauthnRegisterVerify(@CurrentUser() user: ICurrentUser, @Body() dto: WebauthnRegisterVerifyDto, @Req() req: Request) {
+    const origin = req.headers.origin || req.headers.referer?.replace(/\/$/, '') || undefined;
+    return { data: await this.activationService.verifyRegister(user.sub, dto, origin) };
   }
 
   // ── WebAuthn Authentication (public — login path) ────────────────────────
@@ -79,8 +82,9 @@ export class ActivationController {
   @HttpCode(200)
   @ApiOperation({ summary: 'Generate WebAuthn authentication options' })
   @ApiResponse({ status: 200, description: 'Authentication options generated' })
-  async webauthnAuthenticateOptions(@Body() dto: WebauthnAuthenticateOptionsDto) {
-    return { data: await this.activationService.generateAuthenticateOptions(dto) };
+  async webauthnAuthenticateOptions(@Body() dto: WebauthnAuthenticateOptionsDto, @Req() req: Request) {
+    const origin = req.headers.origin || req.headers.referer?.replace(/\/$/, '') || undefined;
+    return { data: await this.activationService.generateAuthenticateOptions(dto, origin) };
   }
 
   @Post('webauthn/authenticate/verify')
@@ -88,8 +92,9 @@ export class ActivationController {
   @HttpCode(200)
   @ApiOperation({ summary: 'Verify WebAuthn authentication and issue tokens' })
   @ApiResponse({ status: 200, description: 'Authentication verified, tokens issued' })
-  async webauthnAuthenticateVerify(@Body() dto: WebauthnAuthenticateVerifyDto) {
-    return { data: await this.activationService.verifyAuthenticate(dto) };
+  async webauthnAuthenticateVerify(@Body() dto: WebauthnAuthenticateVerifyDto, @Req() req: Request) {
+    const origin = req.headers.origin || req.headers.referer?.replace(/\/$/, '') || undefined;
+    return { data: await this.activationService.verifyAuthenticate(dto, origin) };
   }
 
   // ── Group Selection ──────────────────────────────────────────────────────

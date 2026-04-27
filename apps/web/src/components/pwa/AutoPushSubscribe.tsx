@@ -7,6 +7,7 @@ import {
   subscribeToPushNotifications,
   isSubscribedToPush,
 } from '@/lib/push';
+import api from '@/lib/api';
 
 export function AutoPushSubscribe() {
   const { isAuthenticated } = useAuthStore();
@@ -22,6 +23,14 @@ export function AutoPushSubscribe() {
       try {
         const alreadySubscribed = await isSubscribedToPush();
         if (alreadySubscribed) return;
+
+        // Check if VAPID is configured
+        try {
+          const res = await api.get('/activation/push/vapid-public-key');
+          if (!res.data?.data?.vapidPublicKey) return;
+        } catch {
+          return;
+        }
 
         if (Notification.permission === 'denied') return;
 

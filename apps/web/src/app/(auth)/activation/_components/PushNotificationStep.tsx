@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { isPushSupported, getPushPermission, subscribeToPush, isAlreadySubscribed } from '@/lib/push-notifications';
+import api from '@/lib/api';
 
 interface PushNotificationStepProps {
   onComplete: () => void;
@@ -14,6 +15,18 @@ export function PushNotificationStep({ onComplete }: PushNotificationStepProps) 
   useEffect(() => {
     async function check() {
       if (!isPushSupported()) {
+        setStatus('unsupported');
+        return;
+      }
+
+      // Check if VAPID is configured on the server
+      try {
+        const res = await api.get('/activation/push/vapid-public-key');
+        if (!res.data?.data?.vapidPublicKey) {
+          setStatus('unsupported');
+          return;
+        }
+      } catch {
         setStatus('unsupported');
         return;
       }
