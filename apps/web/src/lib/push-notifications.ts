@@ -33,7 +33,10 @@ export async function subscribeToPush(): Promise<boolean> {
 
   // Get VAPID public key
   const vapidRes = await api.get('/activation/push/vapid-public-key');
-  const vapidPublicKey = vapidRes.data.data.vapidPublicKey;
+  const vapidPublicKey = vapidRes.data?.data?.vapidPublicKey;
+  if (!vapidPublicKey) {
+    throw new Error('VAPID_NOT_CONFIGURED');
+  }
 
   // Wait for service worker
   const registration = await waitForServiceWorker();

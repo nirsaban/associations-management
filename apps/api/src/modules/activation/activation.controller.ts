@@ -9,6 +9,14 @@ import { PushSubscribeDto } from './dto/push-subscribe.dto';
 import { WebauthnRegisterVerifyDto } from './dto/webauthn-register.dto';
 import { WebauthnAuthenticateOptionsDto, WebauthnAuthenticateVerifyDto } from './dto/webauthn-authenticate.dto';
 
+function extractOrigin(req: Request): string | undefined {
+  if (req.headers.origin) return req.headers.origin;
+  if (req.headers.referer) {
+    try { return new URL(req.headers.referer).origin; } catch { /* ignore */ }
+  }
+  return undefined;
+}
+
 @ApiTags('Activation')
 @Controller('activation')
 export class ActivationController {
@@ -60,7 +68,7 @@ export class ActivationController {
   @ApiOperation({ summary: 'Generate WebAuthn registration options' })
   @ApiResponse({ status: 200, description: 'Registration options generated' })
   async webauthnRegisterOptions(@CurrentUser() user: ICurrentUser, @Req() req: Request) {
-    const origin = req.headers.origin || req.headers.referer?.replace(/\/$/, '') || undefined;
+    const origin = extractOrigin(req);
     return { data: await this.activationService.generateRegisterOptions(user.sub, origin) };
   }
 
@@ -71,7 +79,7 @@ export class ActivationController {
   @ApiOperation({ summary: 'Verify WebAuthn registration' })
   @ApiResponse({ status: 200, description: 'Registration verified' })
   async webauthnRegisterVerify(@CurrentUser() user: ICurrentUser, @Body() dto: WebauthnRegisterVerifyDto, @Req() req: Request) {
-    const origin = req.headers.origin || req.headers.referer?.replace(/\/$/, '') || undefined;
+    const origin = extractOrigin(req);
     return { data: await this.activationService.verifyRegister(user.sub, dto, origin) };
   }
 
@@ -83,7 +91,7 @@ export class ActivationController {
   @ApiOperation({ summary: 'Generate WebAuthn authentication options' })
   @ApiResponse({ status: 200, description: 'Authentication options generated' })
   async webauthnAuthenticateOptions(@Body() dto: WebauthnAuthenticateOptionsDto, @Req() req: Request) {
-    const origin = req.headers.origin || req.headers.referer?.replace(/\/$/, '') || undefined;
+    const origin = extractOrigin(req);
     return { data: await this.activationService.generateAuthenticateOptions(dto, origin) };
   }
 
@@ -93,7 +101,7 @@ export class ActivationController {
   @ApiOperation({ summary: 'Verify WebAuthn authentication and issue tokens' })
   @ApiResponse({ status: 200, description: 'Authentication verified, tokens issued' })
   async webauthnAuthenticateVerify(@Body() dto: WebauthnAuthenticateVerifyDto, @Req() req: Request) {
-    const origin = req.headers.origin || req.headers.referer?.replace(/\/$/, '') || undefined;
+    const origin = extractOrigin(req);
     return { data: await this.activationService.verifyAuthenticate(dto, origin) };
   }
 

@@ -66,6 +66,8 @@ export function PushNotificationStep({ onComplete }: PushNotificationStepProps) 
       if (message === 'PERMISSION_DENIED') {
         setStatus('denied');
         setError('ההתראות נחסמו. יש לאפשר התראות בהגדרות הדפדפן ולנסות שוב.');
+      } else if (message === 'VAPID_NOT_CONFIGURED') {
+        setStatus('unsupported');
       } else {
         setError('שגיאה בהפעלת ההתראות. אנא נסה שוב.');
         setStatus('ready');

@@ -126,6 +126,10 @@ export async function subscribeToPushNotifications(
     vapidPublicKey = response.data?.data?.vapidPublicKey || response.data?.publicKey;
   }
 
+  if (!vapidPublicKey) {
+    throw new Error('VAPID public key not available');
+  }
+
   // Get push subscription
   const subscription = await getPushSubscription(vapidPublicKey);
 
