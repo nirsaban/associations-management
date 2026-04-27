@@ -54,8 +54,8 @@ export function PushNotificationStep({ onComplete }: PushNotificationStepProps) 
       return () => clearTimeout(timer);
     }
     if (status === 'unsupported') {
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      if (!isMobile) {
+      const isDesktop = window.innerWidth >= 1024;
+      if (isDesktop) {
         const timer = setTimeout(onComplete, 500);
         return () => clearTimeout(timer);
       }
