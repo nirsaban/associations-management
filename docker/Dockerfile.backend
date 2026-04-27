@@ -14,11 +14,12 @@ RUN apk add --no-cache python3 make g++
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY tsconfig.json ./
 
+# Copy all workspace package.json files (pnpm needs them for lockfile resolution)
+COPY apps/api/package.json apps/api/package.json
+COPY apps/web/package.json apps/web/package.json
+
 # Copy shared packages
 COPY packages ./packages
-
-# Copy API app
-COPY apps/api ./apps/api
 
 # Copy prisma schema
 COPY prisma ./prisma
@@ -26,6 +27,9 @@ COPY prisma ./prisma
 # Install dependencies using pnpm
 RUN npm install -g pnpm@9.0.0 && \
     pnpm install --frozen-lockfile --prod=false
+
+# Copy API source code and build
+COPY apps/api ./apps/api
 
 # Generate Prisma client
 RUN pnpm --filter api run prisma:generate
