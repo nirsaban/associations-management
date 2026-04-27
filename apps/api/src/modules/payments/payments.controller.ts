@@ -70,8 +70,23 @@ export class PaymentsController {
       return { status: 'ignored', reason: 'missing transactionId' };
     }
 
-    // If no cField1, try to resolve org from recent GrowPaymentProcess by amount
+    // Resolve organizationId — try multiple strategies
     let resolvedOrgId = organizationId;
+
+    // Strategy 1: cField1 (from Grow Wallet SDK payments)
+    // Already set above
+
+    // Strategy 2: Find org by payer phone (legacy webhooks don't have cFields)
+    if (!resolvedOrgId && payerPhone) {
+      const normalizedPhone = payerPhone.replace(/\D/g, '');
+      const userWithOrg = await this.paymentsService.findUserByPhoneAnyOrg(normalizedPhone);
+      if (userWithOrg) {
+        resolvedOrgId = userWithOrg.organizationId;
+        this.logger.log(`Resolved org by payerPhone ${payerPhone} → ${resolvedOrgId}`);
+      }
+    }
+
+    // Strategy 3: Match from GrowPaymentProcess table
     if (!resolvedOrgId && amount) {
       const process = await this.paymentsService.findGrowProcessByAmount(amount);
       if (process) {
@@ -80,13 +95,22 @@ export class PaymentsController {
       }
     }
 
+    // Strategy 4: If only one org exists, use it (small deployments)
+    if (!resolvedOrgId) {
+      const singleOrg = await this.paymentsService.getSingleOrganization();
+      if (singleOrg) {
+        resolvedOrgId = singleOrg.id;
+        this.logger.log(`Resolved org as single org: ${resolvedOrgId}`);
+      }
+    }
+
     if (!resolvedOrgId) {
       this.logger.warn('Grow webhook: could not resolve organizationId');
       return { status: 'ignored', reason: 'missing organizationId' };
     }
 
-    // Determine status: Grow statusCode "2" = paid
-    const status = statusCode === '2' ? 'COMPLETED' : 'PENDING';
+    // Determine status: Grow statusCode "2" = paid, legacy webhooks have no statusCode (= paid)
+    const status = (statusCode === '2' || !statusCode) ? 'COMPLETED' : 'PENDING';
     const monthKey = this.getCurrentMonthKey();
 
     // Look up referral — try cField3 first, then match via GrowPaymentProcess table

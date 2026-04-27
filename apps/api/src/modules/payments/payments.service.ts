@@ -205,6 +205,38 @@ export class PaymentsService {
     return unpaidStatuses.map((s) => s.user);
   }
 
+  async findUserByPhoneAnyOrg(phone: string) {
+    const variants = [phone];
+    if (phone.startsWith('0')) {
+      variants.push(`972${phone.slice(1)}`);
+      variants.push(`+972${phone.slice(1)}`);
+    } else if (phone.startsWith('972')) {
+      variants.push(`0${phone.slice(3)}`);
+    } else if (phone.startsWith('+972')) {
+      variants.push(`0${phone.slice(4)}`);
+    }
+
+    // Search across all orgs (bypass tenant filter using raw query)
+    const user = await this.prisma.user.findFirst({
+      where: {
+        phone: { in: variants },
+        deletedAt: null,
+        organizationId: { not: null },
+      },
+      select: { id: true, organizationId: true },
+    });
+    return user as { id: string; organizationId: string } | null;
+  }
+
+  async getSingleOrganization() {
+    const orgs = await this.prisma.organization.findMany({
+      where: { status: 'ACTIVE', deletedAt: null },
+      select: { id: true },
+      take: 2,
+    });
+    return orgs.length === 1 ? orgs[0] : null;
+  }
+
   async findGrowProcessByAmount(amount: number) {
     // Fallback: find recent process by amount only (when orgId is unknown)
     const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
