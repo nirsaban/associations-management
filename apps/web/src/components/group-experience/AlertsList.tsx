@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Bell, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Bell, BellRing, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import api from '@/lib/api';
+import { isPushSupported, subscribeToPush, isAlreadySubscribed } from '@/lib/push-notifications';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -85,6 +86,91 @@ function AlertCard({ alert }: { alert: Alert }) {
   );
 }
 
+// ─── Push Subscribe Banner ───────────────────────────────────────────────────
+
+function PushSubscribeBanner() {
+  const [visible, setVisible] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'subscribing' | 'done' | 'error'>('idle');
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function check() {
+      if (!isPushSupported()) return;
+      if (Notification.permission === 'denied') return;
+      const subscribed = await isAlreadySubscribed();
+      if (!subscribed) setVisible(true);
+    }
+    check();
+  }, []);
+
+  const handleSubscribe = useCallback(async () => {
+    setStatus('subscribing');
+    setErrorMsg(null);
+    try {
+      await subscribeToPush();
+      setStatus('done');
+      setTimeout(() => setVisible(false), 2000);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '';
+      if (message === 'PERMISSION_DENIED') {
+        setErrorMsg('ההתראות נחסמו בדפדפן. יש לאפשר התראות בהגדרות.');
+      } else {
+        setErrorMsg('שגיאה בהפעלת התראות. נסה שוב.');
+      }
+      setStatus('error');
+    }
+  }, []);
+
+  if (!visible) return null;
+
+  if (status === 'done') {
+    return (
+      <div className="rounded-xl bg-success-container text-on-success-container px-5 py-4 flex items-center gap-3 mb-4 animate-fade-in">
+        <BellRing className="h-5 w-5 shrink-0" />
+        <span className="text-body-md font-medium">התראות הופעלו בהצלחה!</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-xl bg-amber-50 border border-amber-200 px-5 py-4 mb-4">
+      <div className="flex items-start gap-3">
+        <div className="p-2 rounded-full bg-amber-100 shrink-0 mt-0.5">
+          <BellRing className="h-5 w-5 text-amber-600" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-title-sm font-medium text-amber-900">
+            לא תפספס/י עדכונים חשובים
+          </p>
+          <p className="text-body-sm text-amber-700 mt-1">
+            הפעל/י התראות כדי לקבל עדכונים על חלוקות, תשלומים והודעות חדשות.
+          </p>
+          {errorMsg && (
+            <p className="text-body-sm text-red-600 mt-1">{errorMsg}</p>
+          )}
+          <button
+            onClick={handleSubscribe}
+            disabled={status === 'subscribing'}
+            className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-600 text-white text-body-sm font-medium hover:bg-amber-700 transition-colors disabled:opacity-50"
+          >
+            <Bell className="h-4 w-4" />
+            {status === 'subscribing' ? 'מפעיל...' : 'הפעל התראות'}
+          </button>
+        </div>
+        <button
+          onClick={() => setVisible(false)}
+          className="shrink-0 text-amber-400 hover:text-amber-600 transition-colors p-1"
+          aria-label="סגור"
+        >
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ─── AlertsList ───────────────────────────────────────────────────────────────
 
 export function AlertsList({ limit = 5 }: AlertsListProps) {
@@ -104,6 +190,8 @@ export function AlertsList({ limit = 5 }: AlertsListProps) {
           התראות אחרונות
         </h2>
       </div>
+
+      <PushSubscribeBanner />
 
       {isLoading ? (
         <div className="space-y-3">
