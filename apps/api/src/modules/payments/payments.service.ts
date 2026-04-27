@@ -291,10 +291,28 @@ export class PaymentsService {
 
     const paymentStatus = data.status as PaymentStatus;
 
+    // If no user found, log as webhook event but don't create payment (FK constraint)
+    if (!data.userId) {
+      this.logger.warn(
+        `Grow payment ${data.transactionId}: no matching user for phone ${data.payerPhone}. Storing as webhook event only.`,
+      );
+      await this.prisma.webhookEvent.create({
+        data: {
+          organizationId: data.organizationId,
+          provider: 'grow',
+          eventId: data.transactionId,
+          eventType: 'payment',
+          status: 'PROCESSED',
+          rawPayload: data.rawPayload as Prisma.InputJsonValue,
+        },
+      });
+      return { id: `webhook_${data.transactionId}`, status: 'no_user_match' } as unknown as Record<string, unknown>;
+    }
+
     const payment = await this.prisma.payment.create({
       data: {
         organizationId: data.organizationId,
-        userId: data.userId || 'anonymous',
+        userId: data.userId,
         amount: data.amount,
         monthKey: data.monthKey,
         externalTransactionId: data.transactionId,
