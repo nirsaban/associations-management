@@ -129,7 +129,14 @@
       "Bash(rmdir \"apps/web/src/app/l/[slug]/_components\")",
       "Bash(rmdir \"apps/web/src/app/l/[slug]/components\")",
       "Bash(psql:*)",
-      "Bash(kill %1)"
+      "Bash(kill %1)",
+      "Bash(grep -l \"growUserId\" prisma/migrations/*/migration.sql)",
+      "Bash(grep \"growUserId\" prisma/migrations/*/migration.sql)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(grep -r \"class.*Dto\" /Users/Nir.Saban/Documents/Claude/Projects/amutot/apps/api/src/modules/admin/dto/*.ts)",
+      "Bash(python3 -c ':*)",
+      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
+      "Bash(npx --yes npm@latest install cloudinary --legacy-peer-deps)"
     ]
   }
 }

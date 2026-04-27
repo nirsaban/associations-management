@@ -84,15 +84,31 @@ export default function LandingPage() {
   const [loading, setLoading] = useState(true);
   const [scrolled, setScrolled] = useState(false);
 
+  // Referral tracking
+  const [referralCode, setReferralCode] = useState<string | null>(null);
+
   /* ── Fetch ── */
   useEffect(() => {
     const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3003/api/v1';
     const qs = new URLSearchParams(window.location.search);
     const preview = qs.get('preview') === '1' ? '?preview=1' : '';
+    const ref = qs.get('ref');
+    if (ref) setReferralCode(ref);
 
     fetch(`${apiBase}/public/landing/${slug}${preview}`)
       .then((r) => { if (!r.ok) throw new Error(); return r.json() as Promise<LandingResponse>; })
-      .then((json) => { setLanding(json.data); setLoading(false); })
+      .then((json) => {
+        setLanding(json.data);
+        setLoading(false);
+        // Track referral click
+        if (ref) {
+          fetch(`${apiBase}/public/landing/${slug}/referral-click`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: ref }),
+          }).catch(() => {});
+        }
+      })
       .catch(() => { setError(true); setLoading(false); });
   }, [slug]);
 
@@ -213,7 +229,7 @@ export default function LandingPage() {
       case 'gallery': return <GallerySection key={section.id} data={section.data} />;
       case 'reviews': return <ReviewsSection key={section.id} data={section.data} />;
       case 'stats': return <StatsSection key={section.id} data={section.data} />;
-      case 'cta_payment': return <GrowDonateSection key={section.id} data={section.data} org={org} slug={slug} />;
+      case 'cta_payment': return <GrowDonateSection key={section.id} data={section.data} org={org} slug={slug} referralCode={referralCode} />;
       case 'join_us': return <JoinUsSection key={section.id} data={section.data} slug={slug} />;
       case 'faq': return <FaqSection key={section.id} data={section.data} />;
       case 'footer': return <FooterSection key={section.id} data={section.data} org={org} />;
@@ -827,11 +843,13 @@ function GrowDonateSection({
   data,
   org,
   slug,
+  referralCode,
 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: Record<string, any>;
   org: OrgData;
   slug: string;
+  referralCode?: string | null;
 }) {
   const eyebrow = (data.eyebrow as string) || 'תרמו עכשיו';
   const headlineRaw = (data.headline as string) || 'כל שקל, *ישר לעבודה.*';
@@ -918,7 +936,7 @@ function GrowDonateSection({
         const res = await fetch(`${apiBase}/public/landing/${slug}/create-payment`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sum: amount }),
+          body: JSON.stringify({ sum: amount, ...(referralCode ? { referralCode } : {}) }),
         });
         const json = await res.json();
         if (!res.ok || !json.data?.authCode) {

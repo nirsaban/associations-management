@@ -187,6 +187,7 @@ model Organization {
   landingPage             LandingPage?
   reviews                 Review[]
   landingLeads            LandingLead[]
+  referrals               Referral[]
 
   @@index([createdAt])
   @@index([status])
@@ -226,6 +227,7 @@ model User {
   pushSubscriptions         PushSubscription[]
   alertsPublished           Alert[]             @relation("AlertsPublishedBy")
   deliveriesMarked          WeeklyFamilyDelivery[] @relation("DeliveriesMarkedBy")
+  referrals                 Referral[]
 
   @@unique([organizationId, phone])
   @@index([organizationId])
@@ -417,12 +419,14 @@ model Payment {
   source                String?       @db.VarChar(100)
   externalTransactionId String?       @db.VarChar(255)
   status                PaymentStatus @default(PENDING)
+  referralId            String?
   rawWebhookPayload     Json?
 
   createdAt DateTime @default(now())
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  referral     Referral?    @relation(fields: [referralId], references: [id], onDelete: SetNull)
 
   monthlyPaymentStatus MonthlyPaymentStatus?
 
@@ -431,6 +435,7 @@ model Payment {
   @@index([userId])
   @@index([monthKey])
   @@index([status])
+  @@index([referralId])
   @@index([createdAt])
   @@map("payments")
 }
@@ -719,6 +724,68 @@ model Review {
 
   @@index([organizationId, status])
   @@map("reviews")
+}
+
+// ============================================================================
+// GROW PAYMENT PROCESS TRACKING
+// ============================================================================
+
+model GrowPaymentProcess {
+  id             String   @id @default(cuid())
+  organizationId String
+  authCode       String   @db.VarChar(255)
+  referralCode   String?  @db.VarChar(20)
+  amount         Decimal  @db.Decimal(12, 2)
+  slug           String   @db.VarChar(100)
+  matched        Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([organizationId])
+  @@index([authCode])
+  @@index([createdAt])
+  @@map("grow_payment_processes")
+}
+
+// ============================================================================
+// REFERRALS
+// ============================================================================
+
+model Referral {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String
+  code           String   @db.VarChar(20)
+  isActive       Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clicks       ReferralClick[]
+  payments     Payment[]
+
+  @@unique([organizationId, code])
+  @@unique([organizationId, userId])
+  @@index([organizationId])
+  @@index([userId])
+  @@map("referrals")
+}
+
+model ReferralClick {
+  id         String   @id @default(cuid())
+  referralId String
+  ip         String?  @db.VarChar(45)
+  userAgent  String?  @db.Text
+
+  createdAt DateTime @default(now())
+
+  referral Referral @relation(fields: [referralId], references: [id], onDelete: Cascade)
+
+  @@index([referralId])
+  @@index([createdAt])
+  @@map("referral_clicks")
 }
 
 // ============================================================================

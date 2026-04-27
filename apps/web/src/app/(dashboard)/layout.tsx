@@ -4,7 +4,7 @@ import React, { ReactNode, useEffect, useState, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/auth.store';
-import { Menu, LogOut, Home, Users, CreditCard, Upload, Bell, Truck, ShoppingCart, Heart, UserCircle, Building2, Globe } from 'lucide-react';
+import { Menu, LogOut, Home, Users, CreditCard, Upload, Bell, Truck, ShoppingCart, Heart, UserCircle, Building2, Globe, Link2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import Link from 'next/link';
 import { api } from '@/lib/api';
@@ -26,6 +26,7 @@ const NAVIGATION = {
     { label: 'התראות', href: '/admin/alerts', icon: Bell },
     { label: 'פרופיל עמותה', href: '/admin/organization/profile', icon: Building2 },
     { label: 'דף נחיתה', href: '/admin/landing', icon: Globe },
+    { label: 'הפניות', href: '/admin/referrals', icon: Link2 },
   ],
   USER: [
     { label: 'דף הבית', href: '/user/dashboard', icon: Home },

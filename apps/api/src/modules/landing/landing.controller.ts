@@ -28,20 +28,14 @@ import { CreateSectionDto, UpdateSectionDto, ReorderSectionsDto } from './dto/se
 import { SubmitReviewDto, ModerateReviewDto } from './dto/review.dto';
 import { SubmitLeadDto } from './dto/lead.dto';
 import { CreatePaymentDto } from './dto/create-payment.dto';
-import { diskStorage } from 'multer';
-import { extname, join } from 'path';
-import { randomUUID } from 'crypto';
+import { ReferralsService } from '@modules/referrals/referrals.service';
+import { memoryStorage } from 'multer';
 import { Request } from 'express';
 
 const ALLOWED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/svg+xml', 'image/webp'];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB for landing page assets
 
-const assetStorage = diskStorage({
-  destination: join(process.cwd(), 'uploads', 'assets'),
-  filename: (_req, file, cb) => {
-    cb(null, `${randomUUID()}${extname(file.originalname)}`);
-  },
-});
+const assetStorage = memoryStorage();
 
 // ============================================================================
 // ADMIN ENDPOINTS
@@ -177,7 +171,10 @@ export class LandingController {
 @ApiTags('Public Landing')
 @Controller('public/landing')
 export class PublicLandingController {
-  constructor(private readonly landingService: LandingService) {}
+  constructor(
+    private readonly landingService: LandingService,
+    private readonly referralsService: ReferralsService,
+  ) {}
 
   @Get(':slug')
   @Public()
@@ -229,5 +226,28 @@ export class PublicLandingController {
   @ApiOperation({ summary: 'Track page view' })
   async trackView(@Param('slug') slug: string) {
     await this.landingService.trackView(slug);
+  }
+
+  @Post(':slug/referral-click')
+  @Public()
+  @Throttle({ default: { limit: 30, ttl: 60000 } })
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Track referral link click' })
+  async trackReferralClick(
+    @Param('slug') slug: string,
+    @Body() body: { code: string },
+    @Req() req: Request,
+  ) {
+    const landing = await this.landingService.getPublicPage(slug);
+    if (!landing) return { data: { success: false } };
+    const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0] || req.ip;
+    const userAgent = req.headers['user-agent'] as string;
+    const result = await this.referralsService.trackClick(
+      landing.organizationId,
+      body.code,
+      ip,
+      userAgent,
+    );
+    return { data: result };
   }
 }

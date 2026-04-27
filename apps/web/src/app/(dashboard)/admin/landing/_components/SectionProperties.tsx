@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Eye, EyeOff, Trash2, Plus, Minus } from 'lucide-react';
+import { X, Eye, EyeOff, Trash2, Plus, Minus, Upload, Loader2 } from 'lucide-react';
 import { SECTION_DEFINITIONS } from './SectionLibrary';
+import api from '@/lib/api';
 
 interface Section {
   id: string;
@@ -133,6 +134,52 @@ function Divider({ label }: { label: string }) {
   return <div className="pt-2 pb-1 text-label-sm text-on-surface-variant font-medium border-t border-outline/10 mt-2">{label}</div>;
 }
 
+function ImageUpload({ label, value, onChange }: { label: string; value: string; onChange: (url: string) => void }) {
+  const [uploading, setUploading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await api.post('/landing/assets', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      onChange(res.data.data.url);
+    } catch {
+      alert('שגיאה בהעלאת התמונה');
+    } finally {
+      setUploading(false);
+      if (inputRef.current) inputRef.current.value = '';
+    }
+  };
+
+  return (
+    <div>
+      <label className="text-label-sm text-on-surface-variant block mb-1">{label}</label>
+      {value && (
+        <div className="relative mb-2 rounded-lg overflow-hidden border border-outline/20">
+          <img src={value} alt="" className="w-full h-32 object-cover" />
+          <button onClick={() => onChange('')} className="absolute top-1 left-1 bg-error text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">X</button>
+        </div>
+      )}
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => inputRef.current?.click()}
+          disabled={uploading}
+          className="flex items-center gap-2 px-3 py-2 rounded-lg border border-outline/30 text-body-sm hover:bg-surface-container disabled:opacity-50"
+        >
+          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+          {uploading ? 'מעלה...' : 'העלה תמונה'}
+        </button>
+        <input ref={inputRef} type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" onChange={handleUpload} className="hidden" />
+      </div>
+      <input value={value || ''} onChange={e => onChange(e.target.value)} placeholder="או הדביקו URL..." className="w-full mt-2 px-2 py-1.5 rounded border border-outline/30 text-body-sm" dir="ltr" />
+    </div>
+  );
+}
+
 /* ── 1. HERO — matches Live Prototype structure ── */
 function HeroFields({ data, onChange }: { data: Record<string, unknown>; onChange: (key: string, val: unknown) => void }) {
   const stats = (data.stats as Array<Record<string, string>>) || [];
@@ -230,7 +277,7 @@ function AboutFields({ data, onChange }: { data: Record<string, unknown>; onChan
       <Field label="כותרת" value={(data.title as string) || ''} onChange={v => onChange('title', v)} maxLength={80} />
       <Field label="תוכן (HTML/Markdown)" value={(data.body_rich_text as string) || ''} onChange={v => onChange('body_rich_text', v)} rows={6} />
       <Divider label="תמונה צדדית" />
-      <Field label="כתובת תמונה (URL)" value={(data.side_image as string) || ''} onChange={v => onChange('side_image', v)} placeholder="https://..." dir="ltr" />
+      <ImageUpload label="תמונה צדדית" value={(data.side_image as string) || ''} onChange={v => onChange('side_image', v)} />
       <Field label="טקסט חלופי" value={(data.side_image_alt as string) || ''} onChange={v => onChange('side_image_alt', v)} />
       <Field label="טקסט תג (badge)" value={(data.badge_text as string) || ''} onChange={v => onChange('badge_text', v)} placeholder="מאז 1994" />
     </>
@@ -263,7 +310,7 @@ function ActivitiesFields({ data, onChange }: { data: Record<string, unknown>; o
             </div>
             <Field label="שם" value={item.title || ''} onChange={v => updateItem(i, 'title', v)} maxLength={60} />
             <Field label="תיאור" value={item.description || ''} onChange={v => updateItem(i, 'description', v)} rows={2} maxLength={200} />
-            <Field label="תמונה (URL)" value={item.image || ''} onChange={v => updateItem(i, 'image', v)} dir="ltr" placeholder="https://..." />
+            <ImageUpload label="תמונה" value={item.image || ''} onChange={v => updateItem(i, 'image', v)} />
           </div>
         ))}
       </div>
@@ -289,12 +336,13 @@ function GalleryFields({ data, onChange }: { data: Record<string, unknown>; onCh
           <button onClick={addImage} className="flex items-center gap-1 text-body-sm text-primary hover:underline"><Plus className="h-3 w-3" /> הוסף תמונה</button>
         </div>
         {images.map((img, i) => (
-          <div key={i} className="flex items-start gap-2">
-            <div className="flex-1 space-y-1">
-              <input value={img.url || ''} onChange={e => updateImage(i, 'url', e.target.value)} placeholder="https://..." className="w-full px-2 py-1.5 rounded border border-outline/30 text-body-sm" dir="ltr" />
-              <input value={img.alt || ''} onChange={e => updateImage(i, 'alt', e.target.value)} placeholder="תיאור תמונה" className="w-full px-2 py-1.5 rounded border border-outline/30 text-body-sm" dir="auto" />
+          <div key={i} className="p-3 rounded-lg bg-surface-container space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-label-sm font-medium">תמונה {i + 1}</span>
+              <button onClick={() => removeImage(i)} className="text-error text-[11px] flex items-center gap-1"><Minus className="h-3 w-3" /> הסר</button>
             </div>
-            <button onClick={() => removeImage(i)} className="text-error text-xs mt-1">X</button>
+            <ImageUpload label="" value={img.url || ''} onChange={v => updateImage(i, 'url', v)} />
+            <Field label="תיאור תמונה" value={img.alt || ''} onChange={v => updateImage(i, 'alt', v)} />
           </div>
         ))}
       </div>

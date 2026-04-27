@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
+import ReferralCard from '../../user/dashboard/ReferralCard';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -374,7 +375,10 @@ export default function ManagerDashboardPage() {
         </div>
       </section>
 
-      {/* ── Section 4: Recent Alerts ────────────────────────────────────────── */}
+      {/* ── Section 4: My Referral Link ──────────────────────────────────── */}
+      <ReferralCard />
+
+      {/* ── Section 5: Recent Alerts ────────────────────────────────────────── */}
       <section aria-labelledby="alerts-heading">
         <div className="flex items-center gap-2 mb-4">
           <Bell className="h-5 w-5 text-on-surface-variant" />

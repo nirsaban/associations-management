@@ -31,6 +31,7 @@ import { ActivationModule } from '@modules/activation/activation.module';
 import { AlertsModule } from '@modules/alerts/alerts.module';
 import { HealthModule } from '@modules/health/health.module';
 import { LandingModule } from '@modules/landing/landing.module';
+import { ReferralsModule } from '@modules/referrals/referrals.module';
 
 @Module({
   imports: [
@@ -75,6 +76,7 @@ import { LandingModule } from '@modules/landing/landing.module';
     AlertsModule,
     HealthModule,
     LandingModule,
+    ReferralsModule,
   ],
   providers: [
     {

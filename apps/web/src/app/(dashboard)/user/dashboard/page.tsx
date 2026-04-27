@@ -17,6 +17,7 @@ import api from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import { useToast } from '@/components/ui/Toast';
 import { DonationIframeCard, AlertsList } from '@/components/group-experience';
+import ReferralCard from './ReferralCard';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -496,7 +497,10 @@ export default function UserDashboardPage() {
         ) : null}
       </section>
 
-      {/* ── Section 4: Alerts ───────────────────────────────────────────────── */}
+      {/* ── Section 4: My Referral Link ──────────────────────────────────── */}
+      <ReferralCard />
+
+      {/* ── Section 5: Alerts ───────────────────────────────────────────────── */}
       <AlertsList limit={5} />
     </div>
   );

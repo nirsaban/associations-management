@@ -205,6 +205,136 @@ export class PaymentsService {
     return unpaidStatuses.map((s) => s.user);
   }
 
+  async findGrowProcessByAmount(amount: number) {
+    // Fallback: find recent process by amount only (when orgId is unknown)
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
+    return this.prisma.growPaymentProcess.findFirst({
+      where: {
+        amount,
+        matched: false,
+        createdAt: { gte: twoHoursAgo },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async findGrowProcess(organizationId: string, amount: number) {
+    // Find the most recent unmatched process for this org+amount (within last 2 hours)
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
+    const process = await this.prisma.growPaymentProcess.findFirst({
+      where: {
+        organizationId,
+        amount,
+        matched: false,
+        createdAt: { gte: twoHoursAgo },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (process) {
+      // Mark as matched to prevent reuse
+      await this.prisma.growPaymentProcess.update({
+        where: { id: process.id },
+        data: { matched: true },
+      });
+    }
+
+    return process;
+  }
+
+  async findUserByPhone(organizationId: string, phone: string) {
+    // Try exact match first, then with leading zero variants
+    const variants = [phone];
+    if (phone.startsWith('0')) {
+      variants.push(`972${phone.slice(1)}`);
+      variants.push(`+972${phone.slice(1)}`);
+    } else if (phone.startsWith('972')) {
+      variants.push(`0${phone.slice(3)}`);
+      variants.push(`+${phone}`);
+    } else if (phone.startsWith('+972')) {
+      variants.push(`0${phone.slice(4)}`);
+      variants.push(phone.slice(1));
+    }
+
+    return this.prisma.user.findFirst({
+      where: {
+        organizationId,
+        phone: { in: variants },
+        deletedAt: null,
+      },
+      select: { id: true },
+    });
+  }
+
+  async handleGrowWebhook(data: {
+    transactionId: string;
+    organizationId: string;
+    userId?: string;
+    amount: number;
+    monthKey: string;
+    status: string;
+    referralId?: string;
+    payerPhone: string;
+    payerName: string;
+    rawPayload: Record<string, unknown>;
+  }) {
+    this.logger.log(`Processing Grow webhook for transaction ${data.transactionId}`);
+
+    // Idempotency check
+    const existing = await this.prisma.payment.findFirst({
+      where: { externalTransactionId: data.transactionId },
+    });
+    if (existing) {
+      this.logger.warn(`Payment already exists for Grow transaction ${data.transactionId}`);
+      return existing;
+    }
+
+    const paymentStatus = data.status as PaymentStatus;
+
+    const payment = await this.prisma.payment.create({
+      data: {
+        organizationId: data.organizationId,
+        userId: data.userId || 'anonymous',
+        amount: data.amount,
+        monthKey: data.monthKey,
+        externalTransactionId: data.transactionId,
+        status: paymentStatus,
+        source: 'grow',
+        referralId: data.referralId || null,
+        paymentDate: paymentStatus === 'COMPLETED' ? new Date() : null,
+        rawWebhookPayload: data.rawPayload as Prisma.InputJsonValue,
+      },
+    });
+
+    // Update monthly payment status if user is known and payment completed
+    if (data.userId && paymentStatus === 'COMPLETED') {
+      await this.prisma.monthlyPaymentStatus.upsert({
+        where: {
+          userId_monthKey: {
+            userId: data.userId,
+            monthKey: data.monthKey,
+          },
+        },
+        update: {
+          isPaid: true,
+          paidAt: new Date(),
+          paymentId: payment.id,
+        },
+        create: {
+          organizationId: data.organizationId,
+          userId: data.userId,
+          monthKey: data.monthKey,
+          isPaid: true,
+          paidAt: new Date(),
+          paymentId: payment.id,
+        },
+      });
+    }
+
+    this.logger.log(`Grow payment created: ${payment.id}, referral: ${data.referralId || 'none'}`);
+    return payment;
+  }
+
   private getCurrentMonthKey(): string {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;

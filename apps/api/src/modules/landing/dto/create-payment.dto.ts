@@ -20,4 +20,8 @@ export class CreatePaymentDto {
   @IsOptional()
   @IsString()
   email?: string;
+
+  @IsOptional()
+  @IsString()
+  referralCode?: string;
 }

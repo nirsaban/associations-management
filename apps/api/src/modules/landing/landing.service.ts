@@ -9,6 +9,13 @@ import { UpdateLandingDto, RESERVED_SLUGS } from './dto/update-landing.dto';
 import { CreateSectionDto, UpdateSectionDto, ReorderSectionsDto } from './dto/section.dto';
 import { SubmitReviewDto, ModerateReviewDto } from './dto/review.dto';
 import { SubmitLeadDto } from './dto/lead.dto';
+import { v2 as cloudinary } from 'cloudinary';
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 @Injectable()
 export class LandingService {
@@ -313,7 +320,7 @@ export class LandingService {
 
   // =============== GROW WALLET SDK ===============
 
-  async createGrowPayment(slug: string, dto: { sum: number; description?: string; fullName?: string; phone?: string; email?: string }) {
+  async createGrowPayment(slug: string, dto: { sum: number; description?: string; fullName?: string; phone?: string; email?: string; referralCode?: string }) {
     const landing = await this.prisma.landingPage.findUnique({
       where: { slug },
       include: {
@@ -353,6 +360,9 @@ export class LandingService {
     if (dto.email) formData.append('pageField[email]', dto.email);
     formData.append('cField1', landing.organizationId);
     formData.append('cField2', `landing_${slug}`);
+    if (dto.referralCode) {
+      formData.append('cField3', dto.referralCode);
+    }
 
     const response = await fetch(apiUrl, {
       method: 'POST',
@@ -369,9 +379,22 @@ export class LandingService {
       throw new BadRequestException(result.err?.message || 'Payment process creation failed');
     }
 
-    return {
-      authCode: result.data?.authCode,
-    };
+    const authCode = result.data?.authCode || '';
+
+    // Save process record to match referral when webhook arrives
+    if (authCode) {
+      await this.prisma.growPaymentProcess.create({
+        data: {
+          organizationId: landing.organizationId,
+          authCode,
+          referralCode: dto.referralCode || null,
+          amount: dto.sum,
+          slug,
+        },
+      });
+    }
+
+    return { authCode };
   }
 
   async trackView(slug: string) {
@@ -483,16 +506,26 @@ export class LandingService {
   // =============== ASSETS ===============
 
   async uploadAsset(organizationId: string, file: Express.Multer.File, userId: string) {
-    const baseUrl = process.env.API_BASE_URL || 'http://localhost:3003';
-    const url = `${baseUrl}/uploads/assets/${file.filename}`;
+    const result = await new Promise<{ secure_url: string; bytes: number }>((resolve, reject) => {
+      cloudinary.uploader.upload_stream(
+        {
+          folder: `amutot/${organizationId}/landing`,
+          resource_type: 'auto',
+        },
+        (error, result) => {
+          if (error || !result) return reject(error || new Error('Upload failed'));
+          resolve({ secure_url: result.secure_url, bytes: result.bytes });
+        },
+      ).end(file.buffer);
+    });
 
     return this.prisma.asset.create({
       data: {
         organizationId,
         kind: file.mimetype.startsWith('video/') ? 'VIDEO' : 'IMAGE',
-        url,
+        url: result.secure_url,
         mime: file.mimetype,
-        bytes: file.size,
+        bytes: result.bytes,
         createdById: userId,
       },
     });
