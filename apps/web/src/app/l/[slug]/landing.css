@@ -75,6 +75,10 @@
 }
 .lp-landing .nav-links a:hover::after { transform: scaleX(1); transform-origin: left; }
 @media (max-width: 760px) { .lp-landing .nav-links { display: none; } }
+.lp-landing .nav-actions { display: flex; align-items: center; gap: 16px; }
+.lp-landing .nav-socials { display: flex; align-items: center; gap: 10px; }
+.lp-landing .nav-socials a { color: var(--text); opacity: 0.6; transition: opacity 240ms, transform 240ms; display: flex; }
+.lp-landing .nav-socials a:hover { opacity: 1; transform: scale(1.15); }
 
 /* ── Buttons ── */
 .lp-landing .btn {
