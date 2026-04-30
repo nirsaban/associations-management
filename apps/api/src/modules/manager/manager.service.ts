@@ -1015,6 +1015,7 @@ export class ManagerService {
         name: true,
         logoUrl: true,
         paymentLink: true,
+        defaultPaymentLink: true,
         paymentDescription: true,
       },
     });
@@ -1025,7 +1026,7 @@ export class ManagerService {
 
     return {
       data: {
-        paymentLink: org.paymentLink ?? null,
+        paymentLink: org.paymentLink || org.defaultPaymentLink || null,
         paymentDescription: org.paymentDescription ?? null,
         organizationName: org.name,
         organizationLogoUrl: org.logoUrl ?? null,
