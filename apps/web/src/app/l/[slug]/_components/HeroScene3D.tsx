@@ -5,7 +5,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { MeshDistortMaterial, Environment, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
 
-function MorphingSphere({ color, accent }: { color: string; accent: string }) {
+function MorphingSphere({ color }: { color: string }) {
   const mesh = useRef<THREE.Mesh>(null!);
   const materialRef = useRef<{ distort: number }>(null!);
 
@@ -89,7 +89,7 @@ function Scene({ primaryColor, accentColor }: { primaryColor: string; accentColo
       <pointLight position={[4, -3, -2]} intensity={0.5} color={primaryColor} />
       <spotLight position={[0, 8, 0]} intensity={0.6} angle={0.5} penumbra={1} color="#ffffff" />
 
-      <MorphingSphere color={primaryColor} accent={accentColor} />
+      <MorphingSphere color={primaryColor} />
 
       <GlowRing color={accentColor} radius={3} speed={0.3} />
       <GlowRing color={primaryColor} radius={3.5} speed={-0.2} />
