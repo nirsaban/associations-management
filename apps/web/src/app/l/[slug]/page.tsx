@@ -1,10 +1,8 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback, lazy, Suspense } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import './landing.css';
-
-const HeroScene3D = lazy(() => import('./_components/HeroScene3D').then(m => ({ default: m.HeroScene3D })));
 
 /* ─── Types ─────────────────────────────────────────────────────────────── */
 
@@ -223,7 +221,7 @@ export default function LandingPage() {
   /* ── Render section by type ── */
   const renderSection = (section: SectionRow) => {
     switch (section.type) {
-      case 'hero': return <HeroSection key={section.id} data={section.data} primaryColor={org.primaryColor} accentColor={org.accentColor} />;
+      case 'hero': return <HeroSection key={section.id} data={section.data} />;
       case 'marquee': return <MarqueeSection key={section.id} data={section.data} />;
       case 'video': return <VideoSection key={section.id} data={section.data} />;
       case 'about': return <AboutSection key={section.id} data={section.data} />;
@@ -293,7 +291,7 @@ export default function LandingPage() {
    ═══════════════════════════════════════════════════════════════════════════ */
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function HeroSection({ data, primaryColor, accentColor }: { data: Record<string, any>; primaryColor?: string; accentColor?: string }) {
+function HeroSection({ data }: { data: Record<string, any> }) {
   const headline = (data.headline as string) || '';
   if (!headline) return null;
   const words = headline.split(/\s+/).filter(Boolean);
@@ -306,17 +304,13 @@ function HeroSection({ data, primaryColor, accentColor }: { data: Record<string,
   const stats = (data.stats as Array<{ value: string; label: string }>) || [];
 
   return (
-    <header className="hero" id="top" style={{ position: 'relative', overflow: 'hidden' }}>
-      <Suspense fallback={
-        <div className="hero-bg" aria-hidden="true">
-          <div className="blob blob-1" />
-          <div className="blob blob-2" />
-          <div className="blob blob-3" />
-        </div>
-      }>
-        <HeroScene3D primaryColor={primaryColor} accentColor={accentColor} />
-      </Suspense>
-      <div className="hero-inner" style={{ position: 'relative', zIndex: 1 }}>
+    <header className="hero" id="top">
+      <div className="hero-bg" aria-hidden="true">
+        <div className="blob blob-1" />
+        <div className="blob blob-2" />
+        <div className="blob blob-3" />
+      </div>
+      <div className="hero-inner">
         {(pillText || sinceText) && (
           <div className="hero-meta">
             {pillText && (
