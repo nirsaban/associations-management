@@ -46,7 +46,7 @@ interface GroupWeeklyStatus {
   hasDistributor: boolean;
 }
 
-type AlertAudience = 'ALL_USERS' | 'GROUP_MANAGERS';
+type AlertAudience = 'ALL_USERS' | 'GROUP_MANAGERS' | 'UNPAID_THIS_MONTH' | 'CURRENT_DISTRIBUTORS';
 
 interface Alert {
   id: string;
@@ -59,9 +59,18 @@ interface Alert {
 }
 
 const AUDIENCE_LABELS: Record<AlertAudience, string> = {
-  ALL_USERS: 'כל המשתמשים',
-  GROUP_MANAGERS: 'מנהלי קבוצה',
+  ALL_USERS: 'כל המשתמשים ומנהלי קבוצות',
+  GROUP_MANAGERS: 'מנהלי קבוצות בלבד',
+  UNPAID_THIS_MONTH: 'משתמשים שלא שילמו החודש',
+  CURRENT_DISTRIBUTORS: 'מחלקים שבועיים נוכחיים בלבד',
 };
+
+const AUDIENCE_OPTIONS: AlertAudience[] = [
+  'ALL_USERS',
+  'UNPAID_THIS_MONTH',
+  'CURRENT_DISTRIBUTORS',
+  'GROUP_MANAGERS',
+];
 
 export default function AdminDashboardPage() {
   const { user } = useAuthStore();
@@ -103,7 +112,7 @@ export default function AdminDashboardPage() {
   const { data: alertsData } = useQuery<{ data: Alert[] }>({
     queryKey: ['admin', 'alerts', 'recent'],
     queryFn: async () => {
-      const { data } = await api.get('/admin/alerts', { params: { page: 1, limit: 5 } });
+      const { data } = await api.get('/admin/alerts', { params: { page: 1, limit: 3 } });
       return data;
     },
     enabled: !!user,
@@ -277,7 +286,7 @@ export default function AdminDashboardPage() {
           </h2>
           <div className="flex items-center gap-2">
             <Link href="/admin/alerts" className="btn-outline btn-sm">
-              כל ההודעות
+              הצג הכל
             </Link>
             {!showAlertForm && (
               <button
@@ -319,21 +328,20 @@ export default function AdminDashboardPage() {
               onChange={(e) => setAlertForm((f) => ({ ...f, body: e.target.value }))}
               className="w-full rounded-lg border border-outline px-3 py-2 text-body-md bg-surface focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
             />
-            <div className="flex items-center gap-4">
-              <span className="text-label-md text-on-surface-variant">קהל יעד:</span>
-              {(['ALL_USERS', 'GROUP_MANAGERS'] as AlertAudience[]).map((opt) => (
-                <label key={opt} className="flex items-center gap-1.5 cursor-pointer select-none">
-                  <input
-                    type="radio"
-                    name="audience"
-                    value={opt}
-                    checked={alertForm.audience === opt}
-                    onChange={() => setAlertForm((f) => ({ ...f, audience: opt }))}
-                    className="accent-primary"
-                  />
-                  <span className="text-body-sm">{AUDIENCE_LABELS[opt]}</span>
-                </label>
-              ))}
+            <div className="flex flex-col gap-1">
+              <label className="text-label-md text-on-surface-variant">קהל יעד</label>
+              <select
+                value={alertForm.audience}
+                onChange={(e) => setAlertForm((f) => ({ ...f, audience: e.target.value as AlertAudience }))}
+                className="w-full rounded-lg border border-outline px-3 py-2 text-body-sm bg-surface text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50"
+                dir="rtl"
+              >
+                {AUDIENCE_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {AUDIENCE_LABELS[opt]}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="flex gap-2 pt-1">
               <button
@@ -370,6 +378,10 @@ export default function AdminDashboardPage() {
                       className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium shrink-0 ${
                         alert.audience === 'ALL_USERS'
                           ? 'bg-primary/10 text-primary'
+                          : alert.audience === 'UNPAID_THIS_MONTH'
+                          ? 'bg-warning/10 text-warning'
+                          : alert.audience === 'CURRENT_DISTRIBUTORS'
+                          ? 'bg-secondary/10 text-secondary'
                           : 'bg-tertiary/10 text-tertiary'
                       }`}
                     >

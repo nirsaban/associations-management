@@ -1,9 +1,25 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '@common/prisma/prisma.service';
-import { Alert, AlertAudience, GroupRole, PushSubscription } from '@prisma/client';
+import { Alert, AlertAudience, GroupRole, PaymentStatus, PushSubscription } from '@prisma/client';
 import webpush from 'web-push';
 import { CreateAlertDto } from './dto/create-alert.dto';
+
+/** Returns the ISO week key for the given date, e.g. "2026-W19" */
+function isoWeekKey(date: Date): string {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  // Thursday in current week decides the year
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
+}
+
+/** Returns the first day of the current calendar month at midnight UTC */
+function firstDayOfCurrentMonth(): Date {
+  const now = new Date();
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+}
 
 interface AlertWithPublisher extends Alert {
   publishedBy: {
@@ -151,25 +167,44 @@ export class AlertsService {
     const safeLimit = Math.min(50, Math.max(1, Number(limit) || 10));
     const now = new Date();
 
-    // Determine if the user is a group manager
+    // Base audiences visible to every authenticated user
+    const visibleAudiences: AlertAudience[] = [AlertAudience.ALL_USERS];
+
+    // GROUP_MANAGERS audience: visible to users who hold the MANAGER role in any group
     const managerMembership = await this.prisma.groupMembership.findFirst({
+      where: { organizationId, userId, role: GroupRole.MANAGER },
+    });
+    if (managerMembership) {
+      visibleAudiences.push(AlertAudience.GROUP_MANAGERS);
+    }
+
+    // UNPAID_THIS_MONTH audience: visible to users with no COMPLETED payment this calendar month
+    const monthStart = firstDayOfCurrentMonth();
+    const paidPayment = await this.prisma.payment.findFirst({
       where: {
         organizationId,
         userId,
-        role: GroupRole.MANAGER,
+        status: PaymentStatus.COMPLETED,
+        createdAt: { gte: monthStart },
       },
     });
+    if (!paidPayment) {
+      visibleAudiences.push(AlertAudience.UNPAID_THIS_MONTH);
+    }
 
-    const isManager = managerMembership !== null;
-
-    const audienceFilter = isManager
-      ? { in: [AlertAudience.ALL_USERS, AlertAudience.GROUP_MANAGERS] }
-      : { equals: AlertAudience.ALL_USERS };
+    // CURRENT_DISTRIBUTORS audience: visible to users assigned as distributor for the active ISO week
+    const currentWeek = isoWeekKey(now);
+    const distributorAssignment = await this.prisma.weeklyDistributorAssignment.findFirst({
+      where: { organizationId, assignedUserId: userId, weekKey: currentWeek },
+    });
+    if (distributorAssignment) {
+      visibleAudiences.push(AlertAudience.CURRENT_DISTRIBUTORS);
+    }
 
     const alerts = await this.prisma.alert.findMany({
       where: {
         organizationId,
-        audience: audienceFilter,
+        audience: { in: visibleAudiences },
         OR: [
           { expiresAt: null },
           { expiresAt: { gt: now } },
@@ -183,6 +218,83 @@ export class AlertsService {
   }
 
   // ---------------------------------------------------------------------------
+  // Public helpers
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Resolve the set of user IDs that match the given audience within an organization.
+   * Used internally for push fan-out and can be called externally for dry-run previews.
+   */
+  async resolveAudienceUserIds(
+    audience: AlertAudience,
+    organizationId: string,
+  ): Promise<string[]> {
+    switch (audience) {
+      case AlertAudience.ALL_USERS: {
+        const users = await this.prisma.user.findMany({
+          where: { organizationId, deletedAt: null, isActive: true },
+          select: { id: true },
+        });
+        return users.map((u) => u.id);
+      }
+
+      case AlertAudience.GROUP_MANAGERS: {
+        const memberships = await this.prisma.groupMembership.findMany({
+          where: { organizationId, role: GroupRole.MANAGER },
+          select: { userId: true },
+        });
+        return memberships.map((m) => m.userId);
+      }
+
+      case AlertAudience.UNPAID_THIS_MONTH: {
+        // All active users in the org
+        const allUsers = await this.prisma.user.findMany({
+          where: { organizationId, deletedAt: null, isActive: true },
+          select: { id: true },
+        });
+
+        const monthStart = firstDayOfCurrentMonth();
+
+        // Users who DO have a successful payment this month
+        const paidPayments = await this.prisma.payment.findMany({
+          where: {
+            organizationId,
+            status: PaymentStatus.COMPLETED,
+            createdAt: { gte: monthStart },
+          },
+          select: { userId: true },
+        });
+
+        const paidUserIds = new Set(paidPayments.map((p) => p.userId));
+
+        return allUsers
+          .map((u) => u.id)
+          .filter((id) => !paidUserIds.has(id));
+      }
+
+      case AlertAudience.CURRENT_DISTRIBUTORS: {
+        const currentWeek = isoWeekKey(new Date());
+
+        const assignments = await this.prisma.weeklyDistributorAssignment.findMany({
+          where: { organizationId, weekKey: currentWeek },
+          select: { assignedUserId: true },
+        });
+
+        // Deduplicate — a user could theoretically be distributor for multiple groups
+        const uniqueIds = [...new Set(assignments.map((a) => a.assignedUserId))];
+        return uniqueIds;
+      }
+
+      default: {
+        // Exhaustive guard — TypeScript will error if a new enum value is unhandled
+        const _exhaustive: never = audience;
+        this.logger.warn(`Unknown AlertAudience value: ${String(_exhaustive)}`);
+        return [];
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------------------
   // Private helpers
   // ---------------------------------------------------------------------------
 
@@ -190,30 +302,23 @@ export class AlertsService {
     organizationId: string,
     audience: AlertAudience,
   ): Promise<PushSubscription[]> {
+    const userIds = await this.resolveAudienceUserIds(audience, organizationId);
+
     if (audience === AlertAudience.ALL_USERS) {
+      // Broad fan-out — all active subscriptions in the org (not filtered by userId to
+      // avoid missing subscriptions for users created after the user list was fetched)
       return this.prisma.pushSubscription.findMany({
         where: { organizationId, isActive: true },
       });
     }
 
-    // GROUP_MANAGERS only: find users who are managers in this org
-    const managerMemberships = await this.prisma.groupMembership.findMany({
-      where: {
-        organizationId,
-        role: GroupRole.MANAGER,
-      },
-      select: { userId: true },
-    });
-
-    const managerIds = managerMemberships.map((m) => m.userId);
-
-    if (managerIds.length === 0) return [];
+    if (userIds.length === 0) return [];
 
     return this.prisma.pushSubscription.findMany({
       where: {
         organizationId,
         isActive: true,
-        userId: { in: managerIds },
+        userId: { in: userIds },
       },
     });
   }

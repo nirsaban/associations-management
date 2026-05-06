@@ -16,7 +16,8 @@ export class CreateAlertDto {
   @ApiPropertyOptional({
     enum: AlertAudience,
     default: AlertAudience.ALL_USERS,
-    description: 'קהל היעד: כל המשתמשים או מנהלי קבוצות בלבד',
+    description:
+      'קהל היעד: ALL_USERS (כולם), GROUP_MANAGERS (מנהלי קבוצות), UNPAID_THIS_MONTH (שלא שילמו החודש), CURRENT_DISTRIBUTORS (מחלקים שבועיים נוכחיים)',
   })
   @IsOptional()
   @IsEnum(AlertAudience)

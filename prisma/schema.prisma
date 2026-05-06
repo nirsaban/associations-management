@@ -106,6 +106,8 @@ enum WebhookEventStatus {
 enum AlertAudience {
   ALL_USERS
   GROUP_MANAGERS
+  UNPAID_THIS_MONTH
+  CURRENT_DISTRIBUTORS
 }
 
 enum AssetKind {

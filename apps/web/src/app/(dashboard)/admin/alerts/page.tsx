@@ -11,7 +11,7 @@ import { useToast } from '@/components/ui/Toast';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type AlertAudience = 'ALL_USERS' | 'GROUP_MANAGERS';
+type AlertAudience = 'ALL_USERS' | 'GROUP_MANAGERS' | 'UNPAID_THIS_MONTH' | 'CURRENT_DISTRIBUTORS';
 
 interface Alert {
   id: string;
@@ -48,6 +48,13 @@ interface AlertTemplate {
   audience: AlertAudience;
 }
 
+const AUDIENCE_OPTIONS: AlertAudience[] = [
+  'ALL_USERS',
+  'UNPAID_THIS_MONTH',
+  'CURRENT_DISTRIBUTORS',
+  'GROUP_MANAGERS',
+];
+
 const TEMPLATES_KEY = 'amutot-alert-templates';
 
 function getTemplates(): AlertTemplate[] {
@@ -70,22 +77,30 @@ function deleteTemplate(id: string): void {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const AUDIENCE_LABELS: Record<AlertAudience, string> = {
-  ALL_USERS: 'כל המשתמשים',
-  GROUP_MANAGERS: 'מנהלי קבוצה',
+  ALL_USERS: 'כל המשתמשים ומנהלי קבוצות',
+  GROUP_MANAGERS: 'מנהלי קבוצות בלבד',
+  UNPAID_THIS_MONTH: 'משתמשים שלא שילמו החודש',
+  CURRENT_DISTRIBUTORS: 'מחלקים שבועיים נוכחיים בלבד',
 };
 
 const PAGE_LIMIT = 20;
 
 // ─── Audience Badge ───────────────────────────────────────────────────────────
 
+function audienceBadgeClass(audience: AlertAudience): string {
+  switch (audience) {
+    case 'ALL_USERS': return 'bg-primary/10 text-primary';
+    case 'GROUP_MANAGERS': return 'bg-tertiary/10 text-tertiary';
+    case 'UNPAID_THIS_MONTH': return 'bg-warning/10 text-warning';
+    case 'CURRENT_DISTRIBUTORS': return 'bg-secondary/10 text-secondary';
+    default: return 'bg-surface-variant text-on-surface-variant';
+  }
+}
+
 function AudienceBadge({ audience }: { audience: AlertAudience }) {
-  const label = AUDIENCE_LABELS[audience];
-  const cls =
-    audience === 'ALL_USERS'
-      ? 'bg-primary/10 text-primary'
-      : 'bg-tertiary/10 text-tertiary';
+  const label = AUDIENCE_LABELS[audience] ?? audience;
   return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${cls}`}>
+    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${audienceBadgeClass(audience)}`}>
       {label}
     </span>
   );
@@ -263,23 +278,20 @@ function CreateAlertModal({ onClose, onSuccess }: CreateModalProps) {
           </div>
 
           {/* Audience */}
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1">
             <label className="text-sm font-medium text-on-surface-variant">קהל יעד</label>
-            <div className="flex flex-col gap-2 sm:flex-row sm:gap-6">
-              {(['ALL_USERS', 'GROUP_MANAGERS'] as AlertAudience[]).map((opt) => (
-                <label key={opt} className="flex items-center gap-2 cursor-pointer select-none">
-                  <input
-                    type="radio"
-                    name="audience"
-                    value={opt}
-                    checked={form.audience === opt}
-                    onChange={() => setForm((f) => ({ ...f, audience: opt }))}
-                    className="accent-primary"
-                  />
-                  <span className="text-sm text-on-surface">{AUDIENCE_LABELS[opt]}</span>
-                </label>
+            <select
+              value={form.audience}
+              onChange={(e) => setForm((f) => ({ ...f, audience: e.target.value as AlertAudience }))}
+              className="w-full rounded-lg border border-outline px-3 py-2 text-sm text-on-surface bg-surface focus:outline-none focus:ring-2 focus:ring-primary/50"
+              dir="rtl"
+            >
+              {AUDIENCE_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>
+                  {AUDIENCE_LABELS[opt]}
+                </option>
               ))}
-            </div>
+            </select>
           </div>
 
           {/* Expiry date */}

@@ -960,13 +960,22 @@ Should test:
 
 ## Alerts Module
 
+### AlertAudience enum values
+
+| Value | Hebrew label | Who receives it |
+|---|---|---|
+| `ALL_USERS` | כל המשתמשים ומנהלי קבוצות | All active users in the org |
+| `GROUP_MANAGERS` | מנהלי קבוצות בלבד | Users with GroupMembership role = MANAGER |
+| `UNPAID_THIS_MONTH` | משתמשים שלא שילמו החודש | Active users with no COMPLETED payment since the 1st of the current calendar month |
+| `CURRENT_DISTRIBUTORS` | מחלקים שבועיים נוכחיים בלבד | Users assigned as weekly distributor for the current ISO week |
+
 ### Alerts — POST /admin/alerts
 Method: POST
 Path: /api/v1/admin/alerts
 Auth: JwtAuthGuard + RolesGuard (ADMIN)
-Request: `{ title: string, body: string, audience?: AlertAudience (ALL_USERS|GROUP_MANAGERS), expiresAt?: string (ISO 8601) }`
+Request: `{ title: string, body: string, audience?: AlertAudience (ALL_USERS|GROUP_MANAGERS|UNPAID_THIS_MONTH|CURRENT_DISTRIBUTORS), expiresAt?: string (ISO 8601) }`
 Response: `{ data: Alert }`
-Notes: Creates alert, resolves target push subscriptions, fires push fan-out asynchronously (non-blocking). recipientCount set before response; deliveredCount updated after fan-out completes.
+Notes: Creates alert, resolves target push subscriptions via resolveAudienceUserIds(), fires push fan-out asynchronously (non-blocking). recipientCount set before response; deliveredCount updated after fan-out completes.
 Errors: 400 (validation), 401, 403
 
 ### Alerts — GET /admin/alerts
@@ -993,7 +1002,7 @@ Path: /api/v1/me/alerts?limit=10
 Auth: JwtAuthGuard (any authenticated user)
 Request: query param limit (default 10)
 Response: `{ data: Alert[] }`
-Notes: Group managers receive ALL_USERS + GROUP_MANAGERS alerts. Regular users receive ALL_USERS only. Expired alerts (expiresAt <= now) are excluded.
+Notes: Each user receives alerts for every audience they qualify for simultaneously. A user who is a manager AND unpaid will receive ALL_USERS + GROUP_MANAGERS + UNPAID_THIS_MONTH alerts. Expired alerts (expiresAt <= now) are excluded.
 
 ---
 
