@@ -8,7 +8,7 @@ export default function LandingPageLayout({ children }: { children: ReactNode })
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-      <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700;800;900&family=David+Libre:wght@400;500;700&family=Noto+Serif+Hebrew:wght@400;500;600;700;800;900&family=Bellefair&display=swap" rel="stylesheet" />
+      <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=Assistant:wght@400;500;600;700;800&family=Noto+Sans+Hebrew:wght@400;500;600;700;800;900&family=Noto+Serif+Hebrew:wght@400;500;600;700;800;900&family=Frank+Ruhl+Libre:wght@400;500;700;800;900&family=David+Libre:wght@400;500;700&display=swap" rel="stylesheet" />
       {children}
     </>
   );

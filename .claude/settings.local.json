@@ -136,7 +136,14 @@
       "Bash(grep -r \"class.*Dto\" /Users/Nir.Saban/Documents/Claude/Projects/amutot/apps/api/src/modules/admin/dto/*.ts)",
       "Bash(python3 -c ':*)",
       "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
-      "Bash(npx --yes npm@latest install cloudinary --legacy-peer-deps)"
+      "Bash(npx --yes npm@latest install cloudinary --legacy-peer-deps)",
+      "Bash(git status:*)",
+      "Bash(git check-ignore:*)",
+      "Bash(ssh:*)",
+      "Bash(npm ls:*)",
+      "Bash(grep -o \"^\\\\..*{\" /Users/Nir.Saban/Documents/Claude/Projects/amutot/apps/web/src/app/l/\\\\[slug\\\\]/landing.css)",
+      "Bash(grep:*)",
+      "Bash(git diff:*)"
     ]
   }
 }
