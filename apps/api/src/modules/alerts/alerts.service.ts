@@ -382,6 +382,21 @@ export class AlertsService {
     });
   }
 
+  async sendPushToUser(
+    organizationId: string,
+    userId: string,
+    payload: { title: string; body: string; url?: string },
+  ): Promise<void> {
+    const subscriptions = await this.prisma.pushSubscription.findMany({
+      where: { organizationId, userId, isActive: true },
+    });
+    if (subscriptions.length === 0) return;
+    this.sendPushNotificationsInBackground('direct-push', subscriptions, {
+      type: 'notification',
+      ...payload,
+    });
+  }
+
   private sendPushNotificationsInBackground(
     alertId: string,
     subscriptions: PushSubscription[],

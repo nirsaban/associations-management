@@ -6,6 +6,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '@common/prisma/prisma.service';
+import { AlertsService } from '@modules/alerts/alerts.service';
 import { getCurrentWeekKey, getCurrentMonthKey, weekKeyToMondayIso, weekKeyNWeeksAgo } from '@common/utils/week';
 import { Prisma, OrderStatus } from '@prisma/client';
 import { GroupDetailsDto, MemberWithStatusDto, WeeklyTaskStatusDto } from './dto';
@@ -15,7 +16,10 @@ import type { UpdateFamilyDto } from './dto';
 export class ManagerService {
   private readonly logger = new Logger(ManagerService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly alertsService: AlertsService,
+  ) {}
 
   async getManagedGroup(userId: string, organizationId: string): Promise<GroupDetailsDto> {
     this.logger.log(`Getting managed group for user ${userId}`);
@@ -373,6 +377,15 @@ export class ManagerService {
         assignedByUserId: userId,
         weekKey,
       },
+    });
+
+    // Send push notification to the assigned distributor
+    this.alertsService.sendPushToUser(organizationId, assigneeUserId, {
+      title: 'נבחרת להיות המחלק/ת השבועי/ת',
+      body: `נבחרת להיות המחלק/ת השבועי/ת השבוע בקבוצת ${group.name}`,
+      url: '/user/dashboard',
+    }).catch((err) => {
+      this.logger.warn(`Failed to send distributor push to ${assigneeUserId}: ${err}`);
     });
 
     return { data: assignment };
