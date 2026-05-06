@@ -32,6 +32,7 @@ import { AlertsModule } from '@modules/alerts/alerts.module';
 import { HealthModule } from '@modules/health/health.module';
 import { LandingModule } from '@modules/landing/landing.module';
 import { ReferralsModule } from '@modules/referrals/referrals.module';
+import { SchedulerModule } from '@modules/scheduler/scheduler.module';
 
 @Module({
   imports: [
@@ -77,6 +78,7 @@ import { ReferralsModule } from '@modules/referrals/referrals.module';
     HealthModule,
     LandingModule,
     ReferralsModule,
+    SchedulerModule,
   ],
   providers: [
     {
