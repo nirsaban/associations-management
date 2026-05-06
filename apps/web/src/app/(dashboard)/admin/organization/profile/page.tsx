@@ -305,7 +305,7 @@ export default function OrgProfilePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <ColorPicker
               label="צבע ראשי"
-              value={form.primaryColor || '#AD526B'}
+              value={form.primaryColor || '#A74C66'}
               onChange={v => updateField('primaryColor', v)}
             />
             <ColorPicker

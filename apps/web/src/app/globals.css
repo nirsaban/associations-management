@@ -10,21 +10,22 @@
    ============================================================ */
 
 :root {
-  /* ─── Tulip palette (brief §2.1) ─── */
-  --bg:               253 248 246;   /* #FDF8F6 warm cream */
+  /* ─── Tulip palette ─── neutral warm-cream surfaces; rose reserved for primary actions only */
+  --bg:               253 249 242;   /* #FDF9F2 vanilla cream */
   --surface:          255 255 255;   /* #FFFFFF */
-  --surface-alt:      249 240 236;   /* #F9F0EC subtle blush */
-  --border:           234 217 210;   /* #EAD9D2 */
-  --border-strong:    215 191 182;   /* #D7BFB6 */
+  --surface-alt:      249 242 226;   /* #F9F2E2 warm cream — table stripes, sidebars */
+  --surface-hover:    240 229 204;   /* #F0E5CC deeper cream — row hover, hover bg */
+  --border:           232 222 200;   /* #E8DEC8 soft warm tan */
+  --border-strong:    212 197 168;   /* #D4C5A8 deeper tan */
 
   /*
    * --primary uses #AD526B (a hair deeper than the brief's #C4708A) to
    * satisfy WCAG-AA on white text — the brief's exact rose only reaches
    * 3.48:1 with white text, which fails AA at body sizes. See DECISIONS.md D22.
    */
-  --primary:          173  82 107;   /* #AD526B dusty rose, AA-tuned */
-  --primary-hover:    139  61  88;   /* #8B3D58 */
-  --primary-soft:     245 221 228;   /* #F5DDE4 (decorative tint) */
+  --primary:          167  76 102;   /* #A74C66 dusty rose, AA-tuned (passes on cream sa) */
+  --primary-hover:    134  56  82;   /* #863852 */
+  --primary-soft:     245 221 228;   /* #F5DDE4 (kept for badge tints / accents) */
   --primary-tint:     196 112 138;   /* #C4708A — brief's lighter rose for decorative use only */
 
   --secondary:        156 175 136;   /* #9CAF88 sage */
@@ -334,7 +335,7 @@ button {
   border: 1px solid rgb(var(--border-strong));
   border-radius: var(--radius-md);
 }
-.btn-outline:hover { background-color: rgb(var(--primary-soft)); }
+.btn-outline:hover { background-color: rgb(var(--surface-hover)); }
 
 .btn-ghost {
   background-color: transparent;
@@ -416,7 +417,7 @@ tbody tr:nth-child(even) {
   background-color: rgb(var(--surface-alt));
 }
 tbody tr:hover {
-  background-color: rgb(var(--primary-soft) / 0.5);
+  background-color: rgb(var(--surface-hover));
 }
 
 tbody td {

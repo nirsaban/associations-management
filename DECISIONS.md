@@ -81,7 +81,7 @@ Component is defined and exported but never imported anywhere in the app. Its ha
 The previous `globals.css` styled inputs with a `surface-container-low` fill + bottom border ("editorial underline"). Tulip uses a soft 1px border with primary focus ring at 18% alpha. This is a calmer look that pairs with the warm cream surface.
 
 ### D22: AA-tuned primary + status-strong variants
-The brief's exact `--primary: #C4708A` reaches only **3.48:1** with white text — fails WCAG-AA at body sizes (4.5:1). Per brief §2.3 ("darken/lighten the token") `--primary` was deepened to **`#AD526B`** (5.04:1 with white, 4.79:1 on bg). The brief's lighter rose is preserved as `--primary-tint` for purely decorative use (large hero gradients, etc.).
+The brief's exact `--primary: #C4708A` reaches only **3.48:1** with white text — fails WCAG-AA at body sizes (4.5:1). Per brief §2.3 ("darken/lighten the token") `--primary` was deepened to **`#A74C66`** (5.43:1 with white, 5.17:1 on bg, 4.87:1 on surface-alt). The brief's lighter rose is preserved as `--primary-tint` for purely decorative use (large hero gradients, etc.).
 
 Similarly the bright status tones (`--success`, `--warning`, `--error`, `--info`) are kept as specified for **backgrounds, icons, and decorative borders** — but TEXT in those colors uses new strong variants that pass AA on the warm cream bg:
 - `--success-strong: #547044` (5.28:1)
@@ -90,3 +90,8 @@ Similarly the bright status tones (`--success`, `--warning`, `--error`, `--info`
 - `--info-strong: #5A7387` (4.70:1)
 
 **How to apply:** when colorising text, use `text-success-strong` / `text-warning-strong` / `text-error-strong` / `text-info-strong`. Reserve the bright `text-success` etc. for SVG icons sitting on tinted backgrounds (≥3:1 large/non-text suffices).
+
+### D23: De-pinked surfaces — rose reserved for primary actions
+First pass tinted every surface with `--primary-soft` (#F5DDE4) — table-row hover, alternate rows, button-outline hover, gradients — making the chrome read as monochromatic pink. Reverted surfaces to neutral warm-cream (`--bg #FDF9F2`, `--surface-alt #F9F2E2`, `--surface-hover #F0E5CC`, `--border #E8DEC8`, `--border-strong #D4C5A8`) and switched `tbody tr:hover` and `.btn-outline:hover` to `--surface-hover` (cream, not pink).
+**Why:** the rose primary is meant to mark *primary actions* (CTAs, links, focus rings, active sidebar). Bleeding it into every passive hover state turned the whole UI pink.
+**How to apply:** when introducing a new hover/active background, prefer `bg-surface-hover` (cream); use `bg-primary/N` only when the element is genuinely a primary action.

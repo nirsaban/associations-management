@@ -25,6 +25,7 @@ const config: Config = {
         background: withAlpha('bg'),
         surface: withAlpha('surface'),
         'surface-alt': withAlpha('surface-alt'),
+        'surface-hover': withAlpha('surface-hover'),
         border: withAlpha('border'),
         'border-strong': withAlpha('border-strong'),
 
