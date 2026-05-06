@@ -153,7 +153,7 @@ export class AlertsService {
 
       await this.prisma.alert.update({
         where: { id: alert.id },
-        data: { recipientCount: subscriptions.length },
+        data: { recipientCount: targetUserIds.length },
       });
 
       if (subscriptions.length > 0) {
