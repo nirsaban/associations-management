@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     maximumScale: 5,
     userScalable: true,
   },
-  themeColor: '#004650',
+  themeColor: '#A74C66',
   applicationName: 'ניהול עמותות',
   formatDetection: {
     telephone: false,
@@ -47,7 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,100..700,0..1,-50..200"
         />
-        <meta name="theme-color" content="#004650" />
+        <meta name="theme-color" content="#A74C66" />
       </head>
       <body>
         <Providers>{children}</Providers>

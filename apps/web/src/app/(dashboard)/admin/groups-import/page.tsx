@@ -257,31 +257,31 @@ export default function GroupsImportPage() {
           <div className="flex flex-wrap items-center gap-4 p-4 rounded-xl bg-surface-container-low">
             {validateResult.summary.groupsToCreate > 0 && (
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-green-500" />
+                <span className="w-3 h-3 rounded-full bg-success" />
                 <span className="text-body-sm font-medium">{validateResult.summary.groupsToCreate} קבוצות חדשות</span>
               </div>
             )}
             {validateResult.summary.groupsToUpdate > 0 && (
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-amber-500" />
+                <span className="w-3 h-3 rounded-full bg-warning" />
                 <span className="text-body-sm font-medium">{validateResult.summary.groupsToUpdate} קבוצות לעדכון</span>
               </div>
             )}
             {validateResult.summary.familiesToAutoCreate > 0 && (
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-blue-500" />
+                <span className="w-3 h-3 rounded-full bg-info" />
                 <span className="text-body-sm font-medium">{validateResult.summary.familiesToAutoCreate} משפחות חדשות ייווצרו</span>
               </div>
             )}
             {validateResult.summary.skippedMemberPhones > 0 && (
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-orange-500" />
+                <span className="w-3 h-3 rounded-full bg-accent" />
                 <span className="text-body-sm font-medium">{validateResult.summary.skippedMemberPhones} טלפונים לא נמצאו וידלגו</span>
               </div>
             )}
             {validateResult.summary.rowsWithErrors > 0 && (
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-red-500" />
+                <span className="w-3 h-3 rounded-full bg-error" />
                 <span className="text-body-sm font-medium">{validateResult.summary.rowsWithErrors} שורות עם שגיאות</span>
               </div>
             )}
@@ -309,10 +309,10 @@ export default function GroupsImportPage() {
                   const existingFamilies = row.families.filter((f) => f.action !== 'auto_create').length;
 
                   const bgClass = row.status === 'error'
-                    ? 'bg-red-50/30'
+                    ? 'bg-error/5'
                     : row.status === 'valid_with_warnings'
-                    ? 'bg-amber-50/30'
-                    : 'bg-green-50/30';
+                    ? 'bg-warning/5'
+                    : 'bg-success/5';
 
                   return (
                     <tr key={row.rowNumber} className={bgClass}>
@@ -321,18 +321,18 @@ export default function GroupsImportPage() {
                       <td className="px-3 py-2">
                         <span className="font-mono text-label-sm" dir="ltr">{row.phoneManager}</span>
                         {row.status !== 'error' && (
-                          <span className="ms-1 text-green-600 text-label-sm">קיים</span>
+                          <span className="ms-1 text-success text-label-sm">קיים</span>
                         )}
                         {row.status === 'error' && row.errors.some((e) => e.field === 'phoneManager') && (
-                          <span className="ms-1 text-red-600 text-label-sm">חסר</span>
+                          <span className="ms-1 text-error text-label-sm">חסר</span>
                         )}
                       </td>
                       <td className="px-3 py-2">
                         {row.members.length > 0 ? (
                           <span>
-                            <span className="text-green-600">{existingMembers} נמצאו</span>
+                            <span className="text-success-strong">{existingMembers} נמצאו</span>
                             {missingMembers > 0 && (
-                              <span className="text-orange-500">, {missingMembers} חסרים</span>
+                              <span className="text-accent">, {missingMembers} חסרים</span>
                             )}
                           </span>
                         ) : (
@@ -342,9 +342,9 @@ export default function GroupsImportPage() {
                       <td className="px-3 py-2">
                         {row.families.length > 0 ? (
                           <span>
-                            {existingFamilies > 0 && <span className="text-green-600">{existingFamilies} קיימות</span>}
+                            {existingFamilies > 0 && <span className="text-success-strong">{existingFamilies} קיימות</span>}
                             {autoCreateFamilies > 0 && (
-                              <span className={existingFamilies > 0 ? 'text-blue-500' : 'text-blue-500'}>
+                              <span className="text-info-strong">
                                 {existingFamilies > 0 ? ', ' : ''}{autoCreateFamilies} חדשות
                               </span>
                             )}
@@ -354,18 +354,18 @@ export default function GroupsImportPage() {
                         )}
                       </td>
                       <td className="px-3 py-2">
-                        {row.status === 'valid' && <span className="text-green-600">✓</span>}
-                        {row.status === 'valid_with_warnings' && <span className="text-amber-500">⚠️</span>}
-                        {row.status === 'error' && <span className="text-red-600">✗</span>}
+                        {row.status === 'valid' && <span className="text-success-strong">✓</span>}
+                        {row.status === 'valid_with_warnings' && <span className="text-warning-strong">⚠️</span>}
+                        {row.status === 'error' && <span className="text-error-strong">✗</span>}
                       </td>
                       <td className="px-3 py-2 text-body-sm max-w-xs">
                         {row.errors.length > 0 && (
-                          <div className="text-red-600">
+                          <div className="text-error-strong">
                             {row.errors.map((e, i) => <div key={i}>{e.message}</div>)}
                           </div>
                         )}
                         {row.warnings.length > 0 && (
-                          <div className="text-amber-600">
+                          <div className="text-warning-strong">
                             {row.warnings.map((w, i) => <div key={i}>{w}</div>)}
                           </div>
                         )}
@@ -423,59 +423,59 @@ export default function GroupsImportPage() {
       {/* Summary state */}
       {state === 'summary' && commitResult && (
         <div className="space-y-6">
-          <div className="bg-green-50 rounded-xl p-8 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
-              <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="bg-success/10 rounded-xl p-8 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-success/20 flex items-center justify-center">
+              <svg className="w-8 h-8 text-success-strong" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
             <h2 className="text-headline-sm font-headline mb-4">הייבוא הושלם בהצלחה!</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-lg mx-auto text-start">
-              <div className="bg-white rounded-lg p-4">
+              <div className="bg-surface rounded-lg p-4">
                 <p className="text-display-sm font-bold text-primary">{commitResult.groupsCreated}</p>
                 <p className="text-body-sm text-on-surface-variant">קבוצות נוצרו</p>
               </div>
-              <div className="bg-white rounded-lg p-4">
+              <div className="bg-surface rounded-lg p-4">
                 <p className="text-display-sm font-bold text-primary">{commitResult.groupsUpdated}</p>
                 <p className="text-body-sm text-on-surface-variant">קבוצות עודכנו</p>
               </div>
-              <div className="bg-white rounded-lg p-4">
+              <div className="bg-surface rounded-lg p-4">
                 <p className="text-display-sm font-bold text-primary">{commitResult.managersAssigned}</p>
                 <p className="text-body-sm text-on-surface-variant">מנהלים הוקצו</p>
               </div>
-              <div className="bg-white rounded-lg p-4">
+              <div className="bg-surface rounded-lg p-4">
                 <p className="text-display-sm font-bold text-primary">{commitResult.membersAdded}</p>
                 <p className="text-body-sm text-on-surface-variant">חברים נוספו</p>
               </div>
-              <div className="bg-white rounded-lg p-4">
+              <div className="bg-surface rounded-lg p-4">
                 <p className="text-display-sm font-bold text-primary">{commitResult.familiesCreated}</p>
                 <p className="text-body-sm text-on-surface-variant">משפחות נוצרו</p>
               </div>
-              <div className="bg-white rounded-lg p-4">
+              <div className="bg-surface rounded-lg p-4">
                 <p className="text-display-sm font-bold text-primary">{commitResult.familiesLinked}</p>
                 <p className="text-body-sm text-on-surface-variant">משפחות שויכו</p>
               </div>
             </div>
 
             {commitResult.skippedMemberPhones.length > 0 && (
-              <div className="mt-6 text-start max-w-lg mx-auto bg-amber-50 rounded-lg p-4">
-                <p className="text-body-sm font-medium text-amber-700 mb-2">
+              <div className="mt-6 text-start max-w-lg mx-auto bg-warning/10 rounded-lg p-4">
+                <p className="text-body-sm font-medium text-warning-strongmb-2">
                   {commitResult.skippedMemberPhones.length} טלפונים חברים דולגו (לא נמצאו בעמותה):
                 </p>
-                <div className="text-body-sm text-amber-600 space-y-1">
+                <div className="text-body-sm text-warning-strongspace-y-1">
                   {commitResult.skippedMemberPhones.slice(0, 10).map((s, i) => (
                     <div key={i} dir="ltr" className="font-mono">{s.phone}</div>
                   ))}
                   {commitResult.skippedMemberPhones.length > 10 && (
-                    <div className="text-amber-500">ועוד {commitResult.skippedMemberPhones.length - 10}...</div>
+                    <div className="text-warning-strong/80">ועוד {commitResult.skippedMemberPhones.length - 10}...</div>
                   )}
                 </div>
               </div>
             )}
 
             {commitResult.managersReplaced > 0 && (
-              <div className="mt-4 text-start max-w-lg mx-auto bg-amber-50 rounded-lg p-4">
-                <p className="text-body-sm text-amber-700">
+              <div className="mt-4 text-start max-w-lg mx-auto bg-warning/10 rounded-lg p-4">
+                <p className="text-body-sm text-warning-strong">
                   {commitResult.managersReplaced} מנהלים הוחלפו בקבוצות קיימות
                 </p>
               </div>

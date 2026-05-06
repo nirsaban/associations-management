@@ -344,7 +344,7 @@ export default function LandingBuilderPage() {
           <div className="flex items-center gap-3">
             <h1 className="text-title-md font-headline">דף נחיתה</h1>
             <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${
-              landing.published ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+              landing.published ? 'bg-success/15 text-success-strong' : 'bg-warning/15 text-warning-strong'
             }`}>
               {landing.published ? 'מפורסם' : 'טיוטה'}
             </span>
@@ -371,7 +371,7 @@ export default function LandingBuilderPage() {
               onClick={handleCopyLink}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-body-sm hover:bg-surface-container transition-colors"
             >
-              {linkCopied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+              {linkCopied ? <Check className="h-4 w-4 text-success-strong" /> : <Copy className="h-4 w-4" />}
               <span className="hidden sm:inline">{linkCopied ? 'הועתק!' : 'העתק קישור'}</span>
             </button>
             {landing.published ? (

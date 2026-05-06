@@ -305,12 +305,12 @@ export default function OrgProfilePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <ColorPicker
               label="צבע ראשי"
-              value={form.primaryColor || '#2563eb'}
+              value={form.primaryColor || '#A74C66'}
               onChange={v => updateField('primaryColor', v)}
             />
             <ColorPicker
               label="צבע משני"
-              value={form.accentColor || '#f59e0b'}
+              value={form.accentColor || '#B8A5C9'}
               onChange={v => updateField('accentColor', v)}
             />
           </div>

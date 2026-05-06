@@ -120,6 +120,7 @@ export default function ReferralCard() {
 
           {/* Share buttons */}
           <div className="flex items-center gap-2">
+            {/* WhatsApp brand colors are mandated by their brand guidelines; intentionally outside the theme palette. */}
             <button
               type="button"
               onClick={shareWhatsApp}

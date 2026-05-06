@@ -1,8 +1,15 @@
 import type { Config } from 'tailwindcss';
 
 /**
- * Tailwind config — design tokens for the Amutot design system.
+ * Tailwind config — Soft Tulip theme.
+ * Colors are driven by CSS variables defined in globals.css using
+ * the rgb(var(--token) / <alpha-value>) pattern so opacity utilities
+ * (bg-primary/20) keep working.
  */
+
+const withAlpha = (token: string) =>
+  `rgb(var(--${token}) / <alpha-value>)`;
+
 const config: Config = {
   darkMode: 'class',
   content: [
@@ -14,63 +21,97 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        'primary': '#004650',
-        'primary-container': '#135f6b',
-        'primary-fixed': '#acedfb',
-        'primary-fixed-dim': '#90d1df',
-        'on-primary': '#ffffff',
-        'on-primary-container': '#95d6e4',
-        'on-primary-fixed': '#001f25',
-        'on-primary-fixed-variant': '#004e59',
-        'inverse-primary': '#90d1df',
+        /* ─── Tulip semantic tokens (brief §2.1) ─── */
+        background: withAlpha('bg'),
+        surface: withAlpha('surface'),
+        'surface-alt': withAlpha('surface-alt'),
+        'surface-hover': withAlpha('surface-hover'),
+        border: withAlpha('border'),
+        'border-strong': withAlpha('border-strong'),
 
-        'secondary': '#456646',
-        'secondary-container': '#c6edc3',
-        'secondary-fixed': '#c6edc3',
-        'secondary-fixed-dim': '#abd0a8',
-        'on-secondary': '#ffffff',
-        'on-secondary-container': '#4b6c4b',
-        'on-secondary-fixed': '#012108',
-        'on-secondary-fixed-variant': '#2d4e30',
+        primary: withAlpha('primary'),
+        'primary-hover': withAlpha('primary-hover'),
+        'primary-soft': withAlpha('primary-soft'),
+        'primary-tint': withAlpha('primary-tint'),
 
-        'tertiary': '#563900',
-        'tertiary-container': '#754e00',
-        'tertiary-fixed': '#ffddaf',
-        'tertiary-fixed-dim': '#ffba44',
-        'on-tertiary': '#ffffff',
-        'on-tertiary-container': '#ffc05b',
-        'on-tertiary-fixed': '#281800',
-        'on-tertiary-fixed-variant': '#614000',
+        secondary: withAlpha('secondary'),
+        'secondary-soft': withAlpha('secondary-soft'),
 
-        'error': '#ba1a1a',
-        'error-container': '#ffdad6',
-        'on-error': '#ffffff',
-        'on-error-container': '#93010a',
+        accent: withAlpha('accent'),
+        'accent-soft': withAlpha('accent-soft'),
 
-        'background': '#f8fafa',
-        'surface': '#f8fafa',
-        'surface-bright': '#f8fafa',
-        'surface-dim': '#d8dada',
-        'surface-tint': '#206773',
-        'surface-variant': '#e1e3e3',
-        'surface-container-lowest': '#ffffff',
-        'surface-container-low': '#f2f4f4',
-        'surface-container': '#eceeee',
-        'surface-container-high': '#e6e8e8',
-        'surface-container-highest': '#e1e3e3',
-        'inverse-surface': '#2e3131',
-        'inverse-on-surface': '#eff1f1',
-        'on-background': '#191c1d',
-        'on-surface': '#191c1d',
-        'on-surface-variant': '#3f4949',
+        foreground: withAlpha('text'),
+        'text-muted': withAlpha('text-muted'),
+        'text-inverse': withAlpha('text-inverse'),
 
-        'outline': '#6f7979',
-        'outline-variant': '#bec8c9',
+        /* Bright tones — backgrounds, icons, decorative borders */
+        success: withAlpha('success'),
+        warning: withAlpha('warning'),
+        error: withAlpha('error'),
+        info: withAlpha('info'),
+
+        /* Strong tones — for TEXT on light bg (AA-compliant) */
+        'success-strong': withAlpha('success-strong'),
+        'warning-strong': withAlpha('warning-strong'),
+        'error-strong': withAlpha('error-strong'),
+        'info-strong': withAlpha('info-strong'),
+
+        /* ─── Backward-compat: existing M3 names mapped to tulip ─── */
+        'primary-container': withAlpha('primary-soft'),
+        'primary-fixed': withAlpha('primary-soft'),
+        'primary-fixed-dim': withAlpha('primary'),
+        'on-primary': withAlpha('text-inverse'),
+        'on-primary-container': withAlpha('text'),
+        'on-primary-fixed': withAlpha('text'),
+        'on-primary-fixed-variant': withAlpha('primary-hover'),
+        'inverse-primary': withAlpha('primary-soft'),
+
+        'secondary-container': withAlpha('secondary-soft'),
+        'secondary-fixed': withAlpha('secondary-soft'),
+        'secondary-fixed-dim': withAlpha('secondary'),
+        'on-secondary': withAlpha('text-inverse'),
+        'on-secondary-container': withAlpha('text'),
+        'on-secondary-fixed': withAlpha('text'),
+        'on-secondary-fixed-variant': withAlpha('secondary'),
+
+        tertiary: withAlpha('accent'),
+        'tertiary-container': withAlpha('accent-soft'),
+        'tertiary-fixed': withAlpha('accent-soft'),
+        'tertiary-fixed-dim': withAlpha('accent'),
+        'on-tertiary': withAlpha('text-inverse'),
+        'on-tertiary-container': withAlpha('text'),
+        'on-tertiary-fixed': withAlpha('text'),
+        'on-tertiary-fixed-variant': withAlpha('accent'),
+
+        'error-container': 'rgb(253 232 228 / <alpha-value>)',
+        'on-error': withAlpha('text-inverse'),
+        'on-error-container': withAlpha('error'),
+
+        'surface-bright': withAlpha('surface'),
+        'surface-dim': withAlpha('surface-alt'),
+        'surface-tint': withAlpha('primary'),
+        'surface-variant': withAlpha('surface-alt'),
+        'surface-container-lowest': withAlpha('surface'),
+        'surface-container-low': withAlpha('bg'),
+        'surface-container': withAlpha('surface-alt'),
+        'surface-container-high': withAlpha('surface-alt'),
+        'surface-container-highest': withAlpha('border'),
+        'inverse-surface': withAlpha('text'),
+        'inverse-on-surface': withAlpha('text-inverse'),
+        'on-background': withAlpha('text'),
+        'on-surface': withAlpha('text'),
+        'on-surface-variant': withAlpha('text-muted'),
+
+        outline: withAlpha('border-strong'),
+        'outline-variant': withAlpha('border'),
       },
       borderRadius: {
-        DEFAULT: '0.25rem',
-        lg: '0.5rem',
-        xl: '0.75rem',
+        DEFAULT: 'var(--radius)',
+        sm: 'var(--radius-sm)',
+        md: 'var(--radius-md)',
+        lg: 'var(--radius-lg)',
+        xl: 'var(--radius-xl)',
+        '2xl': 'var(--radius-xl)',
         full: '9999px',
       },
       fontFamily: {
@@ -97,18 +138,23 @@ const config: Config = {
         'display-lg': ['56px', { lineHeight: '64px', fontWeight: '900' }],
       },
       boxShadow: {
-        'ambient-sm': '0 4px 12px rgba(25, 28, 29, 0.04)',
-        'ambient-md': '0 8px 24px rgba(25, 28, 29, 0.06)',
-        'ambient-lg': '0 12px 32px rgba(25, 28, 29, 0.08)',
+        soft: 'var(--shadow-soft)',
+        md: 'var(--shadow-md)',
+        'ambient-sm': 'var(--shadow-ambient-sm)',
+        'ambient-md': 'var(--shadow-ambient-md)',
+        'ambient-lg': 'var(--shadow-ambient-lg)',
       },
       backdropBlur: {
         glass: '12px',
       },
       backgroundImage: {
-        'gradient-primary':
-          'linear-gradient(135deg, #004650 0%, #135f6b 100%)',
+        'gradient-primary': 'var(--gradient-primary)',
         'gradient-primary-soft':
-          'linear-gradient(135deg, #135f6b 0%, #206773 100%)',
+          'linear-gradient(135deg, rgb(var(--primary-soft)) 0%, rgb(var(--accent-soft)) 100%)',
+        'gradient-warm': 'var(--gradient-warm)',
+      },
+      ringColor: {
+        DEFAULT: withAlpha('primary'),
       },
       keyframes: {
         fadeIn: {
@@ -119,10 +165,15 @@ const config: Config = {
           from: { transform: 'translateY(8px)', opacity: '0' },
           to: { transform: 'translateY(0)', opacity: '1' },
         },
+        shimmer: {
+          '0%': { backgroundPosition: '200% 0' },
+          '100%': { backgroundPosition: '-200% 0' },
+        },
       },
       animation: {
         'fade-in': 'fadeIn 200ms ease-out',
         'slide-up': 'slideUp 240ms ease-out',
+        shimmer: 'shimmer 1.4s linear infinite',
       },
     },
   },

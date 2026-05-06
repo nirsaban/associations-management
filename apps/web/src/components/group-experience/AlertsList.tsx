@@ -133,25 +133,25 @@ function PushSubscribeBanner() {
   }
 
   return (
-    <div className="rounded-xl bg-amber-50 border border-amber-200 px-5 py-4 mb-4">
+    <div className="rounded-xl bg-warning/10 border border-warning/30 px-5 py-4 mb-4">
       <div className="flex items-start gap-3">
-        <div className="p-2 rounded-full bg-amber-100 shrink-0 mt-0.5">
-          <BellRing className="h-5 w-5 text-amber-600" />
+        <div className="p-2 rounded-full bg-warning/20 shrink-0 mt-0.5">
+          <BellRing className="h-5 w-5 text-warning-strong" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-title-sm font-medium text-amber-900">
+          <p className="text-title-sm font-medium text-foreground">
             לא תפספס/י עדכונים חשובים
           </p>
-          <p className="text-body-sm text-amber-700 mt-1">
+          <p className="text-body-sm text-text-muted mt-1">
             הפעל/י התראות כדי לקבל עדכונים על חלוקות, תשלומים והודעות חדשות.
           </p>
           {errorMsg && (
-            <p className="text-body-sm text-red-600 mt-1">{errorMsg}</p>
+            <p className="text-body-sm text-error-strong mt-1">{errorMsg}</p>
           )}
           <button
             onClick={handleSubscribe}
             disabled={status === 'subscribing'}
-            className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-600 text-white text-body-sm font-medium hover:bg-amber-700 transition-colors disabled:opacity-50"
+            className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-warning-strong text-text-inverse text-body-sm font-medium hover:bg-warning-strong/85 transition-colors disabled:opacity-50"
           >
             <Bell className="h-4 w-4" />
             {status === 'subscribing' ? 'מפעיל...' : 'הפעל התראות'}
@@ -159,7 +159,7 @@ function PushSubscribeBanner() {
         </div>
         <button
           onClick={() => setVisible(false)}
-          className="shrink-0 text-amber-400 hover:text-amber-600 transition-colors p-1"
+          className="shrink-0 text-text-muted hover:text-foreground transition-colors p-1"
           aria-label="סגור"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
