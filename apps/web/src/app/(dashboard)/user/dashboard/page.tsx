@@ -12,11 +12,12 @@ import {
   Phone,
   MapPin,
   Package,
+  Share2,
 } from 'lucide-react';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import { useToast } from '@/components/ui/Toast';
-import { DonationIframeCard, AlertsList } from '@/components/group-experience';
+import { DonationIframeCard, AlertsList, ShareAchievementModal } from '@/components/group-experience';
 import ReferralCard from './ReferralCard';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -195,10 +196,20 @@ function FamilyDeliveryCard({
 
 // ─── Distributor Section ──────────────────────────────────────────────────────
 
-function DistributorSection({ data }: { data: WeeklyDistribution }) {
+interface DistributorSectionProps {
+  data: WeeklyDistribution;
+  firstName: string;
+  organizationName?: string;
+  organizationLogoUrl?: string | null;
+  landingSlug?: string | null;
+  referralCode?: string | null;
+}
+
+function DistributorSection({ data, firstName, organizationName, organizationLogoUrl, landingSlug, referralCode }: DistributorSectionProps) {
   const { showToast } = useToast();
   const queryClient = useQueryClient();
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const families = data.families ?? [];
   const totalCount = data.totalCount ?? families.length;
@@ -275,12 +286,35 @@ function DistributorSection({ data }: { data: WeeklyDistribution }) {
         )}
       </div>
 
-      {/* All delivered banner */}
+      {/* All delivered banner + share */}
       {allDelivered && (
-        <div className="rounded-xl bg-success-container text-on-success-container px-5 py-4 flex items-center gap-3 mb-4">
-          <CheckCircle className="h-5 w-5 shrink-0" />
-          <span className="text-body-md font-medium">כל המשפחות חולקו השבוע</span>
+        <div className="rounded-xl bg-success-container text-on-success-container px-5 py-5 mb-4">
+          <div className="flex items-center gap-3 mb-3">
+            <CheckCircle className="h-6 w-6 shrink-0" />
+            <span className="text-title-md font-bold">כל המשפחות חולקו השבוע! 🎉</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowShareModal(true)}
+            className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-on-success-container text-success-container text-label-lg font-medium hover:opacity-90 transition-opacity"
+          >
+            <Share2 className="h-5 w-5" />
+            שתפו את ההישג
+          </button>
         </div>
+      )}
+
+      {/* Share achievement modal */}
+      {showShareModal && organizationName && (
+        <ShareAchievementModal
+          firstName={firstName}
+          organizationName={organizationName}
+          organizationLogoUrl={organizationLogoUrl}
+          landingSlug={landingSlug}
+          referralCode={referralCode}
+          familyCount={totalCount}
+          onClose={() => setShowShareModal(false)}
+        />
       )}
 
       {/* Family cards */}
@@ -421,9 +455,20 @@ export default function UserDashboardPage() {
     enabled: !!user,
   });
 
+  // Query: referral info (for share image)
+  const referralQuery = useQuery({
+    queryKey: ['my-referral-info'],
+    queryFn: async () => {
+      const res = await api.get<{ data: { code: string; landingSlug: string | null } }>('/referrals/me');
+      return res.data.data;
+    },
+    enabled: !!user,
+  });
+
   const weekly = weeklyDistQuery.data;
   const donation = donationInfoQuery.data;
   const payment = paymentStatusQuery.data;
+  const referral = referralQuery.data;
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-8 max-w-4xl mx-auto">
@@ -455,7 +500,14 @@ export default function UserDashboardPage() {
             <span className="text-body-md">שגיאה בטעינת נתוני חלוקה</span>
           </div>
         ) : weekly?.isDistributor ? (
-          <DistributorSection data={weekly} />
+          <DistributorSection
+            data={weekly}
+            firstName={firstName}
+            organizationName={donation?.organizationName}
+            organizationLogoUrl={donation?.organizationLogoUrl}
+            landingSlug={referral?.landingSlug}
+            referralCode={referral?.code}
+          />
         ) : (
           <NonDistributorCard
             hasGroup={hasGroup}

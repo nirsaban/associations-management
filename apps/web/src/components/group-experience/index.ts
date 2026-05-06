@@ -3,3 +3,4 @@ export { FamilyCard } from './FamilyCard';
 export { DonationIframeCard } from './DonationIframeCard';
 export { AlertsList } from './AlertsList';
 export { CurrentWeekDistributorCard } from './CurrentWeekDistributorCard';
+export { ShareAchievementModal } from './ShareAchievementModal';
