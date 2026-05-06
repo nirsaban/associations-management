@@ -226,12 +226,12 @@ export default function CsvImportPage() {
           {/* Summary banner */}
           <div className="flex items-center gap-4 p-4 rounded-xl bg-surface-container-low">
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-green-500" />
+              <span className="w-3 h-3 rounded-full bg-success" />
               <span className="text-body-md font-medium">{validRows.length} שורות תקינות</span>
             </div>
             {errorRows.length > 0 && (
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-red-500" />
+                <span className="w-3 h-3 rounded-full bg-error" />
                 <span className="text-body-md font-medium">{errorRows.length} שורות עם שגיאות</span>
               </div>
             )}
@@ -252,23 +252,23 @@ export default function CsvImportPage() {
               </thead>
               <tbody className="divide-y divide-outline/10">
                 {validRows.map((row) => (
-                  <tr key={row.rowNum} className="bg-green-50/30">
+                  <tr key={row.rowNum} className="bg-success/5">
                     <td className="px-4 py-2">{row.rowNum}</td>
                     <td className="px-4 py-2 font-mono" dir="ltr">{row.phone}</td>
                     <td className="px-4 py-2">{row.fullName}</td>
                     <td className="px-4 py-2">{row.groupName || '—'}</td>
                     <td className="px-4 py-2">{row.groupRole === 'MANAGER' ? 'מנהל קבוצה' : row.groupRole === 'MEMBER' ? 'חבר קבוצה' : 'תורם'}</td>
-                    <td className="px-4 py-2 text-green-600">✓</td>
+                    <td className="px-4 py-2 text-success-strong">✓</td>
                   </tr>
                 ))}
                 {errorRows.map((row) => (
-                  <tr key={`err-${row.row}`} className="bg-red-50/30">
+                  <tr key={`err-${row.row}`} className="bg-error/5">
                     <td className="px-4 py-2">{row.row}</td>
                     <td className="px-4 py-2 font-mono" dir="ltr">{String(row.data?.phone || '')}</td>
                     <td className="px-4 py-2">{String(row.data?.fullName || '')}</td>
                     <td className="px-4 py-2">{String(row.data?.groupName || '—')}</td>
                     <td className="px-4 py-2">{String(row.data?.role || '')}</td>
-                    <td className="px-4 py-2 text-red-600 text-body-sm">{row.reason}</td>
+                    <td className="px-4 py-2 text-error-strong text-body-sm">{row.reason}</td>
                   </tr>
                 ))}
               </tbody>
@@ -314,27 +314,27 @@ export default function CsvImportPage() {
       {/* Summary state */}
       {state === 'summary' && commitResult && (
         <div className="space-y-6">
-          <div className="bg-green-50 rounded-xl p-8 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
-              <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="bg-success/10 rounded-xl p-8 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-success/20 flex items-center justify-center">
+              <svg className="w-8 h-8 text-success-strong" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
             <h2 className="text-headline-sm font-headline mb-4">הייבוא הושלם בהצלחה!</h2>
             <div className="grid grid-cols-2 gap-4 max-w-md mx-auto text-start">
-              <div className="bg-white rounded-lg p-4">
+              <div className="bg-surface rounded-lg p-4">
                 <p className="text-display-sm font-bold text-primary">{commitResult.usersCreated}</p>
                 <p className="text-body-sm text-on-surface-variant">משתמשים נוספו</p>
               </div>
-              <div className="bg-white rounded-lg p-4">
+              <div className="bg-surface rounded-lg p-4">
                 <p className="text-display-sm font-bold text-primary">{commitResult.groupsCreated}</p>
                 <p className="text-body-sm text-on-surface-variant">קבוצות נוצרו</p>
               </div>
-              <div className="bg-white rounded-lg p-4">
+              <div className="bg-surface rounded-lg p-4">
                 <p className="text-display-sm font-bold text-primary">{commitResult.membersCreated}</p>
                 <p className="text-body-sm text-on-surface-variant">שולבו כחברי קבוצה</p>
               </div>
-              <div className="bg-white rounded-lg p-4">
+              <div className="bg-surface rounded-lg p-4">
                 <p className="text-display-sm font-bold text-primary">{commitResult.managersCreated}</p>
                 <p className="text-body-sm text-on-surface-variant">כמנהלי קבוצה</p>
               </div>
