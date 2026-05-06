@@ -10,7 +10,7 @@ import { he } from 'date-fns/locale';
 import {
   isPushNotificationSupported,
   subscribeToPushNotifications,
-  unsubscribeFromPush,
+  unsubscribeFromPushNotifications,
   isSubscribedToPush,
 } from '@/lib/push';
 
@@ -64,7 +64,7 @@ function PushSettingsCard() {
   const handleUnsubscribe = async () => {
     setLoading(true);
     try {
-      await unsubscribeFromPush();
+      await unsubscribeFromPushNotifications();
       setSubscribed(false);
     } catch {
       // ignore
