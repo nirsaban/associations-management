@@ -1,5 +1,6 @@
-import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '@common/prisma/prisma.service';
+import { Prisma } from '@prisma/client';
 import { CreateFamilyDto } from './dto/create-family.dto';
 import { UpdateFamilyDto } from './dto/update-family.dto';
 import { FamilyResponseDto, FamilyOrderDto } from './dto/family-response.dto';
@@ -23,19 +24,29 @@ export class FamiliesService {
       }
     }
 
-    const family = await this.prisma.family.create({
-      data: {
-        organizationId,
-        familyName: createFamilyDto.familyName,
-        contactName: createFamilyDto.contactName ?? null,
-        contactPhone: createFamilyDto.contactPhone ?? null,
-        address: createFamilyDto.address ?? null,
-        notes: createFamilyDto.notes ?? null,
-        groupId: createFamilyDto.groupId ?? null,
-      },
-    });
+    try {
+      const family = await this.prisma.family.create({
+        data: {
+          organizationId,
+          familyName: createFamilyDto.familyName,
+          contactName: createFamilyDto.contactName ?? null,
+          contactPhone: createFamilyDto.contactPhone ?? null,
+          address: createFamilyDto.address ?? null,
+          notes: createFamilyDto.notes ?? null,
+          groupId: createFamilyDto.groupId ?? null,
+        },
+        include: {
+          group: { select: { name: true } },
+        },
+      });
 
-    return this.mapToDto(family);
+      return this.mapToDto(family);
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+        throw new ConflictException('משפחה עם שם זה כבר קיימת בעמותה');
+      }
+      throw err;
+    }
   }
 
   async findAll(
@@ -62,6 +73,9 @@ export class FamiliesService {
         skip,
         take: safeLimit,
         orderBy: { createdAt: 'desc' },
+        include: {
+          group: { select: { name: true } },
+        },
       }),
       this.prisma.family.count({ where }),
     ]);
