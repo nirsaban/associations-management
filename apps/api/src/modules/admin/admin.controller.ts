@@ -1,16 +1,39 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Query, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery, ApiBody } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { RolesGuard } from '@common/guards/roles.guard';
 import { Roles } from '@common/decorators/roles.decorator';
 import { CurrentUser, type CurrentUser as ICurrentUser } from '@common/decorators/current-user.decorator';
+import { IsArray, IsString, IsNotEmpty, IsOptional, IsDateString } from 'class-validator';
 import { AdminService } from './admin.service';
+import { AlertsService } from '../alerts/alerts.service';
 import {
   AdminStatsDto,
   RevenueByMonthDto,
   UnpaidUserDto,
   GroupWeeklyStatusDto,
+  WeeklyStatusNoDistributorDto,
+  WeeklyStatusIncompleteOrdersDto,
 } from './dto';
+import { AlertAudience } from '@prisma/client';
+
+class AlertGroupManagersDto {
+  @IsArray()
+  @IsString({ each: true })
+  groupIds!: string[];
+
+  @IsString()
+  @IsNotEmpty()
+  title!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  body!: string;
+
+  @IsOptional()
+  @IsDateString()
+  expiresAt?: string;
+}
 
 @ApiTags('Admin')
 @ApiBearerAuth('access-token')
@@ -18,7 +41,10 @@ import {
 @Roles('ADMIN')
 @Controller('admin')
 export class AdminController {
-  constructor(private readonly adminService: AdminService) {}
+  constructor(
+    private readonly adminService: AdminService,
+    private readonly alertsService: AlertsService,
+  ) {}
 
   @Get('dashboard')
   @ApiOperation({
@@ -160,6 +186,62 @@ export class AdminController {
     @Query('weekKey') weekKey?: string,
   ): Promise<{ data: GroupWeeklyStatusDto[] }> {
     return this.adminService.getWeeklyStatus(user.organizationId, weekKey);
+  }
+
+  @Get('weekly-status/no-distributor')
+  @ApiOperation({
+    summary: 'Get groups without a weekly distributor',
+    description: 'קבלת קבוצות ללא מחלק שבועי לשבוע הנוכחי',
+  })
+  @ApiQuery({ name: 'weekKey', required: false, type: String, description: 'מפתח שבוע בפורמט YYYY-Wxx' })
+  async getWeeklyStatusNoDistributor(
+    @CurrentUser() user: ICurrentUser,
+    @Query('weekKey') weekKey?: string,
+  ): Promise<{ data: WeeklyStatusNoDistributorDto[] }> {
+    return this.adminService.getWeeklyStatusNoDistributor(user.organizationId, weekKey);
+  }
+
+  @Get('weekly-status/incomplete-orders')
+  @ApiOperation({
+    summary: 'Get groups with incomplete weekly orders',
+    description: 'קבלת קבוצות שהזמנות השבועיות שלהן לא הושלמו לשבוע הנוכחי',
+  })
+  @ApiQuery({ name: 'weekKey', required: false, type: String, description: 'מפתח שבוע בפורמט YYYY-Wxx' })
+  async getWeeklyStatusIncompleteOrders(
+    @CurrentUser() user: ICurrentUser,
+    @Query('weekKey') weekKey?: string,
+  ): Promise<{ data: WeeklyStatusIncompleteOrdersDto[]; meta: { totalGroups: number; incompleteGroups: number } }> {
+    return this.adminService.getWeeklyStatusIncompleteOrders(user.organizationId, weekKey);
+  }
+
+  @Post('weekly-status/alert-managers')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: 'Alert managers of specific groups',
+    description: 'שליחת התראה למנהלי קבוצות ספציפיות — משתמש בצינור ההתראות הקיים',
+  })
+  @ApiBody({ type: AlertGroupManagersDto })
+  async alertGroupManagers(
+    @CurrentUser() user: ICurrentUser,
+    @Body() dto: AlertGroupManagersDto,
+  ): Promise<{ data: { alertId: string; recipientCount: number } }> {
+    // Resolve manager user IDs for the given groups, scoped to the org
+    const groups = await this.adminService.getGroupManagerIds(user.organizationId, dto.groupIds);
+    const managerUserIds = groups.flatMap((g) => (g.managerId ? [g.managerId] : []));
+
+    const alert = await this.alertsService.createAlertForUsers(
+      user.organizationId,
+      user.id || user.sub,
+      {
+        title: dto.title,
+        body: dto.body,
+        audience: AlertAudience.GROUP_MANAGERS,
+        expiresAt: dto.expiresAt,
+      },
+      managerUserIds,
+    );
+
+    return { data: { alertId: alert.id, recipientCount: alert.recipientCount } };
   }
 
   @Get('orders')

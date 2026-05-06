@@ -115,6 +115,65 @@ export class AlertsService {
     return alert;
   }
 
+  async createAlertForUsers(
+    organizationId: string,
+    publishedById: string,
+    dto: CreateAlertDto,
+    targetUserIds: string[],
+  ): Promise<AlertWithPublisher> {
+    const audience = dto.audience ?? AlertAudience.ALL_USERS;
+
+    const alert = await this.prisma.alert.create({
+      data: {
+        organizationId,
+        publishedById,
+        title: dto.title,
+        body: dto.body,
+        audience,
+        expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : undefined,
+      },
+      include: {
+        publishedBy: {
+          select: { id: true, fullName: true },
+        },
+      },
+    });
+
+    try {
+      const subscriptions =
+        targetUserIds.length > 0
+          ? await this.prisma.pushSubscription.findMany({
+              where: {
+                organizationId,
+                isActive: true,
+                userId: { in: targetUserIds },
+              },
+            })
+          : [];
+
+      await this.prisma.alert.update({
+        where: { id: alert.id },
+        data: { recipientCount: subscriptions.length },
+      });
+
+      if (subscriptions.length > 0) {
+        this.sendPushNotificationsInBackground(alert.id, subscriptions, {
+          type: 'alert',
+          title: dto.title,
+          body: dto.body,
+          url: '/manager',
+        });
+      }
+    } catch (err) {
+      this.logger.warn(
+        `Push fan-out failed for targeted alert ${alert.id}, alert was still created`,
+        (err as Error).message,
+      );
+    }
+
+    return alert;
+  }
+
   async getAdminAlerts(
     organizationId: string,
     page: number,

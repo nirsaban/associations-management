@@ -5,6 +5,8 @@ import {
   RevenueByMonthDto,
   UnpaidUserDto,
   GroupWeeklyStatusDto,
+  WeeklyStatusNoDistributorDto,
+  WeeklyStatusIncompleteOrdersDto,
 } from './dto';
 
 @Injectable()
@@ -409,6 +411,129 @@ export class AdminService {
         groups: Array.from(groupMap.values()),
       },
     };
+  }
+
+  async getWeeklyStatusNoDistributor(
+    organizationId: string,
+    weekKey?: string,
+  ): Promise<{ data: WeeklyStatusNoDistributorDto[] }> {
+    const week = weekKey ?? this.getCurrentWeekKey();
+    this.logger.log(`Getting no-distributor groups for week ${week}, org ${organizationId}`);
+
+    const groups = await this.prisma.group.findMany({
+      where: {
+        organizationId,
+        deletedAt: null,
+      },
+      include: {
+        manager: {
+          select: { id: true, fullName: true },
+        },
+        weeklyDistributorAssignments: {
+          where: { weekKey: week },
+          select: { id: true },
+        },
+      },
+      orderBy: { name: 'asc' },
+    });
+
+    const noDistributorGroups = groups.filter(
+      (g) => g.weeklyDistributorAssignments.length === 0,
+    );
+
+    return {
+      data: noDistributorGroups.map((g) => ({
+        groupId: g.id,
+        groupName: g.name,
+        managerId: g.manager?.id ?? null,
+        managerName: g.manager?.fullName ?? null,
+        lastActivity: g.updatedAt.toISOString(),
+      })),
+    };
+  }
+
+  async getWeeklyStatusIncompleteOrders(
+    organizationId: string,
+    weekKey?: string,
+  ): Promise<{ data: WeeklyStatusIncompleteOrdersDto[]; meta: { totalGroups: number; incompleteGroups: number } }> {
+    const week = weekKey ?? this.getCurrentWeekKey();
+    this.logger.log(`Getting incomplete-order groups for week ${week}, org ${organizationId}`);
+
+    const groups = await this.prisma.group.findMany({
+      where: {
+        organizationId,
+        deletedAt: null,
+      },
+      include: {
+        manager: {
+          select: { id: true, fullName: true },
+        },
+        weeklyOrders: {
+          where: { weekKey: week },
+          select: { status: true, updatedAt: true },
+          orderBy: { updatedAt: 'desc' },
+        },
+      },
+      orderBy: { name: 'asc' },
+    });
+
+    const totalGroups = groups.length;
+
+    const incompleteGroups = groups.filter((g) => {
+      const orders = g.weeklyOrders;
+      if (orders.length === 0) return true;
+      return orders.some((o) => o.status !== 'COMPLETED');
+    });
+
+    const data: WeeklyStatusIncompleteOrdersDto[] = incompleteGroups.map((g) => {
+      const orders = g.weeklyOrders;
+      const completedOrders = orders.filter((o) => o.status === 'COMPLETED').length;
+      const totalOrders = orders.length;
+      const lastOrder = orders[0];
+      const lastUpdate = lastOrder ? lastOrder.updatedAt.toISOString() : g.updatedAt.toISOString();
+      const orderStatus = orders.length > 0 ? orders[0].status : undefined;
+
+      return {
+        groupId: g.id,
+        groupName: g.name,
+        managerId: g.manager?.id ?? null,
+        managerName: g.manager?.fullName ?? null,
+        orderStatus,
+        completedOrders,
+        totalOrders,
+        lastUpdate,
+      };
+    });
+
+    return {
+      data,
+      meta: {
+        totalGroups,
+        incompleteGroups: incompleteGroups.length,
+      },
+    };
+  }
+
+  async getGroupManagerIds(
+    organizationId: string,
+    groupIds: string[],
+  ): Promise<Array<{ groupId: string; managerId: string | null }>> {
+    const groups = await this.prisma.group.findMany({
+      where: {
+        organizationId,
+        id: { in: groupIds },
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+        managerUserId: true,
+      },
+    });
+
+    return groups.map((g) => ({
+      groupId: g.id,
+      managerId: g.managerUserId ?? null,
+    }));
   }
 
   private getCurrentMonthKey(): string {
