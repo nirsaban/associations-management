@@ -6,6 +6,7 @@ import api from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import { ChevronLeft, ChevronRight, Download, Package, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { exportOrdersToDocx } from '@/lib/export-orders-docx';
+import { formatWeekRange } from '@/lib/dates';
 
 interface OrderFamily {
   familyId: string;
@@ -129,6 +130,7 @@ export default function AdminOrdersPage() {
           </button>
           <div className="text-center min-w-[120px]">
             <p className="text-title-lg font-medium">{weekKey}</p>
+            <p className="text-label-sm text-on-surface-variant" dir="ltr">{formatWeekRange(weekKey)}</p>
             {weekKey === getCurrentWeekKey() && (
               <p className="text-label-sm text-primary">השבוע הנוכחי</p>
             )}
