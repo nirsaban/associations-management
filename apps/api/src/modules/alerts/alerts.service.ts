@@ -393,7 +393,9 @@ export class AlertsService {
     if (subscriptions.length === 0) return;
     this.sendPushNotificationsInBackground('direct-push', subscriptions, {
       type: 'notification',
-      ...payload,
+      title: payload.title,
+      body: payload.body,
+      url: payload.url || '/',
     });
   }
 
