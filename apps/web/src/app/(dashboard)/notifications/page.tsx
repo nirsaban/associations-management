@@ -1,12 +1,18 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Bell, AlertCircle, Info, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Bell, BellRing, BellOff, AlertCircle, Info, CheckCircle, Loader2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
+import {
+  isPushNotificationSupported,
+  subscribeToPushNotifications,
+  unsubscribeFromPush,
+  isSubscribedToPush,
+} from '@/lib/push';
 
 interface Notification {
   id: string;
@@ -15,6 +21,112 @@ interface Notification {
   type: string;
   isRead: boolean;
   createdAt: string;
+}
+
+function PushSettingsCard() {
+  const [pushSupported, setPushSupported] = useState(false);
+  const [subscribed, setSubscribed] = useState<boolean | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [permissionDenied, setPermissionDenied] = useState(false);
+
+  const checkStatus = useCallback(async () => {
+    if (!isPushNotificationSupported()) {
+      setPushSupported(false);
+      return;
+    }
+    setPushSupported(true);
+    setPermissionDenied(Notification.permission === 'denied');
+    try {
+      const isSubbed = await isSubscribedToPush();
+      setSubscribed(isSubbed);
+    } catch {
+      setSubscribed(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    checkStatus();
+  }, [checkStatus]);
+
+  const handleSubscribe = async () => {
+    setLoading(true);
+    try {
+      await subscribeToPushNotifications();
+      setSubscribed(true);
+    } catch {
+      if (Notification.permission === 'denied') {
+        setPermissionDenied(true);
+      }
+    }
+    setLoading(false);
+  };
+
+  const handleUnsubscribe = async () => {
+    setLoading(true);
+    try {
+      await unsubscribeFromPush();
+      setSubscribed(false);
+    } catch {
+      // ignore
+    }
+    setLoading(false);
+  };
+
+  if (!pushSupported) return null;
+
+  return (
+    <div className="card-elevated">
+      <div className="flex items-start gap-4">
+        <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${
+          subscribed ? 'bg-success/10' : 'bg-warning/10'
+        }`}>
+          {subscribed ? (
+            <BellRing className="h-6 w-6 text-success" />
+          ) : (
+            <BellOff className="h-6 w-6 text-warning" />
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-title-md font-medium">התראות בזמן אמת</h3>
+          <p className="text-body-sm text-on-surface-variant mt-1">
+            {permissionDenied
+              ? 'ההתראות חסומות בדפדפן. יש לשנות את ההגדרות בדפדפן ולרענן את הדף.'
+              : subscribed
+                ? 'התראות מופעלות — תקבלו עדכונים על הזמנות, חלוקות ותזכורות.'
+                : 'הפעילו התראות כדי לקבל עדכונים בזמן אמת על הזמנות, חלוקות ותזכורות חשובות.'}
+          </p>
+        </div>
+        <div className="shrink-0">
+          {subscribed === null ? (
+            <Loader2 className="h-5 w-5 animate-spin text-on-surface-variant" />
+          ) : permissionDenied ? (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-error/10 text-error text-label-sm font-medium">
+              <BellOff className="h-3.5 w-3.5" />
+              חסום
+            </span>
+          ) : subscribed ? (
+            <button
+              onClick={handleUnsubscribe}
+              disabled={loading}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-outline-variant text-label-md text-on-surface-variant hover:bg-surface-variant transition-colors disabled:opacity-50"
+            >
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <BellOff className="h-4 w-4" />}
+              כיבוי
+            </button>
+          ) : (
+            <button
+              onClick={handleSubscribe}
+              disabled={loading}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary text-on-primary text-label-md font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+            >
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <BellRing className="h-4 w-4" />}
+              הפעלת התראות
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function NotificationsPage() {
@@ -129,6 +241,9 @@ export default function NotificationsPage() {
           )}
         </div>
       </div>
+
+      {/* Push Notification Settings */}
+      <PushSettingsCard />
 
       {/* Filter Tabs */}
       <div className="card-elevated p-2 flex gap-2">
