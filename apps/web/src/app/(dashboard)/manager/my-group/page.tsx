@@ -11,6 +11,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
+import { WhatsAppLink } from '@/components/ui/WhatsAppLink';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
@@ -413,13 +414,16 @@ export default function ManagerMyGroupPage() {
                         </span>
                       )}
                     </div>
-                    <p
-                      className="text-body-sm text-on-surface-variant flex items-center gap-1 mt-0.5"
-                      dir="ltr"
-                    >
-                      <Phone className="h-3 w-3 flex-shrink-0" />
-                      {member.phone}
-                    </p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <p
+                        className="text-body-sm text-on-surface-variant flex items-center gap-1"
+                        dir="ltr"
+                      >
+                        <Phone className="h-3 w-3 flex-shrink-0" />
+                        {member.phone}
+                      </p>
+                      <WhatsAppLink phone={member.phone} />
+                    </div>
                   </div>
 
                   {/* Payment badge */}

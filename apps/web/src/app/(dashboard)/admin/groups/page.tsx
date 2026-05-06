@@ -4,7 +4,8 @@ import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
-import { AlertCircle, Plus, Users, X, Edit2, Trash2, Search, MessageCircle, Phone } from 'lucide-react';
+import { AlertCircle, Plus, Users, X, Edit2, Trash2, Search } from 'lucide-react';
+import { WhatsAppLink } from '@/components/ui/WhatsAppLink';
 
 interface AdminGroup {
   id: string;
@@ -32,39 +33,6 @@ interface CreateGroupForm {
 
 type FilterStatus = 'all' | 'with-manager' | 'without-manager';
 
-function formatPhoneForWhatsApp(phone: string): string {
-  // Remove leading 0, prepend 972
-  const cleaned = phone.replace(/\D/g, '');
-  if (cleaned.startsWith('0')) return `972${cleaned.slice(1)}`;
-  if (cleaned.startsWith('972')) return cleaned;
-  return `972${cleaned}`;
-}
-
-function WhatsAppLink({ phone, name }: { phone: string; name?: string }) {
-  const waNumber = formatPhoneForWhatsApp(phone);
-  return (
-    <div className="flex items-center gap-2">
-      <span className="text-body-md">{name || phone}</span>
-      <a
-        href={`https://wa.me/${waNumber}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-flex items-center gap-1 text-success hover:text-success/80 transition-colors"
-        title={`WhatsApp ${phone}`}
-      >
-        <MessageCircle className="h-4 w-4" />
-      </a>
-      <a
-        href={`tel:${phone}`}
-        className="inline-flex items-center text-primary hover:text-primary/80 transition-colors"
-        title={`חייג ${phone}`}
-        dir="ltr"
-      >
-        <Phone className="h-3.5 w-3.5" />
-      </a>
-    </div>
-  );
-}
 
 export default function AdminGroupsPage() {
   const { user } = useAuthStore();
@@ -361,21 +329,7 @@ export default function AdminGroupsPage() {
                     </td>
                     <td className="px-6 py-4">
                       {g.managerPhone ? (
-                        <div className="flex items-center gap-2">
-                          <span className="text-body-sm text-on-surface-variant" dir="ltr">
-                            {g.managerPhone}
-                          </span>
-                          <a
-                            href={`https://wa.me/${formatPhoneForWhatsApp(g.managerPhone)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-success bg-success/10 hover:bg-success/20 transition-colors text-label-sm"
-                            title="WhatsApp"
-                          >
-                            <MessageCircle className="h-3.5 w-3.5" />
-                            WhatsApp
-                          </a>
-                        </div>
+                        <WhatsAppLink phone={g.managerPhone} name={g.managerPhone} />
                       ) : (
                         <span className="text-on-surface-variant text-body-sm">—</span>
                       )}
