@@ -232,10 +232,10 @@ export class PublicLandingController {
   @Public()
   @Throttle({ default: { limit: 30, ttl: 60000 } })
   @HttpCode(200)
-  @ApiOperation({ summary: 'Track referral link click' })
+  @ApiOperation({ summary: 'Track referral link click — מונה ייחודי ללא כפילויות' })
   async trackReferralClick(
     @Param('slug') slug: string,
-    @Body() body: { code: string },
+    @Body() body: { code: string; userId?: string },
     @Req() req: Request,
   ) {
     const landing = await this.landingService.getPublicPage(slug);
@@ -247,6 +247,7 @@ export class PublicLandingController {
       body.code,
       ip,
       userAgent,
+      body.userId,
     );
     return { data: result };
   }

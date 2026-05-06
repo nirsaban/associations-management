@@ -39,12 +39,38 @@ export class ReferralsService {
     code: string,
     ip?: string,
     userAgent?: string,
+    clickingUserId?: string,
   ) {
     const referral = await this.prisma.referral.findFirst({
       where: { organizationId, code, isActive: true },
     });
 
     if (!referral) return { success: false };
+
+    // Skip: authenticated owner refreshing their own link
+    if (clickingUserId && clickingUserId === referral.userId) {
+      return { success: true };
+    }
+
+    // Skip: same anonymous IP already clicked this referral today
+    if (!clickingUserId && ip) {
+      const dayStart = new Date();
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date();
+      dayEnd.setHours(23, 59, 59, 999);
+
+      const existing = await this.prisma.referralClick.findFirst({
+        where: {
+          referralId: referral.id,
+          ip,
+          createdAt: { gte: dayStart, lte: dayEnd },
+        },
+      });
+
+      if (existing) {
+        return { success: true };
+      }
+    }
 
     await this.prisma.referralClick.create({
       data: { referralId: referral.id, ip, userAgent },

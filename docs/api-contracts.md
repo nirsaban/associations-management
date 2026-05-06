@@ -1080,3 +1080,34 @@ Response:
 Notes: No revenue or workload data — those are manager-only. Any group member (MEMBER or MANAGER role) can access this.
 Errors: 401, 403 (אינך חבר בקבוצה), 404 (קבוצה לא נמצאה)
 Errors: 401
+
+---
+
+## Referrals Module
+
+### Referrals — POST /public/landing/:slug/referral-click
+Method: POST
+Path: /api/v1/public/landing/:slug/referral-click
+Auth: Public (optional Bearer token for authenticated users)
+Request: `{ code: string, userId?: string }`
+Response (HTTP 200): `{ data: { success: boolean } }`
+Notes:
+  - If authenticated and userId matches the referral owner → skip (do not count own clicks)
+  - If anonymous, deduplicate by (referralId, ip, calendar day) — one click per IP per day per referral
+  - Always returns success: true when the referral code exists (even if click is skipped)
+  - Returns success: false only when the referral code does not exist
+Errors: 200 (no error states — silent skip on dedupe)
+
+### Referrals — GET /referrals/me
+Method: GET
+Path: /api/v1/referrals/me
+Auth: JwtAuthGuard
+Response: `{ data: { code, isActive, clickCount, paymentCount, totalAmount, landingSlug } }`
+Errors: 401
+
+### Referrals — GET /referrals/admin/stats
+Method: GET
+Path: /api/v1/referrals/admin/stats
+Auth: JwtAuthGuard + RolesGuard (ADMIN)
+Response: `{ data: [{ userId, fullName, phone, code, isActive, clickCount, paymentCount, totalAmount }] }`
+Errors: 401, 403
