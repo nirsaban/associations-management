@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Users, Home, CreditCard, AlertCircle, Bell, Upload, Send, Trash2, X, ChevronDown, CheckCircle2, XCircle } from 'lucide-react';
+import { Users, Home, CreditCard, AlertCircle, Bell, Upload, Send, Trash2, X, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
@@ -35,15 +35,29 @@ interface AdminDashboardData {
   };
 }
 
-interface GroupWeeklyStatus {
+interface WeeklyStatusNoDistributor {
   groupId: string;
   groupName: string;
+  managerId?: string | null;
   managerName?: string | null;
-  totalFamilies: number;
-  completedOrders: number;
-  pendingOrders: number;
-  distributorName?: string;
-  hasDistributor: boolean;
+  lastActivity: string;
+}
+
+interface WeeklyStatusIncompleteOrders {
+  data: Array<{
+    groupId: string;
+    groupName: string;
+    managerId?: string | null;
+    managerName?: string | null;
+    orderStatus?: string;
+    completedOrders: number;
+    totalOrders: number;
+    lastUpdate: string;
+  }>;
+  meta: {
+    totalGroups: number;
+    incompleteGroups: number;
+  };
 }
 
 type AlertAudience = 'ALL_USERS' | 'GROUP_MANAGERS' | 'UNPAID_THIS_MONTH' | 'CURRENT_DISTRIBUTORS';
@@ -86,24 +100,25 @@ export default function AdminDashboardPage() {
     enabled: !!user,
   });
 
-  // Weekly status per group
-  const { data: weeklyGroups } = useQuery<GroupWeeklyStatus[]>({
-    queryKey: ['admin', 'weekly-status'],
+  // Weekly status — no distributor
+  const { data: noDistributorData } = useQuery<{ data: WeeklyStatusNoDistributor[] }>({
+    queryKey: ['admin', 'weekly-status', 'no-distributor'],
     queryFn: async () => {
-      const response = await api.get<{ data: GroupWeeklyStatus[] }>('/admin/weekly-status');
-      return response.data.data;
+      const response = await api.get('/admin/weekly-status/no-distributor');
+      return response.data;
     },
     enabled: !!user,
   });
-  const [openGroupIds, setOpenGroupIds] = useState<Set<string>>(new Set());
-  const toggleGroup = (groupId: string) => {
-    setOpenGroupIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(groupId)) next.delete(groupId);
-      else next.add(groupId);
-      return next;
-    });
-  };
+
+  // Weekly status — incomplete orders
+  const { data: incompleteOrdersData } = useQuery<WeeklyStatusIncompleteOrders>({
+    queryKey: ['admin', 'weekly-status', 'incomplete-orders'],
+    queryFn: async () => {
+      const response = await api.get('/admin/weekly-status/incomplete-orders');
+      return response.data;
+    },
+    enabled: !!user,
+  });
 
   // Alerts / Publish Messages
   const [showAlertForm, setShowAlertForm] = useState(false);
@@ -145,10 +160,43 @@ export default function AdminDashboardPage() {
     },
   });
 
+  const alertManagersMutation = useMutation({
+    mutationFn: async (payload: { groupIds: string[]; title: string; body: string }) => {
+      const { data } = await api.post('/admin/weekly-status/alert-managers', payload);
+      return data;
+    },
+    onSuccess: () => {
+      showToast('ההתראה נשלחה למנהלים', 'success');
+    },
+    onError: () => {
+      showToast('שגיאה בשליחת ההתראה', 'error');
+    },
+  });
+
   function handlePublish(e: React.FormEvent) {
     e.preventDefault();
     if (!alertForm.title.trim() || !alertForm.body.trim()) return;
     createAlertMutation.mutate({ title: alertForm.title.trim(), body: alertForm.body.trim(), audience: alertForm.audience });
+  }
+
+  function handleAlertNoDistributorManagers() {
+    const groupIds = (noDistributorData?.data ?? []).map((g) => g.groupId);
+    if (groupIds.length === 0) return;
+    alertManagersMutation.mutate({
+      groupIds,
+      title: 'תזכורת: שיבוץ מחלק שבועי',
+      body: 'טרם שובץ מחלק שבועי לקבוצתך לשבוע הנוכחי. אנא שבצו מחלק בהקדם.',
+    });
+  }
+
+  function handleAlertIncompleteOrdersManagers() {
+    const groupIds = (incompleteOrdersData?.data ?? []).map((g) => g.groupId);
+    if (groupIds.length === 0) return;
+    alertManagersMutation.mutate({
+      groupIds,
+      title: 'תזכורת: השלמת הזמנות שבועיות',
+      body: 'ישנן הזמנות שבועיות שטרם הושלמו בקבוצתך. אנא השלימו את ההזמנות.',
+    });
   }
 
   if (isLoading) {
@@ -175,6 +223,10 @@ export default function AdminDashboardPage() {
   }
 
   const revenueTrendColor = (data?.revenue.trend ?? 0) >= 0 ? 'text-success' : 'text-error';
+  const noDistributorCount = noDistributorData?.data.length ?? 0;
+  const incompleteCount = incompleteOrdersData?.meta.incompleteGroups ?? 0;
+  const totalGroupsForOrders = incompleteOrdersData?.meta.totalGroups ?? 0;
+  const completedGroupsCount = totalGroupsForOrders - incompleteCount;
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
@@ -187,10 +239,10 @@ export default function AdminDashboardPage() {
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {/* Total Users */}
-        <div className="card-elevated">
+        <Link href="/admin/users" className="card-elevated hover:shadow-lg transition-shadow">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-label-md text-on-surface-variant mb-1">סה"כ משתמשים</p>
+              <p className="text-label-md text-on-surface-variant mb-1">סה&quot;כ משתמשים</p>
               <p className="text-headline-lg font-bold text-primary">
                 {data?.stats.totalUsers || 0}
               </p>
@@ -199,10 +251,10 @@ export default function AdminDashboardPage() {
               <Users className="h-6 w-6 text-primary" />
             </div>
           </div>
-        </div>
+        </Link>
 
         {/* Total Groups */}
-        <div className="card-elevated">
+        <Link href="/admin/groups" className="card-elevated hover:shadow-lg transition-shadow">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-label-md text-on-surface-variant mb-1">קבוצות</p>
@@ -214,10 +266,10 @@ export default function AdminDashboardPage() {
               <Users className="h-6 w-6 text-secondary" />
             </div>
           </div>
-        </div>
+        </Link>
 
         {/* Total Families */}
-        <div className="card-elevated">
+        <Link href="/admin/families" className="card-elevated hover:shadow-lg transition-shadow">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-label-md text-on-surface-variant mb-1">משפחות</p>
@@ -229,7 +281,7 @@ export default function AdminDashboardPage() {
               <Home className="h-6 w-6 text-tertiary" />
             </div>
           </div>
-        </div>
+        </Link>
 
         {/* Unpaid Users */}
         <Link href="/admin/payments" className="card-elevated hover:shadow-lg transition-shadow">
@@ -273,6 +325,82 @@ export default function AdminDashboardPage() {
               {(data?.revenue.trend ?? 0) >= 0 ? '+' : ''}
               {data?.revenue.trend.toFixed(1)}%
             </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Weekly Status Summary Cards */}
+      <div className="card-elevated">
+        <h2 className="text-title-lg font-medium mb-4 flex items-center gap-3">
+          <AlertTriangle className="h-6 w-6 text-warning" />
+          סטטוס שבועי
+        </h2>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Card 1: No distributor */}
+          <div className={`rounded-xl border p-4 flex flex-col gap-3 ${
+            noDistributorCount > 0 ? 'border-error/30 bg-error-container/20' : 'border-success/30 bg-success-container/20'
+          }`}>
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-label-md text-on-surface-variant mb-1">ללא מחלק שבועי</p>
+                <p className={`text-headline-md font-bold ${noDistributorCount > 0 ? 'text-error' : 'text-success'}`}>
+                  {noDistributorCount}
+                  <span className="text-body-sm text-on-surface-variant font-normal">
+                    {' '}/ {data?.weeklyStatus.totalGroups || 0} קבוצות
+                  </span>
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Link
+                href="/admin/weekly-status/no-distributor"
+                className="btn-outline btn-sm flex-1 text-center"
+              >
+                צפייה ברשימה
+              </Link>
+              <button
+                type="button"
+                onClick={handleAlertNoDistributorManagers}
+                disabled={noDistributorCount === 0 || alertManagersMutation.isPending}
+                className="btn-primary btn-sm flex items-center gap-1 disabled:opacity-50"
+              >
+                <Bell className="h-4 w-4" />
+                התראה למנהלים
+              </button>
+            </div>
+          </div>
+
+          {/* Card 2: Incomplete orders */}
+          <div className={`rounded-xl border p-4 flex flex-col gap-3 ${
+            incompleteCount > 0 ? 'border-warning/30 bg-warning/10' : 'border-success/30 bg-success-container/20'
+          }`}>
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-label-md text-on-surface-variant mb-1">סטטוס הזמנות</p>
+                <p className={`text-headline-md font-bold ${incompleteCount > 0 ? 'text-warning' : 'text-success'}`}>
+                  הושלמו {completedGroupsCount} מתוך {totalGroupsForOrders}
+                </p>
+                <p className="text-body-sm text-on-surface-variant">קבוצות עם הזמנות שלא הושלמו</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Link
+                href="/admin/weekly-status/incomplete-orders"
+                className="btn-outline btn-sm flex-1 text-center"
+              >
+                צפייה ברשימה
+              </Link>
+              <button
+                type="button"
+                onClick={handleAlertIncompleteOrdersManagers}
+                disabled={incompleteCount === 0 || alertManagersMutation.isPending}
+                className="btn-primary btn-sm flex items-center gap-1 disabled:opacity-50"
+              >
+                <Bell className="h-4 w-4" />
+                התראה למנהלים
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -412,95 +540,6 @@ export default function AdminDashboardPage() {
             <p className="text-body-sm">אין הודעות שפורסמו</p>
           </div>
         )}
-      </div>
-
-      {/* Weekly Status - Accordion per group */}
-      <div className="card-elevated">
-        <h2 className="text-title-lg font-medium mb-4">סטטוס שבועי</h2>
-
-        {/* Summary row */}
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className={`p-3 rounded-lg text-center ${
-            (data?.weeklyStatus.totalGroups ?? 0) - (data?.weeklyStatus.groupsWithDistributor ?? 0) > 0
-              ? 'bg-error-container/30'
-              : 'bg-success-container/30'
-          }`}>
-            <p className="text-label-sm text-on-surface-variant">ללא מחלק שבועי</p>
-            <p className="text-title-lg font-bold">
-              {(data?.weeklyStatus.totalGroups ?? 0) - (data?.weeklyStatus.groupsWithDistributor ?? 0)}
-              <span className="text-body-sm text-on-surface-variant font-normal"> / {data?.weeklyStatus.totalGroups || 0} קבוצות</span>
-            </p>
-          </div>
-          <div className={`p-3 rounded-lg text-center ${
-            (data?.weeklyStatus.totalOrders ?? 0) - (data?.weeklyStatus.completedOrders ?? 0) > 0
-              ? 'bg-error-container/30'
-              : 'bg-success-container/30'
-          }`}>
-            <p className="text-label-sm text-on-surface-variant">הזמנות שלא הושלמו</p>
-            <p className="text-title-lg font-bold">
-              {(data?.weeklyStatus.totalOrders ?? 0) - (data?.weeklyStatus.completedOrders ?? 0)}
-              <span className="text-body-sm text-on-surface-variant font-normal"> / {data?.weeklyStatus.totalOrders || 0} הזמנות</span>
-            </p>
-          </div>
-        </div>
-
-        {/* Per-group accordion */}
-        <div className="divide-y divide-outline-variant rounded-lg border border-outline-variant overflow-hidden">
-          {weeklyGroups?.map((group) => {
-            const isOpen = openGroupIds.has(group.groupId);
-            const ordersComplete = group.totalFamilies > 0 && group.completedOrders >= group.totalFamilies;
-            return (
-              <div key={group.groupId}>
-                <button
-                  onClick={() => toggleGroup(group.groupId)}
-                  className="w-full flex items-center justify-between p-4 hover:bg-surface-container-high transition-colors text-right"
-                >
-                  <div className="flex items-center gap-3">
-                    <ChevronDown className={`h-4 w-4 text-on-surface-variant transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-                    <div className="flex items-center gap-2">
-                      {ordersComplete ? (
-                        <CheckCircle2 className="h-4 w-4 text-success" />
-                      ) : (
-                        <XCircle className="h-4 w-4 text-error" />
-                      )}
-                      {group.hasDistributor ? (
-                        <CheckCircle2 className="h-4 w-4 text-success" />
-                      ) : (
-                        <XCircle className="h-4 w-4 text-error" />
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex-1 text-right mr-2">
-                    <p className="text-title-sm font-medium">{group.groupName}</p>
-                    <p className="text-body-sm text-on-surface-variant">{group.managerName || 'ללא מנהל'}</p>
-                  </div>
-                </button>
-                {isOpen && (
-                  <div className="px-4 pb-4 bg-surface-container-low">
-                    <div className="grid grid-cols-2 gap-3 text-body-sm">
-                      <div className="flex items-center gap-2">
-                        {ordersComplete ? <CheckCircle2 className="h-4 w-4 text-success" /> : <XCircle className="h-4 w-4 text-error" />}
-                        <span>הזמנות: {group.completedOrders} / {group.totalFamilies}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {group.hasDistributor ? <CheckCircle2 className="h-4 w-4 text-success" /> : <XCircle className="h-4 w-4 text-error" />}
-                        <span>מחלק: {group.distributorName || 'לא שובץ'}</span>
-                      </div>
-                      {group.pendingOrders > 0 && (
-                        <div className="col-span-2 text-warning text-label-sm">
-                          {group.pendingOrders} הזמנות ממתינות
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-          {(!weeklyGroups || weeklyGroups.length === 0) && (
-            <div className="p-4 text-center text-body-sm text-on-surface-variant">אין קבוצות</div>
-          )}
-        </div>
       </div>
 
       {/* Groups Overview */}
