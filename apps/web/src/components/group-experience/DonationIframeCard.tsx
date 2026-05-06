@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Building2, CheckCircle, AlertCircle, ExternalLink, CreditCard } from 'lucide-react';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
@@ -22,6 +22,8 @@ export function DonationIframeCard({
   isPaid,
   paidAt,
 }: DonationIframeCardProps) {
+  const [iframeError, setIframeError] = useState(false);
+
   return (
     <div className="card-elevated space-y-4">
       {/* Org header */}
@@ -74,8 +76,28 @@ export function DonationIframeCard({
         )}
       </div>
 
-      {/* Payment action */}
-      {paymentLink ? (
+      {/* Payment iframe with fallback button */}
+      {paymentLink && !iframeError ? (
+        <>
+          <iframe
+            src={paymentLink}
+            title="טופס תרומה"
+            className="w-full rounded-lg border border-outline/30 h-[500px] sm:h-[600px]"
+            loading="lazy"
+            allow="payment"
+            onError={() => setIframeError(true)}
+          />
+          <a
+            href={paymentLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 text-primary text-body-sm hover:underline"
+          >
+            <ExternalLink className="h-3.5 w-3.5" />
+            פתיחה בחלון חדש
+          </a>
+        </>
+      ) : paymentLink ? (
         <a
           href={paymentLink}
           target="_blank"
