@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import { AlertCircle, Plus, Users, X, Edit2, Trash2, Search } from 'lucide-react';
@@ -16,6 +17,7 @@ interface AdminGroup {
   managerPhone?: string;
   memberCount?: number;
   familyCount?: number;
+  familyNames?: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -37,6 +39,7 @@ type FilterStatus = 'all' | 'with-manager' | 'without-manager';
 export default function AdminGroupsPage() {
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingGroup, setEditingGroup] = useState<AdminGroup | null>(null);
@@ -247,7 +250,11 @@ export default function AdminGroupsPage() {
             </div>
           ) : (
             filteredGroups.map((g) => (
-              <div key={g.id} className="rounded-lg border border-outline/30 p-4 space-y-3">
+              <div
+                key={g.id}
+                className="rounded-lg border border-outline/30 p-4 space-y-3 cursor-pointer hover:bg-surface-container/40 transition-colors"
+                onClick={() => router.push(`/admin/groups/${g.id}`)}
+              >
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
                     <p className="text-body-md font-medium">{g.name}</p>
@@ -259,13 +266,13 @@ export default function AdminGroupsPage() {
                   </div>
                   <div className="flex gap-1">
                     <button
-                      onClick={() => openEditModal(g)}
+                      onClick={(e) => { e.stopPropagation(); openEditModal(g); }}
                       className="p-2 hover:bg-surface-container rounded-md text-secondary min-h-[44px] min-w-[44px] flex items-center justify-center"
                     >
                       <Edit2 className="h-4 w-4" />
                     </button>
                     <button
-                      onClick={() => setDeletingGroup(g)}
+                      onClick={(e) => { e.stopPropagation(); setDeletingGroup(g); }}
                       className="p-2 hover:bg-surface-container rounded-md text-error min-h-[44px] min-w-[44px] flex items-center justify-center"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -279,6 +286,18 @@ export default function AdminGroupsPage() {
                   </span>
                   <span>{g.familyCount ?? 0} משפחות</span>
                 </div>
+                {g.familyNames && g.familyNames.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {g.familyNames.slice(0, 5).map((name) => (
+                      <span key={name} className="text-xs text-on-surface-variant truncate max-w-[120px]">
+                        {name}
+                      </span>
+                    ))}
+                    {g.familyNames.length > 5 && (
+                      <span className="text-xs text-on-surface-variant">+{g.familyNames.length - 5}</span>
+                    )}
+                  </div>
+                )}
               </div>
             ))
           )}
@@ -320,7 +339,11 @@ export default function AdminGroupsPage() {
                 </tr>
               ) : (
                 filteredGroups.map((g) => (
-                  <tr key={g.id} className="hover:bg-surface-container/50">
+                  <tr
+                    key={g.id}
+                    className="hover:bg-surface-container/50 cursor-pointer"
+                    onClick={() => router.push(`/admin/groups/${g.id}`)}
+                  >
                     <td className="px-6 py-4 text-body-md font-medium">{g.name}</td>
                     <td className="px-6 py-4 text-body-md">
                       {g.managerName || (
@@ -340,18 +363,32 @@ export default function AdminGroupsPage() {
                         {g.memberCount ?? 0}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-body-md">{g.familyCount ?? 0}</td>
+                    <td className="px-6 py-4">
+                      <p className="text-body-md">{g.familyCount ?? 0}</p>
+                      {g.familyNames && g.familyNames.length > 0 && (
+                        <div className="mt-1 space-y-0.5">
+                          {g.familyNames.slice(0, 4).map((name) => (
+                            <p key={name} className="text-xs text-on-surface-variant truncate max-w-[160px]">
+                              {name}
+                            </p>
+                          ))}
+                          {g.familyNames.length > 4 && (
+                            <p className="text-xs text-on-surface-variant">+{g.familyNames.length - 4} נוספות</p>
+                          )}
+                        </div>
+                      )}
+                    </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-2">
                         <button
-                          onClick={() => openEditModal(g)}
+                          onClick={(e) => { e.stopPropagation(); openEditModal(g); }}
                           className="p-2 hover:bg-surface-container rounded-md transition-colors text-secondary"
                           title="ערוך"
                         >
                           <Edit2 className="h-4 w-4" />
                         </button>
                         <button
-                          onClick={() => setDeletingGroup(g)}
+                          onClick={(e) => { e.stopPropagation(); setDeletingGroup(g); }}
                           className="p-2 hover:bg-surface-container rounded-md transition-colors text-error"
                           title="מחק"
                         >

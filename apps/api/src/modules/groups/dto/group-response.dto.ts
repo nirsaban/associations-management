@@ -25,6 +25,9 @@ export class GroupResponseDto {
   @ApiProperty({ description: 'מספר משפחות', required: false })
   familyCount?: number;
 
+  @ApiProperty({ description: 'שמות המשפחות בקבוצה', required: false, type: [String] })
+  familyNames?: string[];
+
   @ApiProperty({ description: 'תאריך יצירה' })
   createdAt!: Date;
 

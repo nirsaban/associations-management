@@ -15,6 +15,7 @@ type GroupWithCounts = Prisma.GroupGetPayload<{
   include: {
     _count: { select: { memberships: true; families: true } };
     manager: { select: { fullName: true; phone: true } };
+    families: { select: { familyName: true } };
   };
 }>;
 
@@ -47,6 +48,7 @@ export class GroupsService {
         include: {
           _count: { select: { memberships: true, families: true } },
           manager: { select: { fullName: true, phone: true } },
+          families: { where: { deletedAt: null }, select: { familyName: true }, orderBy: { familyName: 'asc' } },
         },
       });
 
@@ -84,6 +86,7 @@ export class GroupsService {
         include: {
           _count: { select: { memberships: true, families: true } },
           manager: { select: { fullName: true, phone: true } },
+          families: { where: { deletedAt: null }, select: { familyName: true }, orderBy: { familyName: 'asc' } },
         },
       }),
       this.prisma.group.count({ where: { organizationId, deletedAt: null } }),
@@ -103,6 +106,7 @@ export class GroupsService {
       include: {
         _count: { select: { memberships: true, families: true } },
         manager: { select: { fullName: true, phone: true } },
+        families: { where: { deletedAt: null }, select: { familyName: true }, orderBy: { familyName: 'asc' } },
       },
     });
 
@@ -148,6 +152,7 @@ export class GroupsService {
         include: {
           _count: { select: { memberships: true, families: true } },
           manager: { select: { fullName: true, phone: true } },
+          families: { where: { deletedAt: null }, select: { familyName: true }, orderBy: { familyName: 'asc' } },
         },
       });
 
@@ -232,6 +237,7 @@ export class GroupsService {
         include: {
           _count: { select: { memberships: true, families: true } },
           manager: { select: { fullName: true, phone: true } },
+          families: { where: { deletedAt: null }, select: { familyName: true }, orderBy: { familyName: 'asc' } },
         },
       });
 
@@ -350,6 +356,7 @@ export class GroupsService {
       managerPhone: g.manager?.phone ?? undefined,
       memberCount: g._count?.memberships,
       familyCount: g._count?.families,
+      familyNames: g.families?.map((f) => f.familyName) ?? [],
       createdAt: g.createdAt,
       updatedAt: g.updatedAt,
     };
