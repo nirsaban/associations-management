@@ -14,6 +14,7 @@ import {
   CheckCircle,
   Building2,
   ChevronRight,
+  ExternalLink,
 } from 'lucide-react';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
@@ -191,13 +192,15 @@ function DonationIframeSection({ data }: { data: DonationInfoData }) {
       </div>
 
       {data.paymentLink ? (
-        <iframe
-          src={data.paymentLink}
-          title="טופס תרומה"
-          sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-          className="w-full rounded-lg border border-outline/30 h-[500px] sm:h-[600px]"
-          loading="lazy"
-        />
+        <a
+          href={data.paymentLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-3 w-full py-4 px-6 rounded-2xl bg-primary text-on-primary text-title-md font-medium hover:opacity-90 active:scale-[0.98] transition-all shadow-md"
+        >
+          מעבר לתשלום
+          <ExternalLink className="h-4 w-4 opacity-70" />
+        </a>
       ) : (
         <div className="flex items-center justify-center h-32 rounded-lg bg-surface-container text-body-md text-on-surface-variant">
           קישור לתשלום אינו זמין כרגע
