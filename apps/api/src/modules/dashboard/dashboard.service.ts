@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@common/prisma/prisma.service';
+import { getCurrentWeekKey } from '@common/utils/week';
 
 interface DashboardData {
   role: string;
@@ -202,11 +203,6 @@ export class DashboardService {
   }
 
   private getCurrentWeekKey(): string {
-    const now = new Date();
-    const startOfYear = new Date(now.getFullYear(), 0, 1);
-    const weekNum = Math.ceil(
-      ((now.getTime() - startOfYear.getTime()) / 86400000 + startOfYear.getDay() + 1) / 7
-    );
-    return `${now.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
+    return getCurrentWeekKey();
   }
 }

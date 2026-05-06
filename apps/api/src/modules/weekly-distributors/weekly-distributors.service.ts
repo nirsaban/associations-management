@@ -1,5 +1,6 @@
 import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '@common/prisma/prisma.service';
+import { getCurrentWeekKey } from '@common/utils/week';
 import { AssignDistributorDto } from './dto/assign-distributor.dto';
 import { DistributorResponseDto } from './dto/distributor-response.dto';
 
@@ -200,12 +201,7 @@ export class WeeklyDistributorsService {
   }
 
   private getCurrentWeekKey(): string {
-    const now = new Date();
-    const startOfYear = new Date(now.getFullYear(), 0, 1);
-    const weekNum = Math.ceil(
-      ((now.getTime() - startOfYear.getTime()) / 86400000 + startOfYear.getDay() + 1) / 7
-    );
-    return `${now.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
+    return getCurrentWeekKey();
   }
 
   private mapToDto(distributor: Record<string, unknown>): DistributorResponseDto {

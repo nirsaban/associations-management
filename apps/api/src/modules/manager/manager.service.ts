@@ -6,6 +6,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '@common/prisma/prisma.service';
+import { getCurrentWeekKey, getCurrentMonthKey, dateToWeekKey, weekKeyToMondayIso, weekKeyNWeeksAgo } from '@common/utils/week';
 import { Prisma, OrderStatus } from '@prisma/client';
 import { GroupDetailsDto, MemberWithStatusDto, WeeklyTaskStatusDto } from './dto';
 import type { UpdateFamilyDto } from './dto';
@@ -1384,49 +1385,22 @@ export class ManagerService {
   // ─── Private helpers ─────────────────────────────────────────────────────────
 
   private getCurrentMonthKey(): string {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    return getCurrentMonthKey();
   }
 
   getCurrentWeekKey(): string {
-    const now = new Date();
-    return this.dateToWeekKey(now);
+    return getCurrentWeekKey();
   }
 
   private dateToWeekKey(date: Date): string {
-    // ISO 8601 week: Thursday determines the year.
-    // We use a simple approach matching the existing style in the codebase.
-    const startOfYear = new Date(date.getFullYear(), 0, 1);
-    const weekNum = Math.ceil(
-      ((date.getTime() - startOfYear.getTime()) / 86400000 + startOfYear.getDay() + 1) / 7,
-    );
-    return `${date.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
+    return dateToWeekKey(date);
   }
 
   private weekKeyToMondayIso(weekKey: string): string {
-    // Parse "YYYY-WNN" and return the ISO string for the Monday of that week.
-    const match = weekKey.match(/^(\d{4})-W(\d{2})$/);
-    if (!match) {
-      return weekKey; // Fallback: return as-is if format unknown
-    }
-    const year = parseInt(match[1], 10);
-    const week = parseInt(match[2], 10);
-
-    // Jan 1 of year
-    const jan1 = new Date(year, 0, 1);
-    // Day of week for Jan 1 (0=Sun, 1=Mon, ...)
-    const jan1Day = jan1.getDay();
-    // Days to the first Monday: if jan1 is Mon(1) -> 0 days, Tue(2) -> 6 days, etc.
-    const daysToFirstMonday = jan1Day === 0 ? 1 : jan1Day === 1 ? 0 : 8 - jan1Day;
-    const firstMonday = new Date(year, 0, 1 + daysToFirstMonday);
-    // Add (week - 1) * 7 days
-    const monday = new Date(firstMonday.getTime() + (week - 1) * 7 * 86400000);
-    return monday.toISOString().split('T')[0];
+    return weekKeyToMondayIso(weekKey);
   }
 
   private weekKeyNWeeksAgo(n: number): string {
-    const now = new Date();
-    const past = new Date(now.getTime() - n * 7 * 86400000);
-    return this.dateToWeekKey(past);
+    return weekKeyNWeeksAgo(n);
   }
 }
