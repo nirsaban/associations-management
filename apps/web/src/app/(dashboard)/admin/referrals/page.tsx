@@ -87,7 +87,7 @@ export default function AdminReferralsPage() {
                 ))
               ) : stats && stats.length > 0 ? (
                 stats
-                  .sort((a, b) => b.totalAmount - a.totalAmount)
+                  .sort((a, b) => b.clickCount - a.clickCount)
                   .map((r) => (
                     <tr key={r.userId} className="hover:bg-surface-container/50 transition-colors">
                       <td className="px-4 py-3 text-on-surface font-medium">{r.fullName}</td>

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Users, Home, CreditCard, AlertCircle, Bell, Upload, Send, Trash2, X, AlertTriangle, BookOpen, Save } from 'lucide-react';
+import { Users, Home, CreditCard, AlertCircle, Bell, Upload, Send, Trash2, X, AlertTriangle, BookOpen, Save, Truck } from 'lucide-react';
 import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
@@ -478,7 +478,7 @@ export default function AdminDashboardPage() {
           סטטוס שבועי
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {/* Card 1: No distributor */}
           <div className={`rounded-xl border p-4 flex flex-col gap-3 ${
             noDistributorCount > 0 ? 'border-error/30 bg-error-container/20' : 'border-success/30 bg-success-container/20'
@@ -543,6 +543,26 @@ export default function AdminDashboardPage() {
                 התראה למנהלים
               </button>
             </div>
+          </div>
+
+          {/* Card 3: Current distributors */}
+          <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 flex flex-col gap-3">
+            <div>
+              <p className="text-label-md text-on-surface-variant mb-1">מחלקים שבועיים נוכחיים</p>
+              <p className="text-headline-md font-bold text-primary flex items-center gap-2">
+                <Truck className="h-5 w-5" />
+                {data?.weeklyStatus.groupsWithDistributor || 0}
+                <span className="text-body-sm text-on-surface-variant font-normal">
+                  / {data?.weeklyStatus.totalGroups || 0} קבוצות
+                </span>
+              </p>
+            </div>
+            <Link
+              href="/admin/weekly-status/current-distributors"
+              className="btn-primary btn-sm text-center"
+            >
+              צפייה ברשימה
+            </Link>
           </div>
         </div>
       </div>

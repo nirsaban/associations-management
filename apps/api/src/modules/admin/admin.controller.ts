@@ -201,6 +201,19 @@ export class AdminController {
     return this.adminService.getWeeklyStatusNoDistributor(user.organizationId, weekKey);
   }
 
+  @Get('weekly-status/current-distributors')
+  @ApiOperation({
+    summary: 'Get current weekly distributors',
+    description: 'קבלת רשימת מחלקים שבועיים נוכחיים לפי קבוצה',
+  })
+  @ApiQuery({ name: 'weekKey', required: false, type: String })
+  async getCurrentWeeklyDistributors(
+    @CurrentUser() user: ICurrentUser,
+    @Query('weekKey') weekKey?: string,
+  ) {
+    return this.adminService.getCurrentWeeklyDistributors(user.organizationId, weekKey);
+  }
+
   @Get('weekly-status/incomplete-orders')
   @ApiOperation({
     summary: 'Get groups with incomplete weekly orders',

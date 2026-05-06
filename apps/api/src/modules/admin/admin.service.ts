@@ -453,6 +453,31 @@ export class AdminService {
     };
   }
 
+  async getCurrentWeeklyDistributors(
+    organizationId: string,
+    weekKey?: string,
+  ): Promise<{ data: Array<{ groupId: string; groupName: string; distributorId: string; distributorName: string; assignedAt: string }> }> {
+    const week = weekKey ?? this.getCurrentWeekKey();
+    const assignments = await this.prisma.weeklyDistributorAssignment.findMany({
+      where: { organizationId, weekKey: week },
+      include: {
+        group: { select: { id: true, name: true } },
+        assignedUser: { select: { id: true, fullName: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return {
+      data: assignments.map((a) => ({
+        groupId: a.group.id,
+        groupName: a.group.name,
+        distributorId: a.assignedUser.id,
+        distributorName: a.assignedUser.fullName || 'לא ידוע',
+        assignedAt: a.createdAt.toISOString(),
+      })),
+    };
+  }
+
   async getWeeklyStatusIncompleteOrders(
     organizationId: string,
     weekKey?: string,
