@@ -1155,3 +1155,85 @@ Path: /api/v1/referrals/admin/stats
 Auth: JwtAuthGuard + RolesGuard (ADMIN)
 Response: `{ data: [{ userId, fullName, phone, code, isActive, clickCount, paymentCount, totalAmount }] }`
 Errors: 401, 403
+
+---
+
+### Admin — Weekly Status: No Distributor
+Method: GET
+Path: /api/v1/admin/weekly-status/no-distributor
+Auth: JwtAuthGuard + RolesGuard (ADMIN)
+Request: query `weekKey` (optional, format YYYY-Wxx)
+Response:
+```json
+{
+  "data": [
+    {
+      "groupId": "string",
+      "groupName": "string",
+      "managerId": "string | null",
+      "managerName": "string | null",
+      "lastActivity": "ISO8601"
+    }
+  ]
+}
+```
+Notes: Returns groups without a WeeklyDistributorAssignment for the current ISO week. Tenant-scoped.
+Errors: 401, 403
+
+---
+
+### Admin — Weekly Status: Incomplete Orders
+Method: GET
+Path: /api/v1/admin/weekly-status/incomplete-orders
+Auth: JwtAuthGuard + RolesGuard (ADMIN)
+Request: query `weekKey` (optional, format YYYY-Wxx)
+Response:
+```json
+{
+  "data": [
+    {
+      "groupId": "string",
+      "groupName": "string",
+      "managerId": "string | null",
+      "managerName": "string | null",
+      "orderStatus": "DRAFT | COMPLETED | undefined",
+      "completedOrders": "number",
+      "totalOrders": "number",
+      "lastUpdate": "ISO8601"
+    }
+  ],
+  "meta": {
+    "totalGroups": "number",
+    "incompleteGroups": "number"
+  }
+}
+```
+Notes: Returns groups where at least one WeeklyOrder for the week is NOT COMPLETED. Tenant-scoped.
+Errors: 401, 403
+
+---
+
+### Admin — Weekly Status: Alert Group Managers
+Method: POST
+Path: /api/v1/admin/weekly-status/alert-managers
+Auth: JwtAuthGuard + RolesGuard (ADMIN)
+Request:
+```json
+{
+  "groupIds": ["string"],
+  "title": "string",
+  "body": "string",
+  "expiresAt": "ISO8601 (optional)"
+}
+```
+Response:
+```json
+{
+  "data": {
+    "alertId": "string",
+    "recipientCount": "number"
+  }
+}
+```
+Notes: Resolves manager user IDs for the given groups (scoped to org), creates an Alert with audience GROUP_MANAGERS, and fan-outs push notifications only to those specific managers. Reuses the existing alerts pipeline via AlertsService.createAlertForUsers.
+Errors: 400, 401, 403
