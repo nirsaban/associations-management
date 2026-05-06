@@ -192,24 +192,16 @@ function DonationIframeSection({ data }: { data: DonationInfoData }) {
       </div>
 
       {data.paymentLink ? (
-        <>
-          <iframe
-            src={data.paymentLink.replace('https://pay.grow.link/', '/payment-proxy/')}
-            title="טופס תרומה"
-            className="w-full rounded-lg border border-outline/30 h-[500px] sm:h-[600px]"
-            loading="lazy"
-            allow="payment"
-          />
-          <a
-            href={data.paymentLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 mt-2 text-primary text-body-sm hover:underline"
-          >
-            <ExternalLink className="h-3.5 w-3.5" />
-            פתיחה בחלון חדש
-          </a>
-        </>
+        <a
+          href={data.paymentLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-3 w-full py-4 px-6 rounded-2xl bg-primary text-on-primary text-title-md font-medium hover:opacity-90 active:scale-[0.98] transition-all shadow-md"
+        >
+          <CreditCard className="h-5 w-5" />
+          מעבר לתשלום
+          <ExternalLink className="h-4 w-4 opacity-70" />
+        </a>
       ) : (
         <div className="flex items-center justify-center h-32 rounded-lg bg-surface-container text-body-md text-on-surface-variant">
           קישור לתשלום אינו זמין כרגע
