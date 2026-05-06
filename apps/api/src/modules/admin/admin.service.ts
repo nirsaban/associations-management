@@ -518,7 +518,7 @@ export class AdminService {
   async getGroupManagerIds(
     organizationId: string,
     groupIds: string[],
-  ): Promise<Array<{ groupId: string; managerId: string | null }>> {
+  ): Promise<string[]> {
     const groups = await this.prisma.group.findMany({
       where: {
         organizationId,
@@ -528,13 +528,19 @@ export class AdminService {
       select: {
         id: true,
         managerUserId: true,
+        memberships: {
+          where: { role: 'MANAGER', status: 'ACTIVE' },
+          select: { userId: true },
+        },
       },
     });
 
-    return groups.map((g) => ({
-      groupId: g.id,
-      managerId: g.managerUserId ?? null,
-    }));
+    const managerIds = new Set<string>();
+    for (const g of groups) {
+      if (g.managerUserId) managerIds.add(g.managerUserId);
+      for (const m of g.memberships) managerIds.add(m.userId);
+    }
+    return Array.from(managerIds);
   }
 
   private getCurrentMonthKey(): string {

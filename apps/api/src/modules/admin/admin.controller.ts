@@ -226,8 +226,7 @@ export class AdminController {
     @Body() dto: AlertGroupManagersDto,
   ): Promise<{ data: { alertId: string; recipientCount: number } }> {
     // Resolve manager user IDs for the given groups, scoped to the org
-    const groups = await this.adminService.getGroupManagerIds(user.organizationId, dto.groupIds);
-    const managerUserIds = groups.flatMap((g) => (g.managerId ? [g.managerId] : []));
+    const managerUserIds = await this.adminService.getGroupManagerIds(user.organizationId, dto.groupIds);
 
     const alert = await this.alertsService.createAlertForUsers(
       user.organizationId,
