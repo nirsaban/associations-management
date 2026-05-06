@@ -1088,6 +1088,41 @@ Response:
 ```
 Notes: No revenue or workload data — those are manager-only. Any group member (MEMBER or MANAGER role) can access this.
 Errors: 401, 403 (אינך חבר בקבוצה), 404 (קבוצה לא נמצאה)
+
+---
+
+## Organization — Logo Upload via Cloudinary
+
+### Organization — POST /organization/profile/logo
+Method: POST
+Path: /api/v1/organization/profile/logo
+Auth: JwtAuthGuard + RolesGuard (ADMIN)
+Request: multipart/form-data — field `file` (image/png | image/jpeg | image/webp | image/svg+xml, max 2MB)
+Response:
+```json
+{
+  "data": {
+    "id": "string",
+    "name": "string",
+    "logoUrl": "string (Cloudinary secure_url)",
+    "logoAssetId": "string"
+  }
+}
+```
+Notes:
+- File is held in memory (memoryStorage) and streamed directly to Cloudinary via the shared CloudinaryService.
+- Stored under Cloudinary folder: `amutot/{organizationId}/logos`.
+- An Asset record is persisted for audit trail.
+- Returns the full OrganizationResponseDto including the new Cloudinary URL.
+Errors: 400 (סוג קובץ לא נתמך / קובץ חורג מ-2MB / יש לצרף קובץ תמונה), 401, 403
+
+### Organization — DELETE /organization/profile/logo
+Method: DELETE
+Path: /api/v1/organization/profile/logo
+Auth: JwtAuthGuard + RolesGuard (ADMIN)
+Request: none
+Response: `{ data: OrganizationResponseDto }` — logoUrl and logoAssetId set to null
+Errors: 401, 403
 Errors: 401
 
 ---

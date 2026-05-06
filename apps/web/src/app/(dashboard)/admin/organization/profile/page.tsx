@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Save, Upload, Trash2, Building2, Palette, FileText, CreditCard, Phone } from 'lucide-react';
+import { Save, Upload, Trash2, Building2, Palette, FileText, CreditCard, Phone, Loader2 } from 'lucide-react';
 import api from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
 
@@ -51,9 +51,18 @@ export default function OrgProfilePage() {
 
   const [form, setForm] = useState<Partial<OrgProfile>>({});
   const [isDirty, setIsDirty] = useState(false);
+  // Local preview URL (object URL created before upload completes)
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+
+  // Revoke the object URL when preview is replaced or component unmounts
+  useEffect(() => {
+    return () => {
+      if (logoPreview) URL.revokeObjectURL(logoPreview);
+    };
+  }, [logoPreview]);
 
   // Initialize form when profile loads
-  React.useEffect(() => {
+  useEffect(() => {
     if (profile && !isDirty) {
       setForm(profile);
     }
@@ -87,15 +96,21 @@ export default function OrgProfilePage() {
       const res = await api.post('/organization/profile/logo', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      return res.data.data;
+      return res.data.data as OrgProfile;
     },
-    onSuccess: () => {
+    onSuccess: (updatedOrg) => {
+      // Clear local preview — the server URL is now canonical
+      setLogoPreview(null);
       queryClient.invalidateQueries({ queryKey: ['org-profile'] });
       queryClient.invalidateQueries({ queryKey: ['org-public-profile'] });
+      // Optimistically update form so the real CDN URL appears immediately
+      setForm(prev => ({ ...prev, logoUrl: updatedOrg.logoUrl }));
       showToast('הלוגו הועלה בהצלחה', 'success');
     },
     onError: () => {
-      showToast('שגיאה בהעלאת הלוגו', 'error');
+      // Discard the optimistic preview on failure
+      setLogoPreview(null);
+      showToast('שגיאה בהעלאת הלוגו. יש לנסות שנית.', 'error');
     },
   });
 
@@ -104,14 +119,21 @@ export default function OrgProfilePage() {
       await api.delete('/organization/profile/logo');
     },
     onSuccess: () => {
+      setLogoPreview(null);
+      setForm(prev => ({ ...prev, logoUrl: undefined }));
       queryClient.invalidateQueries({ queryKey: ['org-profile'] });
       queryClient.invalidateQueries({ queryKey: ['org-public-profile'] });
       showToast('הלוגו הוסר', 'success');
+    },
+    onError: () => {
+      showToast('שגיאה בהסרת הלוגו', 'error');
     },
   });
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    // Reset input so the same file can be re-selected after an error
+    e.target.value = '';
     if (!file) return;
     if (file.size > 2 * 1024 * 1024) {
       showToast('הקובץ גדול מ-2MB', 'error');
@@ -121,6 +143,10 @@ export default function OrgProfilePage() {
       showToast('יש להעלות קובץ תמונה (PNG, JPG, SVG, WebP)', 'error');
       return;
     }
+    // Show local preview immediately before the upload completes
+    const previewUrl = URL.createObjectURL(file);
+    if (logoPreview) URL.revokeObjectURL(logoPreview);
+    setLogoPreview(previewUrl);
     logoUploadMutation.mutate(file);
   };
 
@@ -223,32 +249,44 @@ export default function OrgProfilePage() {
           <div className="mb-6">
             <label className="text-label-md text-on-surface mb-2 block">לוגו</label>
             <div className="flex items-center gap-4">
+              {/* Logo thumbnail — shows preview while uploading, then the saved URL */}
               <div
-                className="w-24 h-24 rounded-xl border-2 border-dashed border-outline/30 flex items-center justify-center overflow-hidden bg-surface-container cursor-pointer hover:border-primary/50 transition-colors"
-                onClick={() => fileInputRef.current?.click()}
+                className="relative w-24 h-24 rounded-xl border-2 border-dashed border-outline/30 flex items-center justify-center overflow-hidden bg-surface-container cursor-pointer hover:border-primary/50 transition-colors"
+                onClick={() => !logoUploadMutation.isPending && fileInputRef.current?.click()}
+                title="לחץ להחלפת הלוגו"
               >
-                {form.logoUrl ? (
-                  <img src={form.logoUrl} alt="לוגו" className="w-full h-full object-contain p-1" />
+                {(logoPreview ?? form.logoUrl) ? (
+                  <img
+                    src={logoPreview ?? form.logoUrl}
+                    alt="לוגו"
+                    className="w-full h-full object-contain p-1"
+                  />
                 ) : (
                   <Upload className="h-8 w-8 text-on-surface-variant" />
+                )}
+                {/* Spinner overlay while uploading */}
+                {logoUploadMutation.isPending && (
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-xl">
+                    <Loader2 className="h-6 w-6 text-white animate-spin" />
+                  </div>
                 )}
               </div>
               <div className="space-y-2">
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="text-body-sm text-primary hover:underline"
+                  className="text-body-sm text-primary hover:underline disabled:opacity-50"
                   disabled={logoUploadMutation.isPending}
                 >
-                  {logoUploadMutation.isPending ? 'מעלה...' : 'העלאת לוגו'}
+                  {logoUploadMutation.isPending ? 'מעלה ל-Cloudinary...' : 'העלאת לוגו'}
                 </button>
-                {form.logoUrl && (
+                {(form.logoUrl || logoPreview) && !logoUploadMutation.isPending && (
                   <button
                     onClick={() => logoRemoveMutation.mutate()}
-                    className="flex items-center gap-1 text-body-sm text-error hover:underline"
+                    className="flex items-center gap-1 text-body-sm text-error hover:underline disabled:opacity-50"
                     disabled={logoRemoveMutation.isPending}
                   >
                     <Trash2 className="h-3 w-3" />
-                    הסרת לוגו
+                    {logoRemoveMutation.isPending ? 'מסיר...' : 'הסרת לוגו'}
                   </button>
                 )}
                 <p className="text-body-sm text-on-surface-variant">PNG, JPG, SVG או WebP. עד 2MB.</p>
@@ -281,8 +319,8 @@ export default function OrgProfilePage() {
           <div className="mt-6 p-4 rounded-lg border border-outline/20">
             <p className="text-label-sm text-on-surface-variant mb-3">תצוגה מקדימה</p>
             <div className="flex items-center gap-4">
-              {form.logoUrl && (
-                <img src={form.logoUrl} alt="" className="w-10 h-10 rounded-lg object-contain" />
+              {(logoPreview ?? form.logoUrl) && (
+                <img src={logoPreview ?? form.logoUrl} alt="" className="w-10 h-10 rounded-lg object-contain" />
               )}
               <span className="text-title-md" style={{ color: form.primaryColor }}>{form.name || 'שם העמותה'}</span>
               <span className="px-3 py-1 rounded-full text-body-sm text-white" style={{ backgroundColor: form.accentColor }}>

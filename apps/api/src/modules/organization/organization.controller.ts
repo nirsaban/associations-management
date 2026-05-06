@@ -12,6 +12,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiConsumes } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { RolesGuard } from '@common/guards/roles.guard';
@@ -24,21 +25,11 @@ import { OnboardingStep2Dto } from './dto/onboarding-step2.dto';
 import { OnboardingStep3Dto } from './dto/onboarding-step3.dto';
 import { UpdateOrgProfileDto } from './dto/update-profile.dto';
 import { OrganizationResponseDto } from '@modules/platform/dto/organization-response.dto';
-import { diskStorage } from 'multer';
-import { extname, join } from 'path';
-import { randomUUID } from 'crypto';
 import { PrismaService } from '@common/prisma/prisma.service';
+import { CloudinaryService } from '@common/services/cloudinary.service';
 
 const ALLOWED_MIME_TYPES = ['image/png', 'image/jpeg', 'image/svg+xml', 'image/webp'];
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
-
-const logoStorage = diskStorage({
-  destination: join(process.cwd(), 'uploads', 'logos'),
-  filename: (_req, file, cb) => {
-    const uniqueName = `${randomUUID()}${extname(file.originalname)}`;
-    cb(null, uniqueName);
-  },
-});
 
 @ApiTags('Organization')
 @ApiBearerAuth('access-token')
@@ -48,6 +39,7 @@ export class OrganizationController {
   constructor(
     private readonly organizationService: OrganizationService,
     private readonly prisma: PrismaService,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   @Get('me')
@@ -230,18 +222,22 @@ export class OrganizationController {
   @Post('profile/logo')
   @Roles('ADMIN')
   @UseInterceptors(FileInterceptor('file', {
-    storage: logoStorage,
+    storage: memoryStorage(),
     limits: { fileSize: MAX_FILE_SIZE },
     fileFilter: (_req, file, cb) => {
       if (!ALLOWED_MIME_TYPES.includes(file.mimetype)) {
-        cb(new BadRequestException('Only PNG, JPG, SVG, and WebP images are allowed'), false);
+        cb(new BadRequestException('יש להעלות קובץ תמונה מסוג PNG, JPG, SVG או WebP בלבד.'), false);
         return;
       }
       cb(null, true);
     },
   }))
   @ApiConsumes('multipart/form-data')
-  @ApiOperation({ summary: 'Upload organization logo file' })
+  @ApiOperation({
+    summary: 'העלאת לוגו לעמותה',
+    description: 'העלאת קובץ תמונה כלוגו של העמותה לשרת Cloudinary. מותר: PNG, JPG, SVG, WebP עד 2MB. נדרש תפקיד ADMIN.',
+  })
+  @ApiResponse({ status: 200, type: OrganizationResponseDto })
   async uploadLogoFile(
     @CurrentUser() user: ICurrentUser,
     @UploadedFile() file: Express.Multer.File,
@@ -250,20 +246,23 @@ export class OrganizationController {
       throw new BadRequestException('User is not associated with an organization');
     }
     if (!file) {
-      throw new BadRequestException('File is required');
+      throw new BadRequestException('יש לצרף קובץ תמונה.');
     }
 
-    // Create asset record
-    const baseUrl = process.env.API_BASE_URL || 'http://localhost:3003';
-    const url = `${baseUrl}/uploads/logos/${file.filename}`;
+    // Upload to Cloudinary via shared service
+    const uploaded = await this.cloudinaryService.uploadImage(
+      file,
+      `amutot/${user.organizationId}/logos`,
+    );
 
+    // Persist asset record for audit trail
     const asset = await this.prisma.asset.create({
       data: {
         organizationId: user.organizationId,
         kind: 'IMAGE',
-        url,
+        url: uploaded.secureUrl,
         mime: file.mimetype,
-        bytes: file.size,
+        bytes: uploaded.bytes,
         createdById: user.id,
       },
     });
@@ -271,7 +270,7 @@ export class OrganizationController {
     const organization = await this.organizationService.uploadLogo(
       user.id,
       user.organizationId,
-      url,
+      uploaded.secureUrl,
       asset.id,
     );
     return { data: organization };
