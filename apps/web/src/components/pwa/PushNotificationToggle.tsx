@@ -17,7 +17,7 @@ export function PushNotificationToggle({ className = '' }: PushNotificationToggl
   // Browser doesn't support push notifications
   if (!isSupported) {
     return (
-      <div className={`text-sm text-gray-500 ${className}`}>הדפדפן שלך אינו תומך בהתראות דחיפה</div>
+      <div className={`text-sm text-text-muted ${className}`}>הדפדפן שלך אינו תומך בהתראות דחיפה</div>
     );
   }
 
@@ -25,8 +25,8 @@ export function PushNotificationToggle({ className = '' }: PushNotificationToggl
   if (permission === 'denied') {
     return (
       <div className={`space-y-2 ${className}`}>
-        <div className="text-sm text-red-600">הרשאת התראות נחסמה</div>
-        <div className="text-xs text-gray-600">כדי לקבל התראות, יש לאפשר הרשאות בהגדרות הדפדפן</div>
+        <div className="text-sm text-error-strong">הרשאת התראות נחסמה</div>
+        <div className="text-xs text-text-muted">כדי לקבל התראות, יש לאפשר הרשאות בהגדרות הדפדפן</div>
       </div>
     );
   }
@@ -43,25 +43,25 @@ export function PushNotificationToggle({ className = '' }: PushNotificationToggl
     <div className={`space-y-2 ${className}`}>
       <div className="flex items-center justify-between">
         <div className="flex-1">
-          <div className="text-sm font-medium text-gray-900">התראות דחיפה</div>
-          <div className="text-xs text-gray-600">קבל התראות על עדכונים חשובים</div>
+          <div className="text-sm font-medium text-foreground">התראות דחיפה</div>
+          <div className="text-xs text-text-muted">קבל התראות על עדכונים חשובים</div>
         </div>
         <button
           onClick={handleToggle}
           disabled={isLoading}
           className={`
             relative inline-flex h-6 w-11 items-center rounded-full
-            transition-colors duration-200 ease-in-out
-            focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
+            transition-colors duration-200 ease-out
+            focus:outline-none focus:ring-2 focus:ring-primary/40 focus:ring-offset-2 focus:ring-offset-background
             disabled:opacity-50 disabled:cursor-not-allowed
-            ${isSubscribed ? 'bg-primary-600' : 'bg-gray-200'}
+            ${isSubscribed ? 'bg-primary' : 'bg-surface-alt border border-border'}
           `}
           aria-label={isSubscribed ? 'בטל התראות' : 'אפשר התראות'}
         >
           <span
             className={`
-              inline-block h-4 w-4 transform rounded-full bg-white
-              transition duration-200 ease-in-out
+              inline-block h-4 w-4 transform rounded-full bg-surface shadow-soft
+              transition duration-200 ease-out
               ${isSubscribed ? 'translate-x-[-24px]' : 'translate-x-[-4px]'}
             `}
           />
@@ -69,14 +69,14 @@ export function PushNotificationToggle({ className = '' }: PushNotificationToggl
       </div>
 
       {/* Loading state */}
-      {isLoading && <div className="text-xs text-gray-500">מעדכן...</div>}
+      {isLoading && <div className="text-xs text-text-muted">מעדכן...</div>}
 
       {/* Error state */}
-      {error && <div className="text-xs text-red-600">שגיאה: {error.message}</div>}
+      {error && <div className="text-xs text-error-strong">שגיאה: {error.message}</div>}
 
       {/* Success state */}
       {!isLoading && !error && isSubscribed && (
-        <div className="text-xs text-green-600">התראות מופעלות</div>
+        <div className="text-xs text-success-strong">התראות מופעלות</div>
       )}
     </div>
   );

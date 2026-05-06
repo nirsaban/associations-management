@@ -259,25 +259,25 @@ export default function FamiliesImportPage() {
           <div className="flex flex-wrap items-center gap-4 p-4 rounded-xl bg-surface-container-low">
             {validateResult.summary.familiesToCreate > 0 && (
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-green-500" />
+                <span className="w-3 h-3 rounded-full bg-success" />
                 <span className="text-body-sm font-medium">{validateResult.summary.familiesToCreate} משפחות חדשות</span>
               </div>
             )}
             {validateResult.summary.familiesToUpdate > 0 && (
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-amber-500" />
+                <span className="w-3 h-3 rounded-full bg-warning" />
                 <span className="text-body-sm font-medium">{validateResult.summary.familiesToUpdate} לעדכון</span>
               </div>
             )}
             {validateResult.summary.groupsToAutoCreate > 0 && (
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-blue-500" />
+                <span className="w-3 h-3 rounded-full bg-info" />
                 <span className="text-body-sm font-medium">{validateResult.summary.groupsToAutoCreate} קבוצות חדשות ייווצרו</span>
               </div>
             )}
             {validateResult.summary.rowsWithErrors > 0 && (
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-red-500" />
+                <span className="w-3 h-3 rounded-full bg-error" />
                 <span className="text-body-sm font-medium">{validateResult.summary.rowsWithErrors} שורות עם שגיאות</span>
               </div>
             )}
@@ -302,10 +302,10 @@ export default function FamiliesImportPage() {
               <tbody className="divide-y divide-outline/10">
                 {validateResult.rows.map((row) => {
                   const bgClass = row.status === 'error'
-                    ? 'bg-red-50/30'
+                    ? 'bg-error/5'
                     : row.status === 'valid_with_warnings'
-                    ? 'bg-amber-50/30'
-                    : 'bg-green-50/30';
+                    ? 'bg-warning/5'
+                    : 'bg-success/5';
 
                   return (
                     <tr key={row.rowNumber} className={bgClass}>
@@ -313,9 +313,9 @@ export default function FamiliesImportPage() {
                       <td className="px-3 py-2 font-medium">{row.familyName}</td>
                       <td className="px-3 py-2">
                         {row.action === 'create' ? (
-                          <span className="px-2 py-0.5 rounded bg-green-100 text-green-700 text-label-sm">חדש</span>
+                          <span className="px-2 py-0.5 rounded bg-success/15 text-success text-label-sm">חדש</span>
                         ) : (
-                          <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-700 text-label-sm">עדכון</span>
+                          <span className="px-2 py-0.5 rounded bg-warning/15 text-warning-strongtext-label-sm">עדכון</span>
                         )}
                       </td>
                       <td className="px-3 py-2 font-mono text-label-sm" dir="ltr">
@@ -328,13 +328,13 @@ export default function FamiliesImportPage() {
                       </td>
                       <td className="px-3 py-2">
                         {row.groupLink?.action === 'link_existing' && (
-                          <span className="text-green-600">{row.groupName} <span className="text-label-sm">(קיימת)</span></span>
+                          <span className="text-success-strong">{row.groupName} <span className="text-label-sm">(קיימת)</span></span>
                         )}
                         {row.groupLink?.action === 'auto_create' && (
-                          <span className="text-blue-600">{row.groupName} <span className="text-label-sm">(תיווצר)</span></span>
+                          <span className="text-info-strong">{row.groupName} <span className="text-label-sm">(תיווצר)</span></span>
                         )}
                         {row.groupLink?.action === 'clear' && (
-                          <span className="text-orange-500 text-label-sm">יוסר</span>
+                          <span className="text-warning-strongtext-label-sm">יוסר</span>
                         )}
                         {(row.groupLink?.action === 'none' || !row.groupLink) && (
                           <span className="text-on-surface-variant">—</span>
@@ -344,18 +344,18 @@ export default function FamiliesImportPage() {
                         {row.address || '—'}
                       </td>
                       <td className="px-3 py-2">
-                        {row.status === 'valid' && <span className="text-green-600">✓</span>}
-                        {row.status === 'valid_with_warnings' && <span className="text-amber-500">⚠️</span>}
-                        {row.status === 'error' && <span className="text-red-600">✗</span>}
+                        {row.status === 'valid' && <span className="text-success-strong">✓</span>}
+                        {row.status === 'valid_with_warnings' && <span className="text-warning-strong">⚠️</span>}
+                        {row.status === 'error' && <span className="text-error-strong">✗</span>}
                       </td>
                       <td className="px-3 py-2 text-body-sm max-w-xs">
                         {row.errors.length > 0 && (
-                          <div className="text-red-600">
+                          <div className="text-error-strong">
                             {row.errors.map((e, i) => <div key={i}>{e.message}</div>)}
                           </div>
                         )}
                         {row.warnings.length > 0 && (
-                          <div className="text-amber-600">
+                          <div className="text-warning-strong">
                             {row.warnings.map((w, i) => <div key={i}>{w}</div>)}
                           </div>
                         )}
@@ -418,31 +418,31 @@ export default function FamiliesImportPage() {
       {/* Summary state */}
       {state === 'summary' && commitResult && (
         <div className="space-y-6">
-          <div className="bg-green-50 rounded-xl p-8 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
-              <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="bg-success/10 rounded-xl p-8 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-success/20 flex items-center justify-center">
+              <svg className="w-8 h-8 text-success-strong" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
             <h2 className="text-headline-sm font-headline mb-4">הייבוא הושלם בהצלחה!</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-lg mx-auto text-start">
-              <div className="bg-white rounded-lg p-4">
+              <div className="bg-surface rounded-lg p-4">
                 <p className="text-display-sm font-bold text-primary">{commitResult.familiesCreated}</p>
                 <p className="text-body-sm text-on-surface-variant">משפחות נוצרו</p>
               </div>
-              <div className="bg-white rounded-lg p-4">
+              <div className="bg-surface rounded-lg p-4">
                 <p className="text-display-sm font-bold text-primary">{commitResult.familiesUpdated}</p>
                 <p className="text-body-sm text-on-surface-variant">משפחות עודכנו</p>
               </div>
-              <div className="bg-white rounded-lg p-4">
+              <div className="bg-surface rounded-lg p-4">
                 <p className="text-display-sm font-bold text-primary">{commitResult.groupsAutoCreated}</p>
                 <p className="text-body-sm text-on-surface-variant">קבוצות נוצרו</p>
               </div>
-              <div className="bg-white rounded-lg p-4">
+              <div className="bg-surface rounded-lg p-4">
                 <p className="text-display-sm font-bold text-primary">{commitResult.familiesLinkedToGroup}</p>
                 <p className="text-body-sm text-on-surface-variant">שויכו לקבוצות</p>
               </div>
-              <div className="bg-white rounded-lg p-4">
+              <div className="bg-surface rounded-lg p-4">
                 <p className="text-display-sm font-bold text-primary">{commitResult.familyGroupsCleared}</p>
                 <p className="text-body-sm text-on-surface-variant">שיוכים הוסרו</p>
               </div>
