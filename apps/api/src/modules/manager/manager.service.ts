@@ -6,7 +6,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '@common/prisma/prisma.service';
-import { getCurrentWeekKey, getCurrentMonthKey, dateToWeekKey, weekKeyToMondayIso, weekKeyNWeeksAgo } from '@common/utils/week';
+import { getCurrentWeekKey, getCurrentMonthKey, weekKeyToMondayIso, weekKeyNWeeksAgo } from '@common/utils/week';
 import { Prisma, OrderStatus } from '@prisma/client';
 import { GroupDetailsDto, MemberWithStatusDto, WeeklyTaskStatusDto } from './dto';
 import type { UpdateFamilyDto } from './dto';
@@ -1390,10 +1390,6 @@ export class ManagerService {
 
   getCurrentWeekKey(): string {
     return getCurrentWeekKey();
-  }
-
-  private dateToWeekKey(date: Date): string {
-    return dateToWeekKey(date);
   }
 
   private weekKeyToMondayIso(weekKey: string): string {
