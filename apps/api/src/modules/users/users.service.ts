@@ -6,10 +6,12 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '@common/prisma/prisma.service';
-import { SystemRole } from '@prisma/client';
+import { GroupRole, SystemRole } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
+
+export type UserRoleFilter = 'all' | 'ADMIN' | 'USER' | 'GROUP_MANAGER' | 'GROUP_MEMBER';
 
 function normalizePhone(phone: string): string {
   const trimmed = phone.trim();
@@ -76,24 +78,66 @@ export class UsersService {
     page: number = 1,
     limit: number = 10,
     search?: string,
+    role?: UserRoleFilter,
   ): Promise<{ data: UserResponseDto[]; meta: { total: number; page: number; limit: number } }> {
-    this.logger.log(`Finding users for organization ${organizationId}, page ${page}, search: ${search}`);
+    this.logger.log(
+      `Finding users for organization ${organizationId}, page ${page}, search: ${search}, role: ${role}`,
+    );
 
     const safePage = Number(page) || 1;
     const safeLimit = Number(limit) || 10;
     const skip = (safePage - 1) * safeLimit;
 
+    const searchClause = search
+      ? {
+          OR: [
+            { fullName: { contains: search, mode: 'insensitive' as const } },
+            { phone: { contains: search } },
+          ],
+        }
+      : {};
+
+    // Build role-specific filter. SystemRole filters go on User directly.
+    // GroupRole filters require a join through GroupMembership.
+    let roleClause: object = {};
+    if (role === 'ADMIN') {
+      roleClause = { systemRole: SystemRole.ADMIN };
+    } else if (role === 'USER') {
+      // Plain users: systemRole USER with no active MANAGER membership
+      roleClause = {
+        systemRole: SystemRole.USER,
+        groupMemberships: {
+          none: {
+            status: 'ACTIVE',
+            role: GroupRole.MANAGER,
+          },
+        },
+      };
+    } else if (role === 'GROUP_MANAGER') {
+      roleClause = {
+        groupMemberships: {
+          some: {
+            status: 'ACTIVE',
+            role: GroupRole.MANAGER,
+          },
+        },
+      };
+    } else if (role === 'GROUP_MEMBER') {
+      roleClause = {
+        groupMemberships: {
+          some: {
+            status: 'ACTIVE',
+            role: GroupRole.MEMBER,
+          },
+        },
+      };
+    }
+
     const where = {
       organizationId,
       deletedAt: null,
-      ...(search
-        ? {
-            OR: [
-              { fullName: { contains: search, mode: 'insensitive' as const } },
-              { phone: { contains: search } },
-            ],
-          }
-        : {}),
+      ...searchClause,
+      ...roleClause,
     };
 
     const [users, total] = await Promise.all([

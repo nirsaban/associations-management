@@ -78,10 +78,15 @@ export default function AdminUsersPage() {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['admin', 'users', page, searchTerm],
+    queryKey: ['admin', 'users', page, searchTerm, roleFilter],
     queryFn: async () => {
       const res = await api.get<{ data: AdminUser[]; meta?: { total?: number } }>('/admin/users', {
-        params: { page, limit: pageSize, search: searchTerm || undefined },
+        params: {
+          page,
+          limit: pageSize,
+          search: searchTerm || undefined,
+          role: roleFilter === 'all' ? undefined : roleFilter,
+        },
       });
       const body = res.data as unknown as { data: AdminUser[]; meta?: { total?: number } };
       return { users: body.data, total: body.meta?.total ?? 0 };
@@ -99,19 +104,9 @@ export default function AdminUsersPage() {
     enabled: user?.systemRole === 'ADMIN',
   });
 
-  const allUsers = response?.users ?? [];
+  const users = response?.users ?? [];
   const total = response?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
-
-  // Client-side role filter (search is server-side)
-  const users = roleFilter === 'all'
-    ? allUsers
-    : allUsers.filter((u) => {
-        if (roleFilter === 'ADMIN') return u.systemRole === 'ADMIN';
-        if (roleFilter === 'GROUP_MANAGER') return u.groupRole === 'MANAGER';
-        if (roleFilter === 'USER') return u.systemRole === 'USER' && u.groupRole !== 'MANAGER';
-        return true;
-      });
 
   const createMutation = useMutation({
     mutationFn: async (data: CreateUserForm) => {
@@ -140,7 +135,7 @@ export default function AdminUsersPage() {
       });
 
       // Handle group assignment change
-      const currentUser = allUsers.find((u) => u.id === id);
+      const currentUser = users.find((u) => u.id === id);
       const currentGroupId = currentUser?.groupId;
       const newGroupId = data.groupId || null;
 
@@ -259,7 +254,7 @@ export default function AdminUsersPage() {
           ] as { key: RoleFilter; label: string }[]).map((f) => (
             <button
               key={f.key}
-              onClick={() => setRoleFilter(f.key)}
+              onClick={() => { setRoleFilter(f.key); setPage(1); }}
               className={`px-3 py-2 rounded-lg text-body-sm font-medium transition-colors ${
                 roleFilter === f.key
                   ? 'bg-primary text-on-primary'

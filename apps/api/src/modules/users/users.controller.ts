@@ -22,7 +22,7 @@ import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { RolesGuard } from '@common/guards/roles.guard';
 import { Roles } from '@common/decorators/roles.decorator';
 import { CurrentUser, type CurrentUser as ICurrentUser } from '@common/decorators/current-user.decorator';
-import { UsersService } from './users.service';
+import { UsersService, UserRoleFilter } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
@@ -51,18 +51,25 @@ export class UsersController {
   @Get()
   @ApiOperation({
     summary: 'רשימת משתמשים',
-    description: 'קבלת רשימה ממוספרת של משתמשים בעמותה עם אפשרות חיפוש',
+    description: 'קבלת רשימה ממוספרת של משתמשים בעמותה עם אפשרות חיפוש וסינון לפי תפקיד',
   })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'search', required: false, type: String, description: 'חיפוש לפי שם או טלפון' })
+  @ApiQuery({
+    name: 'role',
+    required: false,
+    enum: ['all', 'ADMIN', 'USER', 'GROUP_MANAGER', 'GROUP_MEMBER'],
+    description: 'סינון לפי תפקיד: ADMIN (מנהל עמותה), USER (משתמש רגיל), GROUP_MANAGER (מנהל קבוצה), GROUP_MEMBER (חבר קבוצה)',
+  })
   async findAll(
     @CurrentUser() user: ICurrentUser,
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
     @Query('search') search?: string,
+    @Query('role') role?: UserRoleFilter,
   ): Promise<{ data: UserResponseDto[]; meta: { total: number; page: number; limit: number } }> {
-    return this.usersService.findAll(user.organizationId, page, limit, search);
+    return this.usersService.findAll(user.organizationId, page, limit, search, role);
   }
 
   @Get(':id')

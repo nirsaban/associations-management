@@ -603,6 +603,23 @@ Only COMPLETED payments counted. Members scoped to this group.
 
 All admin routes require `JwtAuthGuard` + `RolesGuard(['ADMIN'])`.
 
+### Admin Users — GET /api/v1/admin/users
+Method: GET
+Path: /api/v1/admin/users
+Auth: JwtAuthGuard + RolesGuard (ADMIN)
+Request: Query params:
+  - `page` (number, default 1)
+  - `limit` (number, default 10)
+  - `search` (string, optional) — חיפוש לפי שם או טלפון
+  - `role` (optional) — סינון לפי תפקיד: `ADMIN` | `USER` | `GROUP_MANAGER` | `GROUP_MEMBER`
+    - `ADMIN`: מסנן לפי `systemRole = ADMIN`
+    - `USER`: מסנן לפי `systemRole = USER` ואין חברות ACTIVE עם `GroupRole.MANAGER`
+    - `GROUP_MANAGER`: מסנן משתמשים שיש להם לפחות חברות אחת ACTIVE עם `GroupRole.MANAGER` ב-GroupMembership
+    - `GROUP_MEMBER`: מסנן משתמשים שיש להם לפחות חברות אחת ACTIVE עם `GroupRole.MEMBER` ב-GroupMembership
+Response: `{ data: UserResponseDto[], meta: { total: number, page: number, limit: number } }`
+Errors: 401, 403
+Notes: הסינון לפי תפקיד נעשה בשרת — GROUP_MANAGER ו-GROUP_MEMBER מחייבים join דרך טבלת GroupMembership. לא לבצע סינון בצד הלקוח על תוצאות עמוד בודד.
+
 ### GET /api/v1/admin/dashboard/stats
 Get dashboard statistics for the organization.
 
