@@ -194,7 +194,7 @@ function DonationIframeSection({ data }: { data: DonationInfoData }) {
       {data.paymentLink ? (
         <>
           <iframe
-            src={data.paymentLink}
+            src={data.paymentLink.replace('https://pay.grow.link/', '/payment-proxy/')}
             title="טופס תרומה"
             className="w-full rounded-lg border border-outline/30 h-[500px] sm:h-[600px]"
             loading="lazy"

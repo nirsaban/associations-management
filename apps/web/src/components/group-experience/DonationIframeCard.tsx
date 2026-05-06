@@ -82,6 +82,11 @@ export function DonationIframeCard({
 }: DonationIframeCardProps) {
   const [showFullscreen, setShowFullscreen] = useState(false);
 
+  // Proxy the payment link through our nginx to bypass CSP frame-ancestors
+  const proxyPaymentLink = paymentLink
+    ? paymentLink.replace('https://pay.grow.link/', '/payment-proxy/')
+    : null;
+
   return (
     <>
       <div className="card-elevated space-y-4">
@@ -152,9 +157,9 @@ export function DonationIframeCard({
       </div>
 
       {/* Fullscreen payment overlay */}
-      {showFullscreen && paymentLink && (
+      {showFullscreen && proxyPaymentLink && (
         <PaymentFullscreen
-          paymentLink={paymentLink}
+          paymentLink={proxyPaymentLink}
           organizationName={organizationName}
           onClose={() => setShowFullscreen(false)}
         />
