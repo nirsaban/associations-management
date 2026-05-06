@@ -14,7 +14,7 @@ import {
   CheckCircle,
   Building2,
   ChevronRight,
-  ExternalLink,
+  Heart,
 } from 'lucide-react';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
@@ -196,11 +196,21 @@ function DonationIframeSection({ data }: { data: DonationInfoData }) {
           href={data.paymentLink}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center gap-3 w-full py-4 px-6 rounded-2xl bg-primary text-on-primary text-title-md font-medium hover:opacity-90 active:scale-[0.98] transition-all shadow-md"
+          className="relative block w-full overflow-hidden rounded-3xl active:scale-[0.97] transition-transform"
         >
-          <CreditCard className="h-5 w-5" />
-          מעבר לתשלום
-          <ExternalLink className="h-4 w-4 opacity-70" />
+          <div
+            className="absolute inset-0"
+            style={{
+              background: 'linear-gradient(135deg, #C49A6C 0%, #D4AA7D 25%, #B8864F 50%, #C49A6C 75%, #D4AA7D 100%)',
+              backgroundSize: '200% 200%',
+              animation: 'shimmer 3s ease-in-out infinite',
+            }}
+          />
+          <div className="relative flex items-center justify-center gap-3 py-5 px-6 text-white">
+            <Heart className="h-6 w-6 fill-white/30 stroke-white" strokeWidth={1.5} />
+            <span className="text-title-lg font-bold">תרמו עכשיו</span>
+          </div>
+          <style>{`@keyframes shimmer { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }`}</style>
         </a>
       ) : (
         <div className="flex items-center justify-center h-32 rounded-lg bg-surface-container text-body-md text-on-surface-variant">

@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Building2, CheckCircle, AlertCircle, CreditCard, ExternalLink } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Building2, CheckCircle, AlertCircle, Heart, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 
@@ -23,7 +24,7 @@ export function DonationIframeCard({
   paidAt,
 }: DonationIframeCardProps) {
   return (
-    <div className="card-elevated space-y-4">
+    <div className="space-y-5">
       {/* Org header */}
       <div className="flex items-center gap-3">
         {organizationLogoUrl ? (
@@ -37,15 +38,12 @@ export function DonationIframeCard({
             <Building2 className="h-5 w-5 text-primary" />
           </div>
         )}
-        <span className="text-title-md font-medium text-on-surface">{organizationName}</span>
-      </div>
-
-      {/* Heading */}
-      <div>
-        <h2 className="text-headline-md font-headline text-on-surface mb-1">תרומות לעמותה</h2>
-        {paymentDescription && (
-          <p className="text-body-md text-on-surface-variant">{paymentDescription}</p>
-        )}
+        <div>
+          <span className="text-title-md font-medium text-on-surface block">{organizationName}</span>
+          {paymentDescription && (
+            <p className="text-body-sm text-on-surface-variant">{paymentDescription}</p>
+          )}
+        </div>
       </div>
 
       {/* Payment status pill */}
@@ -74,20 +72,67 @@ export function DonationIframeCard({
         )}
       </div>
 
-      {/* Payment button */}
+      {/* Big animated donate CTA */}
       {paymentLink ? (
-        <a
+        <motion.a
           href={paymentLink}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center gap-3 w-full py-4 px-6 rounded-2xl bg-primary text-on-primary text-title-md font-medium hover:opacity-90 active:scale-[0.98] transition-all shadow-md"
+          className="relative block w-full overflow-hidden rounded-3xl"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 20 }}
         >
-          <CreditCard className="h-5 w-5" />
-          מעבר לתשלום
-          <ExternalLink className="h-4 w-4 opacity-70" />
-        </a>
+          {/* Animated gradient background */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background: 'linear-gradient(135deg, #C49A6C 0%, #D4AA7D 25%, #B8864F 50%, #C49A6C 75%, #D4AA7D 100%)',
+              backgroundSize: '200% 200%',
+              animation: 'shimmer 3s ease-in-out infinite',
+            }}
+          />
+
+          {/* Subtle pulse ring */}
+          <div className="absolute inset-0 rounded-3xl animate-[ping_2s_ease-in-out_infinite] border-2 border-white/20" />
+
+          {/* Content */}
+          <div className="relative flex flex-col items-center gap-3 py-8 px-6 text-white">
+            {/* Sparkle icon */}
+            <motion.div
+              animate={{ rotate: [0, 10, -10, 0] }}
+              transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
+            >
+              <Heart className="h-10 w-10 fill-white/30 stroke-white" strokeWidth={1.5} />
+            </motion.div>
+
+            {/* Main CTA text */}
+            <div className="text-center">
+              <p className="text-display-sm font-headline font-bold tracking-tight">
+                תרמו עכשיו
+              </p>
+              <p className="text-body-lg mt-1 opacity-90">
+                כל שקל עושה שינוי
+              </p>
+            </div>
+
+            {/* Action hint */}
+            <div className="flex items-center gap-2 mt-1 px-5 py-2.5 rounded-full bg-white/20 backdrop-blur-sm">
+              <Sparkles className="h-4 w-4" />
+              <span className="text-label-lg font-medium">לחצו לתרומה מאובטחת</span>
+            </div>
+          </div>
+
+          <style>{`
+            @keyframes shimmer {
+              0% { background-position: 0% 50%; }
+              50% { background-position: 100% 50%; }
+              100% { background-position: 0% 50%; }
+            }
+          `}</style>
+        </motion.a>
       ) : (
-        <div className="flex flex-col items-center justify-center gap-3 py-8 rounded-lg bg-surface-container">
+        <div className="flex flex-col items-center justify-center gap-3 py-8 rounded-2xl bg-surface-container">
           <p className="text-body-md text-on-surface-variant">קישור לתשלום אינו זמין כרגע</p>
         </div>
       )}
