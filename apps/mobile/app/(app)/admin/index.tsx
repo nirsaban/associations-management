@@ -23,6 +23,10 @@ export default function AdminIndex() {
         <Tile href="/(app)/admin/groups" label={t('admin.groupsList')} />
         <Tile href="/(app)/admin/families" label={t('families.title')} />
         <Tile href="/(app)/admin/create" label={t('admin.createNew')} />
+        <Tile href="/(app)/admin/alerts" label={t('admin.alerts')} />
+        <Tile href="/(app)/admin/weekly-status" label={t('admin.weeklyStatus')} />
+        <Tile href="/(app)/admin/referrals" label={t('admin.referralsAdmin')} />
+        <Tile href="/(app)/admin/org-profile" label={t('admin.orgProfile')} />
       </ScrollView>
     </SafeAreaView>
   );

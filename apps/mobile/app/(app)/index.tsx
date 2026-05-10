@@ -43,6 +43,7 @@ export default function Home() {
         <Tile href="/(app)/orders" label={t('orders.title')} />
         <Tile href="/(app)/payments" label={t('payments.title')} />
         <Tile href="/(app)/alerts" label={t('alerts.title')} />
+        <Tile href="/(app)/referral" label={t('referral.title')} />
         <Tile href="/(app)/manager-distributor" label={t('manager.weeklyTitle')} />
         {isAdmin && <Tile href="/(app)/families" label={t('families.title')} />}
         {isAdmin && <Tile href="/(app)/admin" label={t('admin.title')} />}

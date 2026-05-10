@@ -140,7 +140,59 @@
       "contactName": "איש קשר",
       "address": "כתובת",
       "notes": "הערות",
-      "groupName": "שם קבוצה"
-    }
+      "groupName": "שם קבוצה",
+      "address": "כתובת",
+      "description": "תיאור",
+      "paymentLink": "קישור לתשלום",
+      "paymentDescription": "תיאור תשלום",
+      "logoUrl": "כתובת לוגו",
+      "primaryColor": "צבע ראשי",
+      "facebook": "פייסבוק",
+      "instagram": "אינסטגרם",
+      "whatsapp": "וואטסאפ",
+      "website": "אתר"
+    },
+    "alerts": "שליחת התראה",
+    "alertTitle": "כותרת",
+    "alertBody": "תוכן",
+    "alertAudience": "קהל יעד",
+    "alertSent": "ההתראה נשלחה",
+    "audience": {
+      "ALL_USERS": "כל המשתמשים",
+      "GROUP_MANAGERS": "מנהלי קבוצות",
+      "UNPAID_THIS_MONTH": "טרם שילמו החודש",
+      "CURRENT_DISTRIBUTORS": "מחלקי השבוע"
+    },
+    "weeklyStatus": "סטטוס שבועי",
+    "currentDistributors": "מחלקי השבוע",
+    "incompleteOrders": "הזמנות חסרות",
+    "noDistributor": "ללא מחלק",
+    "orgProfile": "פרופיל עמותה",
+    "referrals": "הפניות",
+    "referralsAdmin": "סטטיסטיקת הפניות",
+    "addMember": "הוספת חבר",
+    "members": "חברי קבוצה",
+    "remove": "הסר",
+    "manager": "מנהל"
+  },
+  "referral": {
+    "title": "קוד ההפניה שלי",
+    "yourCode": "הקוד שלך",
+    "clicks": "{{count}} לחיצות",
+    "payments": "{{count}} תשלומים",
+    "amount": "₪{{amount}}",
+    "share": "שתפו את הקוד",
+    "shareMessage": "הצטרפו דרך קישור ההפניה שלי: {{url}}",
+    "noLanding": "אין קישור הפניה לעמותה זו"
+  },
+  "onboarding": {
+    "title": "הקמת עמותה",
+    "step1": "פרטי עמותה",
+    "step2": "תשלומים",
+    "step3": "פרטי קשר ורשתות",
+    "next": "המשך",
+    "back": "חזור",
+    "finish": "סיום",
+    "completed": "ההקמה הסתיימה בהצלחה"
   }
 }
