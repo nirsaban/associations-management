@@ -153,6 +153,9 @@
       "website": "אתר"
     },
     "alerts": "שליחת התראה",
+    "templates": "תבניות שמורות",
+    "templateName": "שם התבנית",
+    "saveTemplate": "שמור תבנית",
     "alertTitle": "כותרת",
     "alertBody": "תוכן",
     "alertAudience": "קהל יעד",
