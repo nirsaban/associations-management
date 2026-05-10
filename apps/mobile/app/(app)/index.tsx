@@ -1,6 +1,7 @@
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'expo-router';
 import { useAuthStore } from '@/store/auth.store';
 
 function roleLabelKey(u: ReturnType<typeof useAuthStore.getState>['user']): string {
@@ -31,6 +32,14 @@ export default function Home() {
           <Text className="text-right text-gray-500 text-sm mt-3">Phone</Text>
           <Text className="text-right">{user?.phone}</Text>
         </View>
+
+        <Link href="/(app)/distributor" asChild>
+          <Pressable className="mt-6 rounded-2xl py-4 items-center bg-brand">
+            <Text className="text-white text-lg font-semibold">
+              {t('distributor.title')}
+            </Text>
+          </Pressable>
+        </Link>
 
         <Pressable
           onPress={logout}

@@ -28,5 +28,23 @@
       "USER": "משתמש"
     }
   },
-  "common": { "loading": "טוען...", "retry": "נסו שוב", "cancel": "ביטול" }
+  "common": { "loading": "טוען...", "retry": "נסו שוב", "cancel": "ביטול", "close": "סגור" },
+  "distributor": {
+    "title": "החלוקה השבועית שלי",
+    "notAssigned": "לא הוגדרת כמחלק לשבוע זה",
+    "weekOf": "שבוע: {{date}}",
+    "group": "קבוצה: {{name}}",
+    "progress": "{{done}} מתוך {{total}} חולקו",
+    "markDelivered": "סמן כחולק",
+    "markUndelivered": "בטל סימון",
+    "delivered": "חולק",
+    "call": "התקשר",
+    "whatsapp": "וואטסאפ",
+    "navigate": "ניווט",
+    "noPhone": "אין טלפון",
+    "noAddress": "אין כתובת",
+    "allDone": "כל הכבוד! סיימת את כל החלוקה השבועית 🎉",
+    "share": "שתפו את ההישג",
+    "shareMessage": "סיימתי את החלוקה השבועית עבור {{count}} משפחות 🙏"
+  }
 }
