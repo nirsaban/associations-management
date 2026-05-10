@@ -83,5 +83,58 @@
     "notes": "הערות",
     "group": "קבוצה",
     "orders": "הזמנות אחרונות"
+  },
+  "payments": {
+    "title": "תשלומים",
+    "paidThisMonth": "שילמת החודש ✓",
+    "unpaidThisMonth": "טרם שולם החודש",
+    "donate": "תרמו עכשיו",
+    "history": "היסטוריית תשלומים",
+    "empty": "אין תשלומים להצגה",
+    "month": "חודש",
+    "amount": "סכום",
+    "status": "סטטוס"
+  },
+  "orders": {
+    "title": "הזמנות שבועיות",
+    "empty": "אין הזמנות לשבוע זה",
+    "week": "שבוע",
+    "family": "משפחה",
+    "items": "פריטים",
+    "notes": "הערות",
+    "status": "סטטוס",
+    "complete": "סיים הזמנה",
+    "save": "שמור",
+    "edit": "ערוך",
+    "addItem": "הוסף פריט",
+    "itemPlaceholder": "שם פריט / כמות"
+  },
+  "profile": {
+    "title": "הפרופיל שלי",
+    "name": "שם",
+    "phone": "טלפון",
+    "email": "אימייל",
+    "biometric": "התחברות מהירה (Face ID / טביעת אצבע)",
+    "biometricEnabled": "מופעל",
+    "biometricDisabled": "כבוי",
+    "biometricUnavailable": "לא זמין במכשיר זה"
+  },
+  "admin": {
+    "title": "ניהול",
+    "createUser": "הוספת משתמש",
+    "createFamily": "הוספת משפחה",
+    "createGroup": "הוספת קבוצה",
+    "save": "שמור",
+    "saved": "נשמר בהצלחה",
+    "fields": {
+      "fullName": "שם מלא",
+      "phone": "טלפון",
+      "email": "אימייל (אופציונלי)",
+      "familyName": "שם משפחה",
+      "contactName": "איש קשר",
+      "address": "כתובת",
+      "notes": "הערות",
+      "groupName": "שם קבוצה"
+    }
   }
 }

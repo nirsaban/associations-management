@@ -9,6 +9,7 @@ import { StatusBar } from 'expo-status-bar';
 import { View, ActivityIndicator } from 'react-native';
 import { useAuthStore } from '@/store/auth.store';
 import { registerForPushAsync } from '@/push/register';
+import { useNotificationRouter } from '@/push/listeners';
 
 const qc = new QueryClient({ defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } } });
 
@@ -16,6 +17,7 @@ function AuthGate() {
   const segments = useSegments();
   const router = useRouter();
   const { hydrated, accessToken, user } = useAuthStore();
+  useNotificationRouter();
 
   useEffect(() => {
     if (!hydrated) return;
