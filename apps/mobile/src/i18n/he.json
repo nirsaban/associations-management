@@ -1,0 +1,32 @@
+{
+  "app": { "name": "עמותות" },
+  "auth": {
+    "phoneTitle": "התחברות",
+    "phoneSubtitle": "הזינו מספר טלפון לקבלת קוד אימות",
+    "phonePlaceholder": "מספר טלפון",
+    "sendCode": "שלח קוד",
+    "otpTitle": "אימות קוד",
+    "otpSubtitle": "הזינו את הקוד בן 6 הספרות שנשלח אליכם",
+    "otpPlaceholder": "קוד אימות",
+    "verify": "אמת",
+    "resend": "שלח שוב",
+    "logout": "התנתק",
+    "selectOrg": "בחרו עמותה",
+    "errors": {
+      "invalidPhone": "מספר טלפון לא תקין",
+      "invalidOtp": "קוד אימות לא תקין",
+      "generic": "אירעה שגיאה, נסו שוב"
+    }
+  },
+  "home": {
+    "welcome": "שלום, {{name}}",
+    "role": {
+      "SUPER_ADMIN": "סופר אדמין",
+      "ADMIN": "אדמין",
+      "GROUP_MANAGER": "מנהל קבוצה",
+      "GROUP_MEMBER": "חבר קבוצה",
+      "USER": "משתמש"
+    }
+  },
+  "common": { "loading": "טוען...", "retry": "נסו שוב", "cancel": "ביטול" }
+}
