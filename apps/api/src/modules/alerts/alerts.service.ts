@@ -426,18 +426,46 @@ export class AlertsService {
     let deliveredCount = 0;
     const staleIds: string[] = [];
 
+    const sendOne = async (sub: PushSubscription): Promise<void> => {
+      if (sub.endpoint.startsWith('expo:')) {
+        const expoToken = sub.endpoint.slice('expo:'.length);
+        const res = await fetch('https://exp.host/--/api/v2/push/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({
+            to: expoToken,
+            title: payload.title,
+            body: payload.body,
+            data: { url: payload.url, type: payload.type },
+            sound: 'default',
+          }),
+        });
+        if (!res.ok) {
+          const err: any = new Error(`Expo push HTTP ${res.status}`);
+          err.statusCode = res.status;
+          throw err;
+        }
+        const json: any = await res.json().catch(() => ({}));
+        const detail = json?.data;
+        if (detail?.status === 'error') {
+          const code = detail?.details?.error;
+          const err: any = new Error(`Expo push error: ${code ?? 'unknown'}`);
+          if (code === 'DeviceNotRegistered') err.statusCode = 410;
+          throw err;
+        }
+        return;
+      }
+      await webpush.sendNotification(
+        { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+        payloadStr,
+      );
+    };
+
     // Process in batches to cap concurrency
     for (let i = 0; i < subscriptions.length; i += PUSH_CONCURRENCY) {
       const batch = subscriptions.slice(i, i + PUSH_CONCURRENCY);
 
-      const results = await Promise.allSettled(
-        batch.map((sub) =>
-          webpush.sendNotification(
-            { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-            payloadStr,
-          ),
-        ),
-      );
+      const results = await Promise.allSettled(batch.map(sendOne));
 
       results.forEach((result, idx) => {
         if (result.status === 'fulfilled') {

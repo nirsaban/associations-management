@@ -46,5 +46,42 @@
     "allDone": "כל הכבוד! סיימת את כל החלוקה השבועית 🎉",
     "share": "שתפו את ההישג",
     "shareMessage": "סיימתי את החלוקה השבועית עבור {{count}} משפחות 🙏"
+  },
+  "group": {
+    "title": "הקבוצה שלי",
+    "currentDistributor": "מחלק השבוע",
+    "noDistributor": "לא הוגדר מחלק לשבוע זה",
+    "members": "חברי קבוצה",
+    "families": "משפחות",
+    "paid": "שילם החודש",
+    "unpaid": "טרם שילם"
+  },
+  "alerts": {
+    "title": "התראות",
+    "empty": "אין התראות חדשות",
+    "publishedBy": "פורסם ע״י {{name}}",
+    "expiresAt": "בתוקף עד: {{date}}"
+  },
+  "manager": {
+    "weeklyTitle": "מחלק שבועי",
+    "currentAssignment": "השיבוץ הנוכחי",
+    "assigned": "שובץ: {{name}}",
+    "notAssigned": "לא שובץ מחלק לשבוע זה",
+    "lastWeeks": "שלושת השבועות האחרונים",
+    "selectMember": "בחרו חבר לשיבוץ השבוע",
+    "timesLabel": "{{count}} פעמים",
+    "assign": "שבץ",
+    "assignSuccess": "השיבוץ נשמר",
+    "confirmAssign": "לשבץ את {{name}} כמחלק השבוע?"
+  },
+  "families": {
+    "title": "משפחות",
+    "empty": "לא נמצאו משפחות",
+    "contact": "איש קשר",
+    "phone": "טלפון",
+    "address": "כתובת",
+    "notes": "הערות",
+    "group": "קבוצה",
+    "orders": "הזמנות אחרונות"
   }
 }

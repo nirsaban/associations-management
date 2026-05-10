@@ -11,10 +11,22 @@ function roleLabelKey(u: ReturnType<typeof useAuthStore.getState>['user']): stri
   return 'home.role.USER';
 }
 
+function Tile({ href, label }: { href: any; label: string }) {
+  return (
+    <Link href={href} asChild>
+      <Pressable className="bg-white border border-gray-200 rounded-2xl py-5 px-4 mb-3 active:bg-gray-50">
+        <Text className="text-right text-lg font-semibold">{label}</Text>
+      </Pressable>
+    </Link>
+  );
+}
+
 export default function Home() {
   const { t } = useTranslation();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
+
+  const isAdmin = user?.systemRole === 'ADMIN' || user?.platformRole === 'SUPER_ADMIN';
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
@@ -22,28 +34,19 @@ export default function Home() {
         <Text className="text-2xl font-bold text-right">
           {t('home.welcome', { name: user?.name ?? '' })}
         </Text>
-        <Text className="text-base text-gray-600 text-right mt-1">
+        <Text className="text-base text-gray-600 text-right mt-1 mb-6">
           {t(roleLabelKey(user))}
         </Text>
 
-        <View className="mt-6 bg-white rounded-2xl p-4 border border-gray-200">
-          <Text className="text-right text-gray-500 text-sm">Organization ID</Text>
-          <Text className="text-right">{user?.organizationId}</Text>
-          <Text className="text-right text-gray-500 text-sm mt-3">Phone</Text>
-          <Text className="text-right">{user?.phone}</Text>
-        </View>
-
-        <Link href="/(app)/distributor" asChild>
-          <Pressable className="mt-6 rounded-2xl py-4 items-center bg-brand">
-            <Text className="text-white text-lg font-semibold">
-              {t('distributor.title')}
-            </Text>
-          </Pressable>
-        </Link>
+        <Tile href="/(app)/distributor" label={t('distributor.title')} />
+        <Tile href="/(app)/group" label={t('group.title')} />
+        <Tile href="/(app)/alerts" label={t('alerts.title')} />
+        <Tile href="/(app)/manager-distributor" label={t('manager.weeklyTitle')} />
+        {isAdmin && <Tile href="/(app)/families" label={t('families.title')} />}
 
         <Pressable
           onPress={logout}
-          className="mt-8 rounded-2xl py-4 items-center bg-red-500"
+          className="mt-6 rounded-2xl py-4 items-center bg-red-500"
         >
           <Text className="text-white text-lg font-semibold">{t('auth.logout')}</Text>
         </Pressable>
