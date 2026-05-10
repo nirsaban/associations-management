@@ -7,24 +7,43 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
 import { View, ActivityIndicator } from 'react-native';
+import { useState } from 'react';
 import { useAuthStore } from '@/store/auth.store';
 import { registerForPushAsync } from '@/push/register';
 import { useNotificationRouter } from '@/push/listeners';
+import { isBiometricEnabled, authenticate } from '@/lib/biometric';
+import i18n from '@/i18n';
 
 const qc = new QueryClient({ defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } } });
 
 function AuthGate() {
   const segments = useSegments();
   const router = useRouter();
-  const { hydrated, accessToken, user } = useAuthStore();
+  const { hydrated, accessToken, user, logout } = useAuthStore();
+  const [biometricLocked, setBiometricLocked] = useState(false);
   useNotificationRouter();
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || !accessToken) return;
+    let cancelled = false;
+    (async () => {
+      const enabled = await isBiometricEnabled();
+      if (!enabled || cancelled) return;
+      setBiometricLocked(true);
+      const ok = await authenticate(i18n.t('profile.biometric'));
+      if (cancelled) return;
+      if (ok) setBiometricLocked(false);
+      else await logout();
+    })();
+    return () => { cancelled = true; };
+  }, [hydrated, accessToken]);
+
+  useEffect(() => {
+    if (!hydrated || biometricLocked) return;
     const inAuthGroup = segments[0] === '(auth)';
     if (!accessToken && !inAuthGroup) router.replace('/(auth)/phone');
     else if (accessToken && inAuthGroup) router.replace('/(app)/');
-  }, [hydrated, accessToken, segments]);
+  }, [hydrated, accessToken, segments, biometricLocked]);
 
   useEffect(() => {
     if (accessToken && user) {
@@ -32,7 +51,7 @@ function AuthGate() {
     }
   }, [accessToken, user?.id]);
 
-  if (!hydrated) {
+  if (!hydrated || biometricLocked) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
         <ActivityIndicator size="large" />

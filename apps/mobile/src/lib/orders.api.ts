@@ -43,3 +43,11 @@ export async function completeWeeklyOrder(id: string): Promise<WeeklyOrder> {
   const res = await api.post(`/weekly-orders/${id}/complete`);
   return unwrap<WeeklyOrder>(res.data);
 }
+
+export async function patchWeeklyOrder(
+  id: string,
+  body: { items?: any[]; notes?: string },
+): Promise<WeeklyOrder> {
+  const res = await api.patch(`/weekly-orders/${id}`, body);
+  return unwrap<WeeklyOrder>(res.data);
+}

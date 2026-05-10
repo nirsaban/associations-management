@@ -9,6 +9,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "lint": "eslint .",
     "prebuild": "expo prebuild"
   },
@@ -48,6 +49,7 @@
   "devDependencies": {
     "@babel/core": "^7.24.7",
     "@types/react": "~18.2.79",
-    "typescript": "~5.3.3"
+    "typescript": "~5.3.3",
+    "vitest": "^1.6.1"
   }
 }

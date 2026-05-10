@@ -124,6 +124,12 @@
     "createUser": "הוספת משתמש",
     "createFamily": "הוספת משפחה",
     "createGroup": "הוספת קבוצה",
+    "createNew": "יצירת רשומה חדשה",
+    "users": "משתמשים",
+    "groupsList": "קבוצות",
+    "edit": "עריכה",
+    "active": "פעיל",
+    "inactive": "לא פעיל",
     "save": "שמור",
     "saved": "נשמר בהצלחה",
     "fields": {

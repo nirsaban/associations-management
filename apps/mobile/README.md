@@ -55,3 +55,24 @@ All five roles (SUPER_ADMIN / ADMIN / GROUP_MANAGER / GROUP_MEMBER / USER) authe
 ## Distribution
 
 Internal only for now (TestFlight / Expo Go / APK). No App Store / Play Store submission.
+
+## Smoke run checklist (manual)
+
+I cannot drive the simulator from CI. Run these locally on first boot:
+
+1. **Backend up:** `pnpm --filter api start:dev` — verify `http://localhost:3003/api/v1/health` 200.
+2. **Find your LAN IP:** `ifconfig | grep "inet " | grep -v 127` (mac) — copy the 192.x.x.x.
+3. **Set mobile env:** create `apps/mobile/.env` with `EXPO_PUBLIC_API_URL=http://<lan-ip>:3003/api/v1`.
+4. **Start Expo:** `pnpm --filter mobile start`. Press `i` (iOS sim), `a` (Android emu), or scan QR with Expo Go.
+5. **Login:** dev seed phones in `docs/multi-tenant-foundation/03-done.md`. Verify OTP arrives via Green API (or check logs for the printed code in dev mode).
+6. **Walk the tiles:**
+   - Distributor → mark a delivery → confirm green check appears, refresh persists.
+   - Group → current distributor card populated, members + families render RTL.
+   - Orders → tap order → add an item → save → reopen, item present.
+   - Payments → status pill matches DB, donate button opens browser.
+   - Profile → toggle biometric on, kill app, reopen — should prompt before showing screens.
+   - Alerts → fire an alert from web admin, confirm push delivered (requires real device + Expo Go for token).
+   - Admin → users list → edit one → save → see updated row.
+7. **Tap-to-route:** receive a push, tap it, confirm app opens to the matching screen.
+
+If anything 500s, the request URL likely points at `localhost` instead of your LAN IP — the most common gotcha.
