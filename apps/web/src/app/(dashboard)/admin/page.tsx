@@ -426,7 +426,7 @@ export default function AdminDashboardPage() {
         </Link>
 
         {/* Unpaid Users */}
-        <Link href="/admin/payments" className="card-elevated hover:shadow-lg transition-shadow">
+        <Link href="/admin/unpaid" className="card-elevated hover:shadow-lg transition-shadow">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-label-md text-on-surface-variant mb-1">טרם שילמו החודש</p>
