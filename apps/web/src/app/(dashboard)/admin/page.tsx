@@ -113,10 +113,6 @@ function deleteTemplateFromStorage(id: string): void {
   localStorage.setItem(TEMPLATES_KEY, JSON.stringify(getTemplates().filter(t => t.id !== id)));
 }
 
-function updateTemplateInStorage(updated: AlertTemplate): void {
-  const templates = getTemplates().map(t => t.id === updated.id ? updated : t);
-  localStorage.setItem(TEMPLATES_KEY, JSON.stringify(templates));
-}
 
 // ─── Dashboard Alert Composer (template-based) ──────────────────────────────
 
@@ -270,8 +266,6 @@ export default function AdminDashboardPage() {
 
   // Alerts / Publish Messages
   const [showAlertForm, setShowAlertForm] = useState(false);
-  const [alertForm, setAlertForm] = useState({ title: '', body: '', audience: 'ALL_USERS' as AlertAudience });
-
   const { data: alertsData } = useQuery<{ data: Alert[] }>({
     queryKey: ['admin', 'alerts', 'recent'],
     queryFn: async () => {
@@ -279,22 +273,6 @@ export default function AdminDashboardPage() {
       return data;
     },
     enabled: !!user,
-  });
-
-  const createAlertMutation = useMutation({
-    mutationFn: async (payload: { title: string; body: string; audience: AlertAudience }) => {
-      const { data } = await api.post('/admin/alerts', payload);
-      return data;
-    },
-    onSuccess: () => {
-      showToast('ההודעה פורסמה בהצלחה', 'success');
-      setShowAlertForm(false);
-      setAlertForm({ title: '', body: '', audience: 'ALL_USERS' });
-      queryClient.invalidateQueries({ queryKey: ['admin', 'alerts'] });
-    },
-    onError: () => {
-      showToast('שגיאה בפרסום ההודעה', 'error');
-    },
   });
 
   const deleteAlertMutation = useMutation({
