@@ -68,6 +68,21 @@ export async function patchOrgProfile(body: Partial<OrgProfile>) {
   return unwrap<OrgProfile>(res.data);
 }
 
+export async function uploadOrgLogo(uri: string, mime = 'image/jpeg'): Promise<OrgProfile> {
+  const form = new FormData();
+  // RN-style FormData file
+  form.append('file', { uri, name: 'logo.jpg', type: mime } as any);
+  const res = await api.post('/organization/profile/logo', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return unwrap<OrgProfile>(res.data);
+}
+
+export async function deleteOrgLogo(): Promise<OrgProfile> {
+  const res = await api.delete('/organization/profile/logo');
+  return unwrap<OrgProfile>(res.data);
+}
+
 export async function onboardingStep1(body: { name: string; address?: string; description?: string; logoUrl?: string }) {
   const res = await api.patch('/organization/me/onboarding/step-1', body);
   return unwrap(res.data);

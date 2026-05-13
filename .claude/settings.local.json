@@ -143,7 +143,17 @@
       "Bash(npm ls:*)",
       "Bash(grep -o \"^\\\\..*{\" /Users/Nir.Saban/Documents/Claude/Projects/amutot/apps/web/src/app/l/\\\\[slug\\\\]/landing.css)",
       "Bash(grep:*)",
-      "Bash(git diff:*)"
+      "Bash(git diff:*)",
+      "Bash(git -C /Users/Nir.Saban/Documents/Claude/Projects/amutot add apps/mobile pnpm-lock.yaml)",
+      "Bash(git -C /Users/Nir.Saban/Documents/Claude/Projects/amutot status -s)",
+      "Bash(git -C /Users/Nir.Saban/Documents/Claude/Projects/amutot commit -m ' *)",
+      "Bash(git -C /Users/Nir.Saban/Documents/Claude/Projects/amutot show --stat cba7d48)",
+      "Bash(git -C /Users/Nir.Saban/Documents/Claude/Projects/amutot add apps/mobile)",
+      "Bash(git -C /Users/Nir.Saban/Documents/Claude/Projects/amutot add -A apps/mobile)",
+      "Bash(git -C /Users/Nir.Saban/Documents/Claude/Projects/amutot log main..feat/mobile-app --oneline)",
+      "Bash(git -C /Users/Nir.Saban/Documents/Claude/Projects/amutot diff main..feat/mobile-app --stat)",
+      "Bash(git -C /Users/Nir.Saban/Documents/Claude/Projects/amutot push -u origin feat/mobile-app)",
+      "Bash(git -C /Users/Nir.Saban/Documents/Claude/Projects/amutot push)"
     ]
   }
 }

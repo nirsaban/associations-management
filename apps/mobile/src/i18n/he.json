@@ -156,6 +156,7 @@
     "templates": "תבניות שמורות",
     "templateName": "שם התבנית",
     "saveTemplate": "שמור תבנית",
+    "pickLogo": "בחירת לוגו",
     "alertTitle": "כותרת",
     "alertBody": "תוכן",
     "alertAudience": "קהל יעד",
@@ -187,6 +188,17 @@
     "share": "שתפו את הקוד",
     "shareMessage": "הצטרפו דרך קישור ההפניה שלי: {{url}}",
     "noLanding": "אין קישור הפניה לעמותה זו"
+  },
+  "csv": {
+    "title": "ייבוא משפחות מ-CSV",
+    "help": "בחרו קובץ CSV עם הכותרות: familyName, contactName, contactPhone, address, notes",
+    "columns": "(או בעברית: שם משפחה, איש קשר, טלפון, כתובת, הערות)",
+    "pickFile": "בחירת קובץ",
+    "preview": "תצוגה מקדימה ({{n}} שורות)",
+    "import": "ייבוא של {{n}} שורות",
+    "lastResult": "תוצאה אחרונה: {{ok}} הצליחו, {{err}} נכשלו",
+    "doneTitle": "הייבוא הסתיים",
+    "doneMessage": "{{ok}} משפחות נוצרו, {{err}} שגיאות"
   },
   "onboarding": {
     "title": "הקמת עמותה",

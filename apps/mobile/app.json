@@ -50,6 +50,12 @@
         {
           "faceIDPermission": "אפשר ל-Amutot להשתמש ב-Face ID להתחברות מהירה."
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "אפשר ל-Amutot לבחור תמונה לוגו לעמותה."
+        }
       ]
     ],
     "experiments": {

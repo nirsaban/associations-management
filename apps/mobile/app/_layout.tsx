@@ -12,6 +12,7 @@ import { useAuthStore } from '@/store/auth.store';
 import { registerForPushAsync } from '@/push/register';
 import { useNotificationRouter } from '@/push/listeners';
 import { isBiometricEnabled, authenticate } from '@/lib/biometric';
+import { getMe } from '@/lib/auth.api';
 import i18n from '@/i18n';
 
 const qc = new QueryClient({ defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } } });
@@ -48,6 +49,14 @@ function AuthGate() {
   useEffect(() => {
     if (accessToken && user) {
       registerForPushAsync().catch(() => {});
+      const isAdmin = user.systemRole === 'ADMIN' || user.platformRole === 'SUPER_ADMIN';
+      if (isAdmin) {
+        getMe()
+          .then((me) => {
+            if (me.setupCompleted === false) router.replace('/(app)/onboarding');
+          })
+          .catch(() => {});
+      }
     }
   }, [accessToken, user?.id]);
 

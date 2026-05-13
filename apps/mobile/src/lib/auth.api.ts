@@ -36,3 +36,19 @@ export async function verifyOtp(args: {
   const res = await api.post('/auth/verify-otp', args);
   return unwrap<VerifyOtpResponse>(res.data);
 }
+
+export interface MeResponse {
+  id: string;
+  phone: string;
+  fullName: string;
+  organizationId: string;
+  isGroupManager?: boolean;
+  managedGroupId?: string | null;
+  groupMembershipGroupId?: string | null;
+  setupCompleted?: boolean;
+}
+
+export async function getMe(): Promise<MeResponse> {
+  const res = await api.get('/auth/me');
+  return unwrap<MeResponse>(res.data);
+}

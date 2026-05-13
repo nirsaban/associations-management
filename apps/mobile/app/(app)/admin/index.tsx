@@ -27,6 +27,7 @@ export default function AdminIndex() {
         <Tile href="/(app)/admin/weekly-status" label={t('admin.weeklyStatus')} />
         <Tile href="/(app)/admin/referrals" label={t('admin.referralsAdmin')} />
         <Tile href="/(app)/admin/org-profile" label={t('admin.orgProfile')} />
+        <Tile href="/(app)/admin/csv-import" label={t('csv.title')} />
       </ScrollView>
     </SafeAreaView>
   );
