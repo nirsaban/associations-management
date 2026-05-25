@@ -284,8 +284,8 @@ export class AdminService {
       payments: payments.map((p) => ({
         id: p.id,
         userId: p.userId,
-        userName: p.user.fullName,
-        userPhone: p.user.phone,
+        userName: p.user?.fullName ?? p.payerName ?? '— (תשלום יתום)',
+        userPhone: p.user?.phone ?? p.payerPhone ?? '',
         amount: Number(p.amount),
         monthKey: p.monthKey,
         status: p.status,

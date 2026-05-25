@@ -323,28 +323,30 @@ export class PaymentsService {
 
     const paymentStatus = data.status as PaymentStatus;
 
-    // If no user found, log as webhook event but don't create payment (FK constraint)
+    // We always insert the payment row — even when no user could be matched.
+    // userId stays null for orphans; payerPhone + payerName preserve the
+    // identification info from the webhook so the admin can reconcile later.
     if (!data.userId) {
       this.logger.warn(
-        `Grow payment ${data.transactionId}: no matching user for phone ${data.payerPhone}. Storing as webhook event only.`,
+        `Grow payment ${data.transactionId}: no matching user for phone ${data.payerPhone}. Storing as orphan payment (userId=null).`,
       );
+      // Also create a webhook event for audit trail
       await this.prisma.webhookEvent.create({
         data: {
           organizationId: data.organizationId,
           provider: 'grow',
           eventId: data.transactionId,
-          eventType: 'payment',
+          eventType: 'payment_orphan',
           status: 'PROCESSED',
           rawPayload: data.rawPayload as Prisma.InputJsonValue,
         },
       });
-      return { id: `webhook_${data.transactionId}`, status: 'no_user_match' } as unknown as Record<string, unknown>;
     }
 
     const payment = await this.prisma.payment.create({
       data: {
         organizationId: data.organizationId,
-        userId: data.userId,
+        userId: data.userId ?? null,
         amount: data.amount,
         monthKey: data.monthKey,
         externalTransactionId: data.transactionId,
@@ -353,6 +355,8 @@ export class PaymentsService {
         referralId: data.referralId || null,
         paymentDate: paymentStatus === 'COMPLETED' ? new Date() : null,
         rawWebhookPayload: data.rawPayload as Prisma.InputJsonValue,
+        payerPhone: data.payerPhone || null,
+        payerName: data.payerName || null,
       },
     });
 
@@ -394,7 +398,7 @@ export class PaymentsService {
     return {
       id: payment.id as string,
       organizationId: payment.organizationId as string,
-      userId: payment.userId as string,
+      userId: (payment.userId as string | null) ?? null,
       amount: payment.amount as number,
       monthKey: payment.monthKey as string,
       transactionId: (payment.externalTransactionId as string) || '',

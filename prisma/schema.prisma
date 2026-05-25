@@ -455,7 +455,7 @@ model WeeklyFamilyDelivery {
 model Payment {
   id                    String        @id @default(cuid())
   organizationId        String
-  userId                String
+  userId                String? // Nullable — orphan webhooks (no matching user) still get a row
   amount                Decimal       @db.Decimal(12, 2)
   currency              String        @default("ILS") @db.VarChar(3)
   monthKey              String        @db.VarChar(7) // Format: "2026-04"
@@ -466,10 +466,14 @@ model Payment {
   referralId            String?
   rawWebhookPayload     Json?
 
+  // Fallback identification when no userId could be resolved from the webhook
+  payerPhone String? @db.VarChar(20)
+  payerName  String? @db.VarChar(255)
+
   createdAt DateTime @default(now())
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
   referral     Referral?    @relation(fields: [referralId], references: [id], onDelete: SetNull)
 
   monthlyPaymentStatus MonthlyPaymentStatus?

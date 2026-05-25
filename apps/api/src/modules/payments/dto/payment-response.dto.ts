@@ -7,8 +7,8 @@ export class PaymentResponseDto {
   @ApiProperty()
   organizationId!: string;
 
-  @ApiProperty()
-  userId!: string;
+  @ApiProperty({ required: false, nullable: true, description: 'null עבור תשלום יתום (webhook ללא התאמת משתמש)' })
+  userId!: string | null;
 
   @ApiProperty()
   amount!: number;
