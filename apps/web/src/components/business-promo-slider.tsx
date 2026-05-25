@@ -31,7 +31,7 @@ interface Business {
 }
 
 // Read speed for the marquee, in px per second. Lower = slower / easier to read.
-const PX_PER_SECOND = 110;
+const PX_PER_SECOND = 130;
 
 export function BusinessPromoSlider() {
   const [businesses, setBusinesses] = useState<Business[]>([]);
