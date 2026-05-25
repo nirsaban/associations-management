@@ -39,7 +39,9 @@ export class ProfessionsService {
   /**
    * Case-insensitive search across Profession.nameHe and ProfessionCategory.nameHe.
    * Returns professions whose own name matches OR whose category name matches.
-   * Capped at 30 results.
+   * Cap is generous (500) so the typeahead can show "all matching" without
+   * surprising truncation. The catalog itself is ~450 rows so a hit on a
+   * generic letter still returns the full catalog.
    */
   async search(q: string): Promise<ProfessionSearchResultDto[]> {
     this.logger.log(`Searching professions with query: "${q}"`);
@@ -52,7 +54,7 @@ export class ProfessionsService {
         ],
       },
       orderBy: [{ sortOrder: 'asc' }, { nameHe: 'asc' }],
-      take: 30,
+      take: 500,
       select: {
         id: true,
         nameHe: true,

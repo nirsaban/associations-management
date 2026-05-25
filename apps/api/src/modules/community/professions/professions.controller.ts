@@ -33,12 +33,14 @@ export class ProfessionsController {
   @Get()
   @ApiOperation({
     summary: 'קטלוג מקצועות',
-    description: 'מחזיר את כל הקטגוריות והמקצועות. ניתן לשמירה במטמון.',
+    description: 'מחזיר את כל הקטגוריות והמקצועות.',
   })
   async getCatalog(
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ data: ProfessionCategoryDto[] }> {
-    res.setHeader('Cache-Control', 'public, max-age=300');
+    // Short TTL + must-revalidate so updates to the catalog reach clients
+    // within a minute instead of being stuck on a 5-minute browser cache.
+    res.setHeader('Cache-Control', 'public, max-age=60, must-revalidate');
     const categories = await this.professionsService.getCatalog();
     return { data: categories };
   }

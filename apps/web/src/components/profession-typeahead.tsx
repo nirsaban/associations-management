@@ -154,10 +154,13 @@ export function ProfessionTypeahead({
     }
   }, []);
 
-  // Recompute options when query, catalog or exclusions change
+  // Recompute options when query, catalog or exclusions change.
+  // We render ALL matching options — the dropdown is scrollable, so showing
+  // every profession the user typed against is preferable to silently
+  // truncating to a small cap.
   useEffect(() => {
     const filtered = filterCatalog(catalog, query, excludedAll);
-    setOptions(filtered.slice(0, 40));
+    setOptions(filtered);
     setActiveIdx(-1);
 
     // If we have no local matches and there is a query, try remote search
@@ -169,7 +172,7 @@ export function ProfessionTypeahead({
           const remote = (res.data.data ?? []).filter(
             (p) => !excludedAll.includes(p.id),
           );
-          setOptions(remote.slice(0, 40));
+          setOptions(remote);
         })
         .catch(() => {})
         .finally(() => setLoadingRemote(false));
