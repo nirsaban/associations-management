@@ -23,18 +23,38 @@ export default function LoginPage() {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(null);
 
-  // Redirect only if user arrives at /login already authenticated (e.g. bookmark).
-  // Do NOT redirect when isAuthenticated flips during OTP verification —
-  // OtpVerification handles post-login routing to the correct destination.
-  const wasAuthOnMount = React.useRef(isAuthenticated);
+  // Wait for Zustand persist to hydrate before deciding whether the user is
+  // already logged in (e.g. PWA standalone with localStorage but no cookie
+  // yet — AuthCookieSync sets the cookie, then this redirect kicks in).
+  const [hydrated, setHydrated] = React.useState(() => useAuthStore.persist.hasHydrated());
+  const [hadInitialAuth, setHadInitialAuth] = React.useState(false);
+  const decisionLockedRef = React.useRef(false);
 
   React.useEffect(() => {
-    if (wasAuthOnMount.current) {
-      router.replace('/');
-    }
-  }, []); // only on mount
+    const decide = () => {
+      if (decisionLockedRef.current) return;
+      decisionLockedRef.current = true;
+      const authNow = useAuthStore.getState().isAuthenticated;
+      setHadInitialAuth(authNow);
+      setHydrated(true);
+      if (authNow) {
+        router.replace('/');
+      }
+    };
 
-  if (wasAuthOnMount.current) {
+    if (useAuthStore.persist.hasHydrated()) {
+      decide();
+    }
+    const unsub = useAuthStore.persist.onFinishHydration(() => decide());
+    return () => { unsub(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Show loader while we're hydrating OR while a redirect to / is in flight.
+  // hadInitialAuth + isAuthenticated together ensure we don't loop when the
+  // user signs in here (isAuthenticated flips after OTP — but hadInitialAuth
+  // stays false, so OtpVerification can still route post-login).
+  if (!hydrated || (hadInitialAuth && isAuthenticated)) {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
