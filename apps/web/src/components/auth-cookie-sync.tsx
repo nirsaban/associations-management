@@ -25,6 +25,9 @@ import { useAuthStore } from '@/store/auth.store';
  */
 export function AuthCookieSync() {
   useEffect(() => {
+    const persist = useAuthStore.persist;
+    if (!persist) return; // SSR / build prerender — nothing to do
+
     const sync = () => {
       const { accessToken } = useAuthStore.getState();
       if (!accessToken) return;
@@ -41,12 +44,12 @@ export function AuthCookieSync() {
     };
 
     // Run immediately in case the store is already hydrated synchronously.
-    if (useAuthStore.persist.hasHydrated()) {
+    if (persist.hasHydrated()) {
       sync();
     }
 
     // Also run when hydration finishes (Zustand persist async path).
-    const unsub = useAuthStore.persist.onFinishHydration(() => {
+    const unsub = persist.onFinishHydration(() => {
       sync();
     });
 

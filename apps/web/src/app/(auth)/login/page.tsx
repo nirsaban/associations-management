@@ -26,11 +26,19 @@ export default function LoginPage() {
   // Wait for Zustand persist to hydrate before deciding whether the user is
   // already logged in (e.g. PWA standalone with localStorage but no cookie
   // yet — AuthCookieSync sets the cookie, then this redirect kicks in).
-  const [hydrated, setHydrated] = React.useState(() => useAuthStore.persist.hasHydrated());
+  // Defaults are SSR-safe: persist API only exists in the browser.
+  const [hydrated, setHydrated] = React.useState(false);
   const [hadInitialAuth, setHadInitialAuth] = React.useState(false);
   const decisionLockedRef = React.useRef(false);
 
   React.useEffect(() => {
+    const persist = useAuthStore.persist;
+    if (!persist) {
+      // Should not happen in the browser, but stay safe.
+      setHydrated(true);
+      return;
+    }
+
     const decide = () => {
       if (decisionLockedRef.current) return;
       decisionLockedRef.current = true;
@@ -42,10 +50,10 @@ export default function LoginPage() {
       }
     };
 
-    if (useAuthStore.persist.hasHydrated()) {
+    if (persist.hasHydrated()) {
       decide();
     }
-    const unsub = useAuthStore.persist.onFinishHydration(() => decide());
+    const unsub = persist.onFinishHydration(() => decide());
     return () => { unsub(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
