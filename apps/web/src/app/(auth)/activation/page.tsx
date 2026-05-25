@@ -8,10 +8,11 @@ import { BiometryStep } from './_components/BiometryStep';
 import { PwaInstallInstructions } from './_components/PwaInstallInstructions';
 import { GroupConfirmStep } from './_components/GroupConfirmStep';
 import { ProfessionStep } from './_components/ProfessionStep';
+import { BusinessStep } from './_components/BusinessStep';
 import { COMMUNITY_PROFESSIONS_ENABLED } from '@/lib/feature-flags';
 import api from '@/lib/api';
 
-type Step = 'group' | 'profession' | 'push' | 'biometry' | 'pwa';
+type Step = 'group' | 'profession' | 'business' | 'push' | 'biometry' | 'pwa';
 
 function isStandalone(): boolean {
   if (typeof window === 'undefined') return false;
@@ -30,11 +31,18 @@ function isIosDevice(): boolean {
  * - Non-admin users get a group confirmation step first
  * - Profession step is inserted after group step when feature flag is on
  *   and user is not SUPER_ADMIN and does not already have a primary profession
+ * - Business step follows profession for any non-super-admin who hasn't
+ *   already created a community business profile
  * - iOS non-PWA: push won't work → show PWA install first, then biometry
  * - Already in PWA: skip PWA step → push + biometry
  * - Android/Desktop browser: push works → push + biometry + PWA
  */
-function buildSteps(isAdmin: boolean, hasProfession: boolean, isSuperAdmin: boolean): Step[] {
+function buildSteps(
+  isAdmin: boolean,
+  hasProfession: boolean,
+  hasBusiness: boolean,
+  isSuperAdmin: boolean,
+): Step[] {
   const standalone = isStandalone();
   const ios = isIosDevice();
 
@@ -46,13 +54,17 @@ function buildSteps(isAdmin: boolean, hasProfession: boolean, isSuperAdmin: bool
       ? ['profession']
       : [];
 
+  // Insert business step for everyone except super-admin and those who have one
+  const businessStep: Step[] =
+    COMMUNITY_PROFESSIONS_ENABLED && !isSuperAdmin && !hasBusiness ? ['business'] : [];
+
   const platformSteps: Step[] = standalone
     ? ['push', 'biometry']
     : ios
       ? ['pwa', 'biometry']
       : ['push', 'biometry', 'pwa'];
 
-  return [...groupStep, ...professionStep, ...platformSteps];
+  return [...groupStep, ...professionStep, ...businessStep, ...platformSteps];
 }
 
 export default function ActivationPage() {
@@ -64,30 +76,38 @@ export default function ActivationPage() {
   const [steps, setSteps] = useState<Step[]>(['push', 'biometry', 'pwa']);
   const [currentStep, setCurrentStep] = useState<Step>('push');
   const [hasProfession, setHasProfession] = useState(false);
+  const [hasBusiness, setHasBusiness] = useState(false);
   const [profileChecked, setProfileChecked] = useState(false);
 
-  // Check if the user already has a primary profession (skip step if so)
+  // Check if the user already has a primary profession and a community business
+  // (skip those steps if so).
   useEffect(() => {
     if (!COMMUNITY_PROFESSIONS_ENABLED || isSuperAdmin) {
       setProfileChecked(true);
       return;
     }
-    api
-      .get<{ data: { primaryProfessionId?: string } }>('/auth/me')
-      .then((res) => {
-        setHasProfession(!!res.data?.data?.primaryProfessionId);
+    Promise.allSettled([
+      api.get<{ data: { primaryProfessionId?: string } }>('/auth/me'),
+      api.get<{ data: { id?: string } | null }>('/community/businesses/me'),
+    ])
+      .then(([profileRes, businessRes]) => {
+        if (profileRes.status === 'fulfilled') {
+          setHasProfession(!!profileRes.value.data?.data?.primaryProfessionId);
+        }
+        if (businessRes.status === 'fulfilled') {
+          setHasBusiness(!!businessRes.value.data?.data?.id);
+        }
       })
-      .catch(() => {})
       .finally(() => setProfileChecked(true));
   }, [isSuperAdmin]);
 
   // Compute steps on client only (needs navigator) — wait for profile check
   useEffect(() => {
     if (!profileChecked) return;
-    const computed = buildSteps(!!isAdmin, hasProfession, !!isSuperAdmin);
+    const computed = buildSteps(!!isAdmin, hasProfession, hasBusiness, !!isSuperAdmin);
     setSteps(computed);
     setCurrentStep(computed[0]);
-  }, [isAdmin, hasProfession, isSuperAdmin, profileChecked]);
+  }, [isAdmin, hasProfession, hasBusiness, isSuperAdmin, profileChecked]);
 
   const goToNext = useCallback(async (fromStep: Step) => {
     const idx = steps.indexOf(fromStep);
@@ -144,6 +164,9 @@ export default function ActivationPage() {
           )}
           {currentStep === 'profession' && (
             <ProfessionStep onComplete={() => goToNext('profession')} />
+          )}
+          {currentStep === 'business' && (
+            <BusinessStep onComplete={() => goToNext('business')} />
           )}
           {currentStep === 'push' && (
             <PushNotificationStep onComplete={() => goToNext('push')} />

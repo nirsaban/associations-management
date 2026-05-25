@@ -4,12 +4,13 @@ import React, { ReactNode, useEffect, useState, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/auth.store';
-import { Menu, LogOut, Home, Users, CreditCard, Upload, Bell, Truck, ShoppingCart, Heart, UserCircle, Building2, Globe, Link2, Globe2 } from 'lucide-react';
+import { Menu, LogOut, Home, Users, CreditCard, Upload, Bell, Truck, ShoppingCart, Heart, UserCircle, Building2, Globe, Link2, Globe2, Briefcase } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import { AutoPushSubscribe } from '@/components/pwa/AutoPushSubscribe';
 import { COMMUNITY_PROFESSIONS_ENABLED } from '@/lib/feature-flags';
+import { ThemeSwitchButton } from '@/components/theme/ThemeSwitchButton';
 
 // Full navigation items per role
 const NAVIGATION = {
@@ -37,6 +38,7 @@ const NAVIGATION = {
     { label: 'התרומות שלי', href: '/user/my-donations', icon: CreditCard },
     { label: 'התראות', href: '/notifications', icon: Bell },
     ...(COMMUNITY_PROFESSIONS_ENABLED ? [{ label: 'קהילה', href: '/community/people', icon: Globe2 }] : []),
+    { label: 'העסק שלי', href: '/profile/business', icon: Briefcase },
     { label: 'פרופיל', href: '/profile', icon: UserCircle },
   ],
   GROUP_MANAGER: [
@@ -48,6 +50,8 @@ const NAVIGATION = {
     { label: 'מחלק שבועי', href: '/manager/weekly-distributor', icon: Truck },
     { label: 'התראות', href: '/notifications', icon: Bell },
     ...(COMMUNITY_PROFESSIONS_ENABLED ? [{ label: 'קהילה', href: '/community/people', icon: Globe2 }] : []),
+    { label: 'העסק שלי', href: '/profile/business', icon: Briefcase },
+    { label: 'פרופיל', href: '/profile', icon: UserCircle },
   ],
   WEEKLY_DISTRIBUTOR: [
     { label: 'בית', href: '/', icon: Home },
@@ -291,7 +295,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           })}
         </nav>
 
-        <div className="border-t border-outline/30 px-3 py-4">
+        <div className="border-t border-outline/30 px-3 py-4 space-y-2">
+          <div className="px-2">
+            <ThemeSwitchButton className="w-full justify-center" />
+          </div>
           <button
             onClick={logout}
             className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-body-md text-error hover:bg-error/10 transition-colors"
@@ -305,20 +312,23 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         {/* Top Header — mobile */}
-        <header className="md:hidden border-b border-outline/30 bg-surface-container-low px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2 min-w-0">
+        <header className="md:hidden border-b border-outline/30 bg-surface-container-low px-4 py-3 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             {orgProfile?.logoUrl && (
               <img src={orgProfile.logoUrl} alt="" className="w-7 h-7 rounded-lg object-contain flex-shrink-0" />
             )}
             <h1 className="text-title-sm font-headline truncate">{orgProfile?.name || 'נחלת דוד'}</h1>
           </div>
-          <button
-            onClick={logout}
-            className="p-2 rounded-md text-error hover:bg-error/10 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
-            aria-label="התנתק"
-          >
-            <LogOut className="h-5 w-5" />
-          </button>
+          <div className="flex items-center gap-1 shrink-0">
+            <ThemeSwitchButton size="sm" showLabel={false} />
+            <button
+              onClick={logout}
+              className="p-2 rounded-md text-error hover:bg-error/10 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+              aria-label="התנתק"
+            >
+              <LogOut className="h-5 w-5" />
+            </button>
+          </div>
         </header>
 
         {/* Main Area */}

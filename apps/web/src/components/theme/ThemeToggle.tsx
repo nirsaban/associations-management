@@ -176,7 +176,7 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
       <style jsx>{`
         .theme-toggle-wrap {
           position: fixed;
-          z-index: 60;
+          z-index: 9999;
           display: flex;
           align-items: center;
           gap: 10px;
