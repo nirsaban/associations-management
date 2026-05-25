@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import { Providers } from './providers';
-import { themeBootstrapScript } from '@/components/theme/ThemeProvider';
+import { themeBootstrapScript } from '@/components/theme/theme-bootstrap';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -10,6 +10,7 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
   icons: {
     icon: [
+      { url: '/icon-square.svg', type: 'image/svg+xml' },
       { url: '/favicon.png', type: 'image/png' },
       { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
       { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
@@ -30,7 +31,7 @@ export const metadata: Metadata = {
     maximumScale: 5,
     userScalable: true,
   },
-  themeColor: '#A74C66',
+  themeColor: '#1a1a1a',
   applicationName: 'נחלת דוד',
   formatDetection: {
     telephone: false,
