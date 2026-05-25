@@ -82,13 +82,13 @@ export default function NoDistributorPage() {
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-5xl mx-auto w-full">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <Link href="/admin" className="btn-ghost p-2 rounded-full">
+      <div className="flex items-start sm:items-center gap-3">
+        <Link href="/admin" className="btn-ghost p-2 rounded-full shrink-0">
           <ArrowRight className="h-5 w-5" />
         </Link>
-        <div>
+        <div className="min-w-0">
           <h1 className="text-headline-md font-headline">ללא מחלק שבועי</h1>
           <p className="text-body-sm text-on-surface-variant">
             קבוצות שטרם שובץ להן מחלק שבועי לשבוע הנוכחי
@@ -97,8 +97,8 @@ export default function NoDistributorPage() {
       </div>
 
       {/* Summary + bulk action */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
           <span className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${
             groups.length > 0 ? 'bg-error/10 text-error' : 'bg-success/10 text-success'
           }`}>
@@ -110,10 +110,12 @@ export default function NoDistributorPage() {
             type="button"
             onClick={handleAlertAll}
             disabled={alertMutation.isPending}
-            className="btn-primary btn-sm flex items-center gap-2"
+            className="btn-primary btn-sm flex items-center justify-center gap-2 w-full sm:w-auto"
           >
-            <Bell className="h-4 w-4" />
-            {alertMutation.isPending ? 'שולח...' : 'התראה לכל המנהלים'}
+            <Bell className="h-4 w-4 shrink-0" />
+            <span className="whitespace-nowrap">
+              {alertMutation.isPending ? 'שולח...' : 'התראה לכל המנהלים'}
+            </span>
           </button>
         )}
       </div>
@@ -130,21 +132,21 @@ export default function NoDistributorPage() {
           {groups.map((group) => (
             <div
               key={group.groupId}
-              className="card-elevated flex items-center justify-between gap-4"
+              className="card-elevated flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4"
             >
               <div className="min-w-0 flex-1">
                 <p className="text-body-md font-medium truncate">{group.groupName}</p>
-                <p className="text-body-sm text-on-surface-variant">
+                <p className="text-body-sm text-on-surface-variant truncate">
                   מנהל: {group.managerName || 'לא שובץ'}
                 </p>
                 <p className="text-label-sm text-on-surface-variant mt-1">
                   עדכון אחרון: {new Date(group.lastActivity).toLocaleDateString('he-IL')}
                 </p>
               </div>
-              <div className="flex gap-2 shrink-0">
+              <div className="flex flex-wrap gap-2 sm:shrink-0">
                 <Link
                   href={`/admin/groups`}
-                  className="btn-outline btn-sm"
+                  className="btn-outline btn-sm flex-1 sm:flex-none text-center whitespace-nowrap"
                 >
                   פרטי קבוצה
                 </Link>
@@ -153,9 +155,9 @@ export default function NoDistributorPage() {
                     type="button"
                     onClick={() => handleAlertOne(group.groupId)}
                     disabled={alertMutation.isPending}
-                    className="btn-primary btn-sm flex items-center gap-1"
+                    className="btn-primary btn-sm flex flex-1 sm:flex-none items-center justify-center gap-1 whitespace-nowrap"
                   >
-                    <Bell className="h-4 w-4" />
+                    <Bell className="h-4 w-4 shrink-0" />
                     התראה
                   </button>
                 )}

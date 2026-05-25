@@ -96,13 +96,13 @@ export default function IncompleteOrdersPage() {
   const completedGroups = (meta?.totalGroups ?? 0) - (meta?.incompleteGroups ?? 0);
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-5xl mx-auto w-full">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <Link href="/admin" className="btn-ghost p-2 rounded-full">
+      <div className="flex items-start sm:items-center gap-3">
+        <Link href="/admin" className="btn-ghost p-2 rounded-full shrink-0">
           <ArrowRight className="h-5 w-5" />
         </Link>
-        <div>
+        <div className="min-w-0">
           <h1 className="text-headline-md font-headline">הזמנות שלא הושלמו</h1>
           <p className="text-body-sm text-on-surface-variant">
             קבוצות שלא השלימו את ההזמנות השבועיות לשבוע הנוכחי
@@ -112,27 +112,27 @@ export default function IncompleteOrdersPage() {
 
       {/* Summary bar */}
       <div className="card-elevated">
-        <div className="flex items-center gap-6">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-5 w-5 text-success" />
-            <span className="text-body-md">
+            <CheckCircle2 className="h-5 w-5 text-success shrink-0" />
+            <span className="text-body-md whitespace-nowrap">
               <span className="font-bold text-success">{completedGroups}</span> קבוצות הושלמו
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <XCircle className="h-5 w-5 text-error" />
-            <span className="text-body-md">
+            <XCircle className="h-5 w-5 text-error shrink-0" />
+            <span className="text-body-md whitespace-nowrap">
               <span className="font-bold text-error">{meta?.incompleteGroups ?? 0}</span> קבוצות לא הושלמו
             </span>
           </div>
-          <div className="text-body-sm text-on-surface-variant">
+          <div className="text-body-sm text-on-surface-variant whitespace-nowrap">
             מתוך {meta?.totalGroups ?? 0} קבוצות
           </div>
         </div>
       </div>
 
       {/* Bulk alert button */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <p className="text-body-sm text-on-surface-variant">
           {groups.length === 0 ? 'כל הקבוצות השלימו את ההזמנות' : `${groups.length} קבוצות ממתינות להשלמה`}
         </p>
@@ -141,10 +141,12 @@ export default function IncompleteOrdersPage() {
             type="button"
             onClick={handleAlertAll}
             disabled={alertMutation.isPending}
-            className="btn-primary btn-sm flex items-center gap-2"
+            className="btn-primary btn-sm flex items-center justify-center gap-2 w-full sm:w-auto"
           >
-            <Bell className="h-4 w-4" />
-            {alertMutation.isPending ? 'שולח...' : 'התראה לכל המנהלים'}
+            <Bell className="h-4 w-4 shrink-0" />
+            <span className="whitespace-nowrap">
+              {alertMutation.isPending ? 'שולח...' : 'התראה לכל המנהלים'}
+            </span>
           </button>
         )}
       </div>
@@ -163,7 +165,7 @@ export default function IncompleteOrdersPage() {
             return (
               <div
                 key={group.groupId}
-                className="card-elevated flex items-center justify-between gap-4"
+                className="card-elevated flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4"
               >
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 mb-1">
@@ -174,11 +176,11 @@ export default function IncompleteOrdersPage() {
                     )}
                     <p className="text-body-md font-medium truncate">{group.groupName}</p>
                   </div>
-                  <p className="text-body-sm text-on-surface-variant">
+                  <p className="text-body-sm text-on-surface-variant truncate">
                     מנהל: {group.managerName || 'לא שובץ'}
                   </p>
-                  <div className="flex items-center gap-4 mt-1">
-                    <p className="text-label-sm text-on-surface-variant">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1">
+                    <p className="text-label-sm text-on-surface-variant whitespace-nowrap">
                       הושלמו: {group.completedOrders} / {group.totalOrders} הזמנות
                     </p>
                     {group.orderStatus && (
@@ -190,15 +192,15 @@ export default function IncompleteOrdersPage() {
                         {group.orderStatus === 'COMPLETED' ? 'הושלם' : 'טיוטה'}
                       </span>
                     )}
-                    <p className="text-label-sm text-on-surface-variant">
+                    <p className="text-label-sm text-on-surface-variant whitespace-nowrap">
                       עדכון: {new Date(group.lastUpdate).toLocaleDateString('he-IL')}
                     </p>
                   </div>
                 </div>
-                <div className="flex gap-2 shrink-0">
+                <div className="flex flex-wrap gap-2 sm:shrink-0">
                   <Link
                     href="/admin/orders"
-                    className="btn-outline btn-sm"
+                    className="btn-outline btn-sm flex-1 sm:flex-none text-center whitespace-nowrap"
                   >
                     צפייה בהזמנות
                   </Link>
@@ -207,9 +209,9 @@ export default function IncompleteOrdersPage() {
                       type="button"
                       onClick={() => handleAlertOne(group.groupId)}
                       disabled={alertMutation.isPending}
-                      className="btn-primary btn-sm flex items-center gap-1"
+                      className="btn-primary btn-sm flex flex-1 sm:flex-none items-center justify-center gap-1 whitespace-nowrap"
                     >
-                      <Bell className="h-4 w-4" />
+                      <Bell className="h-4 w-4 shrink-0" />
                       התראה
                     </button>
                   )}

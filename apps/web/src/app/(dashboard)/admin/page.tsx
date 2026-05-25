@@ -141,24 +141,24 @@ function DashboardAlertComposer({ onClose, onSuccess }: { onClose: () => void; o
       </div>
 
       {/* Template bar */}
-      <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
         <div className="relative flex-1">
           <button
             type="button"
             onClick={() => setShowTemplates(!showTemplates)}
-            className="btn-outline text-sm flex items-center gap-2 w-full justify-center"
+            className="btn-outline text-sm flex items-center gap-2 w-full justify-center whitespace-nowrap"
           >
-            <BookOpen className="h-4 w-4" />
+            <BookOpen className="h-4 w-4 shrink-0" />
             בחר תבנית ({templates.length})
           </button>
           {showTemplates && templates.length > 0 && (
             <div className="absolute top-full left-0 right-0 mt-1 bg-surface border border-outline rounded-lg shadow-lg z-10 max-h-48 overflow-auto">
               {templates.map((t) => (
-                <div key={t.id} className="flex items-center justify-between px-3 py-2 hover:bg-surface-container cursor-pointer">
-                  <button type="button" onClick={() => { deleteTemplateFromStorage(t.id); setTemplates(getTemplates()); }} className="p-1 text-error hover:bg-error-container rounded">
+                <div key={t.id} className="flex items-center justify-between px-3 py-2 hover:bg-surface-container cursor-pointer gap-2">
+                  <button type="button" onClick={() => { deleteTemplateFromStorage(t.id); setTemplates(getTemplates()); }} className="p-1 text-error hover:bg-error-container rounded shrink-0" aria-label="מחק תבנית">
                     <Trash2 className="h-3 w-3" />
                   </button>
-                  <button type="button" onClick={() => { setForm({ title: t.title, body: t.body, audience: t.audience }); setShowTemplates(false); }} className="flex-1 text-right text-sm">
+                  <button type="button" onClick={() => { setForm({ title: t.title, body: t.body, audience: t.audience }); setShowTemplates(false); }} className="flex-1 text-right text-sm min-w-0 truncate">
                     {t.name}
                   </button>
                 </div>
@@ -176,9 +176,9 @@ function DashboardAlertComposer({ onClose, onSuccess }: { onClose: () => void; o
             setTemplates(getTemplates());
             showToast('התבנית נשמרה', 'success');
           }}
-          className="btn-outline text-sm flex items-center gap-2"
+          className="btn-outline text-sm flex items-center justify-center gap-2 whitespace-nowrap"
         >
-          <Save className="h-4 w-4" />
+          <Save className="h-4 w-4 shrink-0" />
           שמור כתבנית
         </button>
       </div>
@@ -456,26 +456,24 @@ export default function AdminDashboardPage() {
           סטטוס שבועי
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Card 1: No distributor */}
           <div className={`rounded-xl border p-4 flex flex-col gap-3 ${
             noDistributorCount > 0 ? 'border-error/30 bg-error-container/20' : 'border-success/30 bg-success-container/20'
           }`}>
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-label-md text-on-surface-variant mb-1">ללא מחלק שבועי</p>
-                <p className={`text-headline-md font-bold ${noDistributorCount > 0 ? 'text-error' : 'text-success'}`}>
-                  {noDistributorCount}
-                  <span className="text-body-sm text-on-surface-variant font-normal">
-                    {' '}/ {data?.weeklyStatus.totalGroups || 0} קבוצות
-                  </span>
-                </p>
-              </div>
+            <div>
+              <p className="text-label-md text-on-surface-variant mb-1">ללא מחלק שבועי</p>
+              <p className={`text-headline-md font-bold ${noDistributorCount > 0 ? 'text-error' : 'text-success'}`}>
+                {noDistributorCount}
+                <span className="text-body-sm text-on-surface-variant font-normal">
+                  {' '}/ {data?.weeklyStatus.totalGroups || 0} קבוצות
+                </span>
+              </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-col md:flex-row flex-wrap gap-2 mt-auto">
               <Link
                 href="/admin/weekly-status/no-distributor"
-                className="btn-outline btn-sm flex-1 text-center"
+                className="btn-outline btn-sm flex-1 text-center whitespace-nowrap"
               >
                 צפייה ברשימה
               </Link>
@@ -483,10 +481,10 @@ export default function AdminDashboardPage() {
                 type="button"
                 onClick={handleAlertNoDistributorManagers}
                 disabled={noDistributorCount === 0 || alertManagersMutation.isPending}
-                className="btn-primary btn-sm flex items-center gap-1 disabled:opacity-50"
+                className="btn-primary btn-sm flex items-center justify-center gap-1 disabled:opacity-50 whitespace-nowrap"
               >
-                <Bell className="h-4 w-4" />
-                התראה למנהלים
+                <Bell className="h-4 w-4 shrink-0" />
+                <span>התראה למנהלים</span>
               </button>
             </div>
           </div>
@@ -495,19 +493,17 @@ export default function AdminDashboardPage() {
           <div className={`rounded-xl border p-4 flex flex-col gap-3 ${
             incompleteCount > 0 ? 'border-warning/30 bg-warning/10' : 'border-success/30 bg-success-container/20'
           }`}>
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-label-md text-on-surface-variant mb-1">סטטוס הזמנות</p>
-                <p className={`text-headline-md font-bold ${incompleteCount > 0 ? 'text-warning' : 'text-success'}`}>
-                  הושלמו {completedGroupsCount} מתוך {totalGroupsForOrders}
-                </p>
-                <p className="text-body-sm text-on-surface-variant">קבוצות עם הזמנות שלא הושלמו</p>
-              </div>
+            <div>
+              <p className="text-label-md text-on-surface-variant mb-1">סטטוס הזמנות</p>
+              <p className={`text-headline-md font-bold ${incompleteCount > 0 ? 'text-warning' : 'text-success'}`}>
+                הושלמו {completedGroupsCount} מתוך {totalGroupsForOrders}
+              </p>
+              <p className="text-body-sm text-on-surface-variant">קבוצות עם הזמנות שלא הושלמו</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-col md:flex-row flex-wrap gap-2 mt-auto">
               <Link
                 href="/admin/weekly-status/incomplete-orders"
-                className="btn-outline btn-sm flex-1 text-center"
+                className="btn-outline btn-sm flex-1 text-center whitespace-nowrap"
               >
                 צפייה ברשימה
               </Link>
@@ -515,20 +511,20 @@ export default function AdminDashboardPage() {
                 type="button"
                 onClick={handleAlertIncompleteOrdersManagers}
                 disabled={incompleteCount === 0 || alertManagersMutation.isPending}
-                className="btn-primary btn-sm flex items-center gap-1 disabled:opacity-50"
+                className="btn-primary btn-sm flex items-center justify-center gap-1 disabled:opacity-50 whitespace-nowrap"
               >
-                <Bell className="h-4 w-4" />
-                התראה למנהלים
+                <Bell className="h-4 w-4 shrink-0" />
+                <span>התראה למנהלים</span>
               </button>
             </div>
           </div>
 
           {/* Card 3: Current distributors */}
-          <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 flex flex-col gap-3">
+          <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 flex flex-col gap-3 sm:col-span-2 lg:col-span-1">
             <div>
               <p className="text-label-md text-on-surface-variant mb-1">מחלקים שבועיים נוכחיים</p>
-              <p className="text-headline-md font-bold text-primary flex items-center gap-2">
-                <Truck className="h-5 w-5" />
+              <p className="text-headline-md font-bold text-primary flex items-center gap-2 flex-wrap">
+                <Truck className="h-5 w-5 shrink-0" />
                 {data?.weeklyStatus.groupsWithDistributor || 0}
                 <span className="text-body-sm text-on-surface-variant font-normal">
                   / {data?.weeklyStatus.totalGroups || 0} קבוצות
@@ -537,7 +533,7 @@ export default function AdminDashboardPage() {
             </div>
             <Link
               href="/admin/weekly-status/current-distributors"
-              className="btn-primary btn-sm text-center"
+              className="btn-primary btn-sm text-center whitespace-nowrap mt-auto"
             >
               צפייה ברשימה
             </Link>
@@ -547,22 +543,22 @@ export default function AdminDashboardPage() {
 
       {/* Publish Messages Section — full template-based composer */}
       <div className="card-elevated">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-title-lg font-medium flex items-center gap-3">
-            <Bell className="h-6 w-6 text-tertiary" />
-            פרסום הודעות
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+          <h2 className="text-title-lg font-medium flex items-center gap-3 min-w-0">
+            <Bell className="h-6 w-6 text-tertiary shrink-0" />
+            <span className="truncate">פרסום הודעות</span>
           </h2>
-          <div className="flex items-center gap-2">
-            <Link href="/admin/alerts/templates" className="btn-outline btn-sm flex items-center gap-1">
-              <BookOpen className="h-4 w-4" />
+          <div className="flex flex-wrap items-center gap-2">
+            <Link href="/admin/alerts/templates" className="btn-outline btn-sm flex items-center gap-1 whitespace-nowrap">
+              <BookOpen className="h-4 w-4 shrink-0" />
               ניהול תבניות
             </Link>
-            <Link href="/admin/alerts" className="btn-outline btn-sm">
+            <Link href="/admin/alerts" className="btn-outline btn-sm whitespace-nowrap">
               הצג הכל
             </Link>
             {!showAlertForm && (
-              <button type="button" onClick={() => setShowAlertForm(true)} className="btn-primary btn-sm flex items-center gap-1">
-                <Send className="h-4 w-4" />
+              <button type="button" onClick={() => setShowAlertForm(true)} className="btn-primary btn-sm flex items-center gap-1 whitespace-nowrap">
+                <Send className="h-4 w-4 shrink-0" />
                 הודעה חדשה
               </button>
             )}
@@ -586,16 +582,16 @@ export default function AdminDashboardPage() {
             {alertsData.data.map((alert) => (
               <div key={alert.id} className="p-3 rounded-lg bg-surface-container flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="text-body-md font-medium truncate">{alert.title}</p>
-                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium shrink-0 ${
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-1">
+                    <p className="text-body-md font-medium truncate min-w-0 flex-1">{alert.title}</p>
+                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium shrink-0 whitespace-nowrap ${
                       alert.audience === 'ALL_USERS' ? 'bg-primary/10 text-primary'
                         : alert.audience === 'UNPAID_THIS_MONTH' ? 'bg-warning/10 text-warning'
                         : alert.audience === 'CURRENT_DISTRIBUTORS' ? 'bg-secondary/10 text-secondary'
                         : 'bg-tertiary/10 text-tertiary'
                     }`}>{AUDIENCE_LABELS[alert.audience]}</span>
                   </div>
-                  <p className="text-body-sm text-on-surface-variant line-clamp-1">{alert.body}</p>
+                  <p className="text-body-sm text-on-surface-variant line-clamp-1 break-words">{alert.body}</p>
                   <p className="text-label-sm text-on-surface-variant mt-1">נמענים: {alert.recipientCount}</p>
                 </div>
                 <button
@@ -603,6 +599,7 @@ export default function AdminDashboardPage() {
                   onClick={() => { if (window.confirm('האם למחוק הודעה זו?')) deleteAlertMutation.mutate(alert.id); }}
                   disabled={deleteAlertMutation.isPending}
                   className="btn-ghost p-1.5 rounded-lg text-error hover:bg-error/10 transition-colors shrink-0"
+                  aria-label="מחק הודעה"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>

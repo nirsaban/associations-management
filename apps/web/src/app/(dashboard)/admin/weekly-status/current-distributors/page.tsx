@@ -32,13 +32,13 @@ export default function CurrentDistributorsPage() {
   const distributors = data?.data ?? [];
 
   return (
-    <div className="flex flex-col gap-6 p-4 sm:p-6 max-w-4xl" dir="rtl">
+    <div className="flex flex-col gap-6 p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto w-full" dir="rtl">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <Link href="/admin" className="btn-ghost p-2 rounded-full">
+      <div className="flex items-start sm:items-center gap-3">
+        <Link href="/admin" className="btn-ghost p-2 rounded-full shrink-0">
           <ArrowRight className="w-5 h-5" />
         </Link>
-        <div>
+        <div className="min-w-0">
           <h1 className="text-2xl font-bold text-on-surface">מחלקים שבועיים</h1>
           <p className="text-sm text-on-surface-variant mt-0.5">
             רשימת המחלקים השבועיים המשובצים לשבוע הנוכחי
@@ -47,8 +47,8 @@ export default function CurrentDistributorsPage() {
       </div>
 
       {/* Stats */}
-      <div className="flex gap-4">
-        <div className="card-elevated flex-1 p-4 text-center">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="card-elevated p-4 text-center">
           <p className="text-display-sm font-bold text-primary">{distributors.length}</p>
           <p className="text-body-sm text-on-surface-variant">קבוצות עם מחלק</p>
         </div>
@@ -83,13 +83,13 @@ export default function CurrentDistributorsPage() {
       {!isLoading && !isError && distributors.length > 0 && (
         <>
           {/* Desktop */}
-          <div className="hidden sm:block card-elevated rounded-xl overflow-hidden">
-            <table className="w-full text-sm text-on-surface">
+          <div className="hidden sm:block card-elevated rounded-xl overflow-x-auto">
+            <table className="w-full text-sm text-on-surface min-w-[560px]">
               <thead className="bg-surface-variant/50 text-on-surface-variant text-xs uppercase">
                 <tr>
                   <th className="px-4 py-3 text-start font-medium">קבוצה</th>
                   <th className="px-4 py-3 text-start font-medium">מחלק/ת שבועי/ת</th>
-                  <th className="px-4 py-3 text-start font-medium">שובץ בתאריך</th>
+                  <th className="px-4 py-3 text-start font-medium whitespace-nowrap">שובץ בתאריך</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline/20">
@@ -97,17 +97,17 @@ export default function CurrentDistributorsPage() {
                   <tr key={d.groupId} className="hover:bg-surface-variant/20 transition-colors">
                     <td className="px-4 py-3 font-medium">
                       <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4 text-on-surface-variant" />
-                        {d.groupName}
+                        <Users className="h-4 w-4 text-on-surface-variant shrink-0" />
+                        <span className="truncate">{d.groupName}</span>
                       </div>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <Truck className="h-4 w-4 text-primary" />
-                        <span className="font-medium text-primary">{d.distributorName}</span>
+                        <Truck className="h-4 w-4 text-primary shrink-0" />
+                        <span className="font-medium text-primary truncate">{d.distributorName}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-on-surface-variant">
+                    <td className="px-4 py-3 text-on-surface-variant whitespace-nowrap">
                       {format(new Date(d.assignedAt), 'dd בMMMM yyyy, HH:mm', { locale: he })}
                     </td>
                   </tr>

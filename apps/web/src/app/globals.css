@@ -154,6 +154,108 @@
 }
 
 /* ============================================================
+   THEME OVERRIDE — "Nachalat David"
+   Ceremonial sefardic palette: warm-black velvet + gold filigree.
+   Activated via <html data-theme="nachalat">. Every consumer
+   reads through CSS vars, so no component needs awareness.
+   ============================================================ */
+
+html[data-theme='nachalat'] {
+  /* Surfaces — warm-black depth, never pure neutral */
+  --bg:               10   8   6;   /* #0A0806 */
+  --surface:          20  16  12;   /* #14100C */
+  --surface-alt:      28  22  16;   /* #1C1610 */
+  --surface-hover:    44  34  24;   /* #2C2218 */
+  --border:           75  60  38;   /* #4B3C26 deep tan */
+  --border-strong:   139 115  85;   /* #8B7355 muted gold */
+
+  /* Gold hierarchy — primary is the warm leaf-gold of the logo's frame */
+  --primary:         201 169  97;   /* #C9A961 leaf-gold */
+  --primary-hover:   232 213 168;   /* #E8D5A8 cream-gold */
+  --primary-soft:     38  30  22;   /* #261E16 dark plate for primary containers */
+  --primary-tint:    168 134  70;   /* #A88646 antique-gold */
+
+  --secondary:       184 148  95;   /* #B8945F copper-gold */
+  --secondary-soft:   34  26  18;   /* #221A12 */
+
+  --accent:          168 134  70;   /* #A88646 */
+  --accent-soft:      34  26  18;
+
+  /* Text — cream-on-velvet; inverse becomes warm-black for use on gold */
+  --text:            245 241 232;   /* #F5F1E8 vellum */
+  --text-muted:      184 165 130;   /* #B8A582 dim parchment */
+  --text-inverse:     10   8   6;   /* #0A0806 — black ink on gold seals */
+
+  /* Status — keep meaning, shift saturation to match velvet context */
+  --success:         142 168 110;
+  --warning:         217 165  90;
+  --error:           200  95  70;
+  --info:            142 165 200;
+
+  --success-strong:  168 192 140;
+  --warning-strong:  232 200 132;
+  --error-strong:    224 130 110;
+  --info-strong:     168 188 215;
+
+  /* Shadows transform into gold glow on velvet */
+  --shadow-soft:        0  4px 16px -4px rgba(201, 169, 97, 0.18);
+  --shadow-md:          0  8px 24px -8px rgba(201, 169, 97, 0.22);
+  --shadow-ambient-sm:  0  4px 12px       rgba(201, 169, 97, 0.06);
+  --shadow-ambient-md:  var(--shadow-md);
+  --shadow-ambient-lg:  0 12px 32px -8px rgba(201, 169, 97, 0.28);
+
+  /* Gradients — molten gold for primary, vignette-dark for surfaces */
+  --gradient-primary: linear-gradient(135deg, rgb(var(--primary-tint)) 0%, rgb(var(--primary)) 50%, rgb(var(--primary-hover)) 100%);
+  --gradient-warm:    radial-gradient(ellipse at top, rgb(var(--surface-alt)) 0%, rgb(var(--bg)) 70%);
+}
+
+/* Atmospheric vignette — a soft golden halo behind content, like the logo's glow */
+html[data-theme='nachalat'] body {
+  background-color: rgb(var(--bg));
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(201, 169, 97, 0.10), transparent 70%),
+    radial-gradient(ellipse 60% 40% at 50% 110%, rgba(184, 148, 95, 0.06), transparent 70%);
+  background-attachment: fixed;
+}
+
+/* Selection — gold on velvet */
+html[data-theme='nachalat'] ::selection {
+  background-color: rgb(var(--primary));
+  color: rgb(var(--text-inverse));
+}
+
+/* Inputs gain a faint inner-gold glow on focus instead of the rose halo */
+html[data-theme='nachalat'] input:focus,
+html[data-theme='nachalat'] textarea:focus,
+html[data-theme='nachalat'] select:focus {
+  border-color: rgb(var(--primary));
+  box-shadow: 0 0 0 3px rgb(var(--primary) / 0.22), inset 0 0 0 1px rgb(var(--primary) / 0.35);
+}
+
+/* Cards get a hairline gold border in Nachalat — restraint over filigree */
+html[data-theme='nachalat'] .card,
+html[data-theme='nachalat'] .card-elevated {
+  border-color: rgb(var(--border));
+  background-image: linear-gradient(180deg, rgb(var(--surface)) 0%, rgb(var(--surface-alt)) 100%);
+}
+
+/* Table stripes — barely-there warmth instead of flat alternation */
+html[data-theme='nachalat'] tbody tr:nth-child(even) {
+  background-color: rgb(var(--surface-alt));
+}
+html[data-theme='nachalat'] tbody tr:hover {
+  background-color: rgb(var(--surface-hover));
+}
+
+/* Scrollbar — slim gold thread */
+html[data-theme='nachalat'] ::-webkit-scrollbar-thumb {
+  background: rgb(var(--border-strong));
+}
+html[data-theme='nachalat'] ::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--primary));
+}
+
+/* ============================================================
    BASE
    ============================================================ */
 
