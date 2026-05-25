@@ -23,46 +23,29 @@ export default function LoginPage() {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(null);
 
-  // Wait for Zustand persist to hydrate before deciding whether the user is
-  // already logged in (e.g. PWA standalone with localStorage but no cookie
-  // yet — AuthCookieSync sets the cookie, then this redirect kicks in).
-  // Defaults are SSR-safe: persist API only exists in the browser.
-  const [hydrated, setHydrated] = React.useState(false);
+  // Avoid SSR/hydration mismatch: render the loader on first paint, then on
+  // the client read the real auth state. After mount we capture whether the
+  // user was *already* authenticated (e.g. PWA standalone where localStorage
+  // survives between Safari and the home-screen app). If yes — redirect
+  // home. If they sign in here via OTP, isAuthenticated will flip but
+  // hadInitialAuth stays false, so OtpVerification handles routing.
+  const [mounted, setMounted] = React.useState(false);
   const [hadInitialAuth, setHadInitialAuth] = React.useState(false);
   const decisionLockedRef = React.useRef(false);
 
   React.useEffect(() => {
-    const persist = useAuthStore.persist;
-    if (!persist) {
-      // Should not happen in the browser, but stay safe.
-      setHydrated(true);
-      return;
+    if (decisionLockedRef.current) return;
+    decisionLockedRef.current = true;
+    const authNow = useAuthStore.getState().isAuthenticated;
+    setHadInitialAuth(authNow);
+    setMounted(true);
+    if (authNow) {
+      router.replace('/');
     }
-
-    const decide = () => {
-      if (decisionLockedRef.current) return;
-      decisionLockedRef.current = true;
-      const authNow = useAuthStore.getState().isAuthenticated;
-      setHadInitialAuth(authNow);
-      setHydrated(true);
-      if (authNow) {
-        router.replace('/');
-      }
-    };
-
-    if (persist.hasHydrated()) {
-      decide();
-    }
-    const unsub = persist.onFinishHydration(() => decide());
-    return () => { unsub(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Show loader while we're hydrating OR while a redirect to / is in flight.
-  // hadInitialAuth + isAuthenticated together ensure we don't loop when the
-  // user signs in here (isAuthenticated flips after OTP — but hadInitialAuth
-  // stays false, so OtpVerification can still route post-login).
-  if (!hydrated || (hadInitialAuth && isAuthenticated)) {
+  if (!mounted || (hadInitialAuth && isAuthenticated)) {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />

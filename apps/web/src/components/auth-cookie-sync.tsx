@@ -25,35 +25,20 @@ import { useAuthStore } from '@/store/auth.store';
  */
 export function AuthCookieSync() {
   useEffect(() => {
-    const persist = useAuthStore.persist;
-    if (!persist) return; // SSR / build prerender — nothing to do
+    // useEffect runs only in the browser and *after* Zustand persist has
+    // hydrated from localStorage, so reading the store directly is safe.
+    const { accessToken } = useAuthStore.getState();
+    if (!accessToken) return;
+    if (typeof document === 'undefined') return;
 
-    const sync = () => {
-      const { accessToken } = useAuthStore.getState();
-      if (!accessToken) return;
-      if (typeof document === 'undefined') return;
+    const hasCookie = document.cookie
+      .split(';')
+      .some(c => c.trim().startsWith('auth_token='));
 
-      const hasCookie = document.cookie
-        .split(';')
-        .some(c => c.trim().startsWith('auth_token='));
-
-      if (!hasCookie) {
-        const secure = window.location.protocol === 'https:';
-        document.cookie = `auth_token=${accessToken}; path=/; max-age=3600; SameSite=Lax${secure ? '; Secure' : ''}`;
-      }
-    };
-
-    // Run immediately in case the store is already hydrated synchronously.
-    if (persist.hasHydrated()) {
-      sync();
+    if (!hasCookie) {
+      const secure = window.location.protocol === 'https:';
+      document.cookie = `auth_token=${accessToken}; path=/; max-age=3600; SameSite=Lax${secure ? '; Secure' : ''}`;
     }
-
-    // Also run when hydration finishes (Zustand persist async path).
-    const unsub = persist.onFinishHydration(() => {
-      sync();
-    });
-
-    return () => { unsub(); };
   }, []);
 
   return null;
