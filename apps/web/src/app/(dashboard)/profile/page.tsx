@@ -78,18 +78,27 @@ export default function ProfilePage() {
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 max-w-4xl">
       {/* Header with edit button */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-headline-md sm:text-headline-lg font-headline mb-1 sm:mb-2">הפרופיל שלי</h1>
           <p className="text-body-md text-on-surface-variant">פרטים אישיים והגדרות חשבון</p>
         </div>
-        <Link
-          href="/profile/edit"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-on-primary text-label-md font-medium hover:bg-primary/90 transition-colors shrink-0"
-        >
-          <Edit2 className="h-4 w-4" />
-          ערוך פרופיל
-        </Link>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link
+            href="/profile/business"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-primary/30 text-primary text-label-md font-medium hover:bg-primary/5 transition-colors shrink-0"
+          >
+            <Briefcase className="h-4 w-4" />
+            העסק שלי
+          </Link>
+          <Link
+            href="/profile/edit"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-on-primary text-label-md font-medium hover:bg-primary/90 transition-colors shrink-0"
+          >
+            <Edit2 className="h-4 w-4" />
+            ערוך פרופיל
+          </Link>
+        </div>
       </div>
 
       {/* Personal Information */}

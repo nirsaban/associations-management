@@ -9,6 +9,8 @@ import { PassItOnController } from './pass-it-on/pass-it-on.controller';
 import { PassItOnService } from './pass-it-on/pass-it-on.service';
 import { TehillimController } from './tehillim/tehillim.controller';
 import { TehillimService } from './tehillim/tehillim.service';
+import { BusinessesController } from './businesses/businesses.controller';
+import { BusinessesService } from './businesses/businesses.service';
 import { CloudinaryService } from '@common/services/cloudinary.service';
 import { AlertsModule } from '@modules/alerts/alerts.module';
 
@@ -20,6 +22,7 @@ import { AlertsModule } from '@modules/alerts/alerts.module';
     ProfileUpdateController,
     PassItOnController,
     TehillimController,
+    BusinessesController,
   ],
   providers: [
     ProfessionsService,
@@ -27,6 +30,7 @@ import { AlertsModule } from '@modules/alerts/alerts.module';
     ProfileUpdateService,
     PassItOnService,
     TehillimService,
+    BusinessesService,
     CloudinaryService,
   ],
 })

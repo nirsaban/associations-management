@@ -222,6 +222,7 @@ model Organization {
   dailyTehillim                DailyTehillim[]
   tehillimDedications          TehillimDedication[]
   tehillimReadings             TehillimReading[]
+  userBusinesses               UserBusiness[]
   referrals                    Referral[]
   userProfessions              UserProfession[]
 
@@ -272,6 +273,7 @@ model User {
   passItOnItemsClaimed         PassItOnItem[]                @relation("PassItOnClaimedBy")
   tehillimDedications          TehillimDedication[]          @relation("TehillimDedicationsBy")
   tehillimReadings             TehillimReading[]             @relation("TehillimReadingsBy")
+  business                     UserBusiness?
 
   @@unique([organizationId, phone])
   @@index([organizationId])
@@ -1007,4 +1009,44 @@ model TehillimReading {
   @@unique([dailyTehillimId, userId])
   @@index([organizationId, dailyTehillimId, readAt])
   @@map("tehillim_readings")
+}
+
+// ============================================================================
+// USER BUSINESSES — עצמאיים ובעלי עסקים
+// ============================================================================
+
+model UserBusiness {
+  id             String  @id @default(cuid())
+  organizationId String
+  userId         String  @unique // one business per user (extend to many later if needed)
+
+  title       String  @db.VarChar(120) // שם העסק / השירות
+  description String  @db.Text
+  category    String? @db.VarChar(80) // טקסט חופשי — תכשיטנות, שיפוצים, ייעוץ עסקי וכו׳
+
+  logoUrl       String? @db.VarChar(500)
+  coverImageUrl String? @db.VarChar(500)
+
+  // Contact / social links — all optional
+  phone        String? @db.VarChar(20)
+  email        String? @db.VarChar(255)
+  website      String? @db.VarChar(500)
+  whatsappUrl  String? @db.VarChar(500)
+  facebookUrl  String? @db.VarChar(500)
+  instagramUrl String? @db.VarChar(500)
+  tiktokUrl    String? @db.VarChar(500)
+  youtubeUrl   String? @db.VarChar(500)
+  linkedinUrl  String? @db.VarChar(500)
+
+  isActive  Boolean @default(true) // user can pause without deleting
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, isActive, createdAt])
+  @@map("user_businesses")
 }

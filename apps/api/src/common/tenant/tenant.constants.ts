@@ -23,6 +23,7 @@ export const TENANT_SCOPED_MODELS = [
   'DailyTehillim',
   'TehillimDedication',
   'TehillimReading',
+  'UserBusiness',
 ] as const;
 
 // מודלים שלא מסוננים לפי שוכר

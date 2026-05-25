@@ -25,6 +25,7 @@ import { useAuthStore } from '@/store/auth.store';
 import { useToast } from '@/components/ui/Toast';
 import { DonationIframeCard, AlertsList, ShareAchievementModal } from '@/components/group-experience';
 import { COMMUNITY_PROFESSIONS_ENABLED } from '@/lib/feature-flags';
+import { BusinessPromoSlider } from '@/components/business-promo-slider';
 import ReferralCard from './ReferralCard';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -489,6 +490,9 @@ export default function UserDashboardPage() {
           {currentHebrewDate()}
         </p>
       </div>
+
+      {/* ── Business promo slider (auto-rotating, community-only) ───────────── */}
+      {COMMUNITY_PROFESSIONS_ENABLED && <BusinessPromoSlider />}
 
       {/* ── Section 2: Donation (always top, right after welcome) ───────────── */}
       <section aria-labelledby="donation-section-heading">

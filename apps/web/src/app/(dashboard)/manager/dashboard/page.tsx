@@ -24,6 +24,7 @@ import api from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import { COMMUNITY_PROFESSIONS_ENABLED } from '@/lib/feature-flags';
 import { DonationIframeCard } from '@/components/group-experience';
+import { BusinessPromoSlider } from '@/components/business-promo-slider';
 import ReferralCard from '../../user/dashboard/ReferralCard';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -210,6 +211,9 @@ export default function ManagerDashboardPage() {
           {currentHebrewDate()}
         </p>
       </div>
+
+      {/* ── Business promo slider (auto-rotating, community-only) ───────────── */}
+      {COMMUNITY_PROFESSIONS_ENABLED && <BusinessPromoSlider />}
 
       {/* ── Section 2: Donation (same component as user dashboard) ──────────── */}
       <section aria-labelledby="donation-section-heading">
