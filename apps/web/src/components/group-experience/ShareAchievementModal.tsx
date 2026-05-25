@@ -10,7 +10,8 @@ interface ShareAchievementModalProps {
   organizationLogoUrl?: string | null;
   landingSlug?: string | null;
   referralCode?: string | null;
-  familyCount: number;
+  /** Kept for API compatibility — the new image uses a generic message, not a number. */
+  familyCount?: number;
   onClose: () => void;
 }
 
@@ -20,7 +21,6 @@ export function ShareAchievementModal({
   organizationLogoUrl,
   landingSlug,
   referralCode,
-  familyCount,
   onClose,
 }: ShareAchievementModalProps) {
   const cardRef = useRef<HTMLDivElement>(null);
@@ -52,13 +52,22 @@ export function ShareAchievementModal({
     }
   }, []);
 
+  const shareCaption = [
+    'השבוע זכיתי לחלק חבילות מזון למשפחות נזקקות 🤲',
+    'לתרומות — לחצו על הלינק',
+    'לפרטים נוספים שלחו הודעה ל-052-205-8629',
+    shareUrl || '',
+  ]
+    .filter(Boolean)
+    .join('\n');
+
   const handleDownload = async () => {
     const blob = await generateImage();
     if (!blob) return;
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `achievement-${firstName}.png`;
+    a.download = `nachalat-david-${firstName || 'share'}.png`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -66,12 +75,12 @@ export function ShareAchievementModal({
   const handleShare = async () => {
     const blob = await generateImage();
     if (!blob) return;
-    const file = new File([blob], 'achievement.png', { type: 'image/png' });
+    const file = new File([blob], 'nachalat-david.png', { type: 'image/png' });
     if (navigator.share && navigator.canShare?.({ files: [file] })) {
       await navigator.share({
         files: [file],
-        title: `${firstName} חילק/ה השבוע ב${organizationName}!`,
-        text: shareUrl || undefined,
+        title: `חלוקת מזון · ${organizationName}`,
+        text: shareCaption,
       });
     } else {
       handleDownload();
@@ -103,89 +112,158 @@ export function ShareAchievementModal({
         <div className="p-5">
           <div
             ref={cardRef}
-            className="rounded-2xl overflow-hidden"
+            className="rounded-2xl overflow-hidden relative"
             style={{
-              background: 'linear-gradient(135deg, #C49A6C 0%, #D4AA7D 30%, #B8864F 70%, #C49A6C 100%)',
-              padding: '32px 24px',
-              textAlign: 'center',
+              width: '100%',
+              aspectRatio: '4 / 5',
               direction: 'rtl',
               fontFamily: 'system-ui, -apple-system, sans-serif',
+              position: 'relative',
+              backgroundColor: '#1a1a1a',
             }}
           >
-            {/* Logo */}
-            {organizationLogoUrl ? (
-              <img
-                src={organizationLogoUrl}
-                alt=""
-                crossOrigin="anonymous"
-                style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: '50%',
-                  objectFit: 'cover',
-                  margin: '0 auto 16px',
-                  border: '3px solid rgba(255,255,255,0.4)',
-                }}
-              />
-            ) : (
-              <div
-                style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: '50%',
-                  background: 'rgba(255,255,255,0.2)',
-                  margin: '0 auto 16px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 24,
-                  color: 'white',
-                  fontWeight: 700,
-                }}
-              >
-                {organizationName.charAt(0)}
-              </div>
-            )}
+            {/* Background photo */}
+            <img
+              src="/mehalek.jpeg"
+              alt=""
+              crossOrigin="anonymous"
+              style={{
+                position: 'absolute',
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+              }}
+            />
 
-            {/* Org name */}
-            <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: 13, marginBottom: 12, fontWeight: 500 }}>
-              {organizationName}
-            </p>
-
-            {/* Achievement text */}
-            <p style={{ color: 'white', fontSize: 28, fontWeight: 800, lineHeight: 1.3, marginBottom: 8 }}>
-              {firstName} חילק/ה
-            </p>
-            <p style={{ color: 'white', fontSize: 28, fontWeight: 800, lineHeight: 1.3, marginBottom: 4 }}>
-              ל-{familyCount} משפחות השבוע!
-            </p>
-
-            {/* Emoji celebration */}
-            <p style={{ fontSize: 36, margin: '16px 0' }}>
-              🎉🤲
-            </p>
-
-            {/* CTA */}
+            {/* Dark gradient overlay for text legibility */}
             <div
               style={{
-                background: 'rgba(255,255,255,0.2)',
-                borderRadius: 999,
-                padding: '10px 20px',
-                display: 'inline-block',
-                marginTop: 8,
+                position: 'absolute',
+                inset: 0,
+                background:
+                  'linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.15) 35%, rgba(0,0,0,0.55) 75%, rgba(0,0,0,0.85) 100%)',
+              }}
+            />
+
+            {/* Top: organization */}
+            <div
+              style={{
+                position: 'absolute',
+                top: 20,
+                insetInlineStart: 20,
+                insetInlineEnd: 20,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
               }}
             >
-              <p style={{ color: 'white', fontSize: 14, fontWeight: 600 }}>
-                גם אתם יכולים לעזור — הצטרפו!
+              {organizationLogoUrl ? (
+                <img
+                  src={organizationLogoUrl}
+                  alt=""
+                  crossOrigin="anonymous"
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    border: '2px solid rgba(255,255,255,0.7)',
+                  }}
+                />
+              ) : null}
+              <p
+                style={{
+                  color: 'white',
+                  fontSize: 14,
+                  fontWeight: 700,
+                  margin: 0,
+                  textShadow: '0 1px 3px rgba(0,0,0,0.6)',
+                }}
+              >
+                {organizationName}
               </p>
             </div>
 
-            {/* Short URL */}
-            {shareUrl && (
-              <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 11, marginTop: 12 }}>
-                {shareUrl.replace(/^https?:\/\//, '')}
+            {/* Bottom block: text content */}
+            <div
+              style={{
+                position: 'absolute',
+                bottom: 0,
+                insetInlineStart: 0,
+                insetInlineEnd: 0,
+                padding: '20px 22px 22px',
+                color: 'white',
+                textAlign: 'center',
+              }}
+            >
+              <p
+                style={{
+                  fontSize: 22,
+                  fontWeight: 800,
+                  lineHeight: 1.35,
+                  margin: 0,
+                  marginBottom: 10,
+                  textShadow: '0 2px 6px rgba(0,0,0,0.7)',
+                }}
+              >
+                השבוע זכיתי לחלק חבילות מזון למשפחות נזקקות
               </p>
-            )}
+
+              <p
+                style={{
+                  fontSize: 14,
+                  fontWeight: 500,
+                  lineHeight: 1.5,
+                  margin: 0,
+                  marginBottom: 14,
+                  color: 'rgba(255,255,255,0.92)',
+                  textShadow: '0 1px 4px rgba(0,0,0,0.7)',
+                }}
+              >
+                לתרומות — לחצו על הלינק לפרטים נוספים{'\n'}
+                או שלחו הודעה ל-052-205-8629
+              </p>
+
+              {/* CTA pill */}
+              <div
+                style={{
+                  background: 'rgba(255,255,255,0.95)',
+                  borderRadius: 999,
+                  padding: '9px 18px',
+                  display: 'inline-block',
+                  marginBottom: shareUrl ? 8 : 0,
+                }}
+              >
+                <p
+                  style={{
+                    color: '#A74C66',
+                    fontSize: 13,
+                    fontWeight: 800,
+                    margin: 0,
+                    letterSpacing: '-0.01em',
+                  }}
+                >
+                  לכל פרט נוסף — לחצו על הלינק
+                </p>
+              </div>
+
+              {shareUrl && (
+                <p
+                  style={{
+                    color: 'rgba(255,255,255,0.85)',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    margin: 0,
+                    marginTop: 6,
+                    direction: 'ltr',
+                    textShadow: '0 1px 3px rgba(0,0,0,0.7)',
+                  }}
+                >
+                  {shareUrl.replace(/^https?:\/\//, '')}
+                </p>
+              )}
+            </div>
           </div>
         </div>
 

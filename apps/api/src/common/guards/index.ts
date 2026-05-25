@@ -21,3 +21,4 @@ export * from './super-admin.guard';
 export * from './org-role.guard';
 export * from './organization-scope.guard';
 export * from './roles.guard';
+export * from './feature-flag.guard';

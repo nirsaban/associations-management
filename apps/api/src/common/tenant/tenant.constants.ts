@@ -18,6 +18,11 @@ export const TENANT_SCOPED_MODELS = [
   'Review',
   'LandingLead',
   'Referral',
+  'UserProfession',
+  'PassItOnItem',
+  'DailyTehillim',
+  'TehillimDedication',
+  'TehillimReading',
 ] as const;
 
 // מודלים שלא מסוננים לפי שוכר

@@ -20,7 +20,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
-  Eye, Globe, Copy, X, GripVertical, Settings2, Check,
+  Eye, Globe, Copy, X, GripVertical, Settings2, Check, RotateCcw, AlertTriangle,
 } from 'lucide-react';
 import api from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
@@ -58,45 +58,67 @@ interface LandingPage {
 function getDefaultData(type: string): Record<string, unknown> {
   switch (type) {
     case 'hero': return {
-      pill_text: 'גמ״ח שבועי · פעיל',
-      since_text: 'נחלת דויד — גמ״ח שבועי',
-      headline: 'כל שבת, 120 משפחות יושבות לשולחן בזכותך',
-      accent_word_index: 1,
-      subheadline: 'נחלת דויד הוא גמ״ח שבועי שמחלק סלי מזון למשפחות מרובות ילדים, ערב שבת. כל תרומה הופכת לחלות, לדגים, ליין קידוש — ולחיוך של ילד.',
-      cta_label: 'תרמו עכשיו לסל שבת →',
+      pill_text: 'פעיל · 6 שנים ברציפות',
+      since_text: 'נחלת דויד · מפעל חסדים לזכר הרב דויד עשור זצ״ל',
+      headline: '40 משפחות. כל שבוע. בלי לפספס אף פעם.',
+      accent_word_index: 0,
+      subheadline: 'מפעל חסדים לזכר הרב דויד עשור זצ״ל. 40 משפחות מקבלות סל מזון מותאם בכל שבוע, 500 סלי חג פעמיים בשנה, שיפוץ ריהוט וליווי לאירועי שמחה. 252 חברים, 6 שנים ברצף. כל שקל ישר למשפחה.',
+      cta_label: 'תרמו עכשיו →',
       cta_action: 'payment',
       secondary_cta_label: 'איך זה עובד?',
       secondary_cta_target: '#story',
       stats: [
-        { value: '120', label: 'משפחות בשבוע' },
-        { value: '680', label: 'ילדים נהנים מארוחת שבת' },
-        { value: '100%', label: 'מגיע ישירות למשפחות' },
-        { value: '52', label: 'שבועות בשנה, בלי הפסקה' },
+        { value: '40', label: 'משפחות בכל שבוע' },
+        { value: '500', label: 'סלי חג בפסח וראש השנה' },
+        { value: '252', label: 'חברים פעילים' },
+        { value: '6', label: 'שנים בלי לפספס שבוע' },
       ],
     };
     case 'marquee': return {
-      items: ['סלי שבת', 'חלוקה שבועית', 'חסד', 'משפחות', 'כבוד', 'שקיפות'],
+      items: [
+        'חלוקה שבועית',
+        'סלי חג',
+        'שיפוץ ריהוט',
+        'אירועי שמחה',
+        'קשישים',
+        'משפחות מרובות ילדים',
+        'חסד בשקט',
+        'שקיפות מלאה',
+        'ממשיכים את הדרך',
+      ],
     };
     case 'video': return {
       eyebrow: 'הסיפור שלנו',
-      title: 'הסיפור של דויד ז״ל — והמשפחות שממשיכות את דרכו.',
-      description: '',
+      title: 'הרב דויד עשור זצ״ל — והמשפחות שממשיכות את דרכו.',
+      description: '6 שנים של חלוקה שבועית. 40 משפחות שמסתמכות עלינו. הסיפור שמאחורי כל סל.',
       source: '',
     };
     case 'about': return {
-      eyebrow: 'הסיפור שמאחורי נחלת דויד',
-      title: 'מה שהתחיל כיוזמה משפחתית קטנה — הפך לגמ״ח שבועי קבוע.',
-      body_rich_text: '<p>נחלת דויד נוסד לעילוי נשמת יקירנו ז״ל, איש חסד שכל ימיו דאג לזולת.</p><p>מה שהתחיל כמה סלים שחולקו לשכנים בערב שבת — הפך עם השנים לגמ״ח שבועי קבוע שנותן כתף למשפחות מרובות ילדים.</p><p>אנחנו לא ארגון. אנחנו משפחה גדולה אחת. כל שבוע מתחדשים, כל שבוע אורזים, וכל שבוע יוצאים לדרך עם מטרה אחת — שאף ילד לא יישאר ללא ארוחת שבת.</p>',
-      badge_text: 'גמ״ח שבועי',
+      eyebrow: 'מי אנחנו',
+      title: 'מפעל חסדים אחד. 252 חברים. אפס פספוסים.',
+      body_rich_text: '<p><strong>נחלת דויד</strong> נוסד לזכר הרב דויד עשור זצ״ל — איש חסד שכל ימיו דאג לזולת, ושעצם דמותו היתה מורה דרך לאיך נראית אכפתיות אמיתית.</p><p>את הדרך שלו אנחנו ממשיכים. <strong>252 חברים פעילים</strong>, מחולקים לצוותי חלוקה קבועים, עם מטרה אחת: שאף משפחה שצריכה כתף לא תישאר לבד.</p><p>בכל שבוע, <strong>40 משפחות</strong> מקבלות חבילת מזון מותאמת אישית — לפי גודל המשפחה, צרכיה, ומה שמכבד את השולחן שלה. פעמיים בשנה, בפסח ובראש השנה, יוצאים לחלוקה מורחבת של <strong>500 סלי חג</strong>.</p><p>והחסד שלנו לא נעצר במזון — שיפוץ ריהוט, ליווי לאירועי שמחה של ילדים, וכתף לכל מה שצריך כדי שמשפחה תעמוד בכבוד.</p><p><strong>6 שנים. בלי לפספס שבוע אחד. מעל 18,000 חבילות שיצאו עד היום.</strong></p>',
+      badge_text: '6 שנים ברצף',
     };
     case 'activities': return {
-      eyebrow: 'מהתרומה שלך — לשולחן השבת',
-      title: 'איך זה עובד — ארבעה צעדים פשוטים.',
+      eyebrow: 'מה אנחנו עושים',
+      title: 'ארבעה תחומי פעילות. מטרה אחת — לעמוד בכבוד.',
       items: [
-        { title: 'אתם תורמים', description: 'ההפקדה מאובטחת ומועברת ישירות לקופת הגמ״ח.' },
-        { title: 'אנחנו רוכשים', description: 'ביום ראשון יוצאים לרכישה מרוכזת — מה שמאפשר לנו להשיג מחירי סיטונאות ולהוציא יותר מכל שקל.' },
-        { title: 'מתנדבים אורזים', description: 'ביום חמישי, צוות המתנדבים שלנו אורז את הסלים בקפידה ובכבוד — כל סל מותאם לגודל המשפחה.' },
-        { title: 'חלוקה דיסקרטית', description: 'ביום שישי בבוקר, עוד לפני כניסת השבת, הסלים מגיעים לבית של כל משפחה — בשקט, בכבוד, ובלי שאף אחד יידע.' },
+        {
+          title: 'חבילת מזון שבועית',
+          description: '40 משפחות מקבלות בכל שבוע סל מזון מלא, מותאם אישית לגודל המשפחה ולצרכיה. 6 שנים ברצף, בלי לפספס שבוע — חלוקה דיסקרטית, ישר לבית.',
+        },
+        {
+          title: 'סלי חג — פסח וראש השנה',
+          description: 'פעמיים בשנה יוצאים לחלוקה מורחבת — 500 סלי חג עשירים שמאפשרים למשפחה לשבת לשולחן החג בכבוד מלא, עם כל מה שצריך.',
+        },
+        {
+          title: 'שיפוץ ריהוט וסיוע בבית',
+          description: 'מקרר שהתקלקל, מיטה לילדים, שיפוץ קטן בבית, מטבח שצריך חידוש — אנחנו שם. כי משפחה זה לא רק אוכל, זה גם הבית שצריך לתפקד.',
+        },
+        {
+          title: 'ליווי לאירועי שמחה',
+          description: 'בר מצווה, בת מצווה, חתונה — שמחות שאמורות להישאר זיכרון של חיים. אנחנו מסייעים בכל מה שצריך כדי שילד יחווה את היום הגדול שלו בכבוד.',
+        },
       ],
     };
     case 'gallery': return {
@@ -108,59 +130,86 @@ function getDefaultData(type: string): Record<string, unknown> {
       eyebrow: 'מילים מהשטח',
       title: 'מה אומרים תורמים, מתנדבים ומשפחות.',
       cta_text: 'השאירו עדות שלכם',
-      empty_text: 'היו הראשונים להשאיר הודעה.',
+      empty_text: 'היו הראשונים להשאיר עדות.',
     };
     case 'stats': return {
-      eyebrow: 'המספרים מאחורי החסד',
+      eyebrow: 'המספרים שמאחורי החסד',
       items: [
-        { value: '120', label: 'משפחות מקבלות סל שבועי' },
-        { value: '680', label: 'ילדים נהנים מארוחת שבת מלאה' },
-        { value: '100%', label: 'מהתרומה מגיעה ישירות למשפחות' },
-        { value: '52', label: 'שבועות בשנה. בלי הפסקה.' },
+        { value: '40', label: 'משפחות מקבלות סל בכל שבוע' },
+        { value: '500', label: 'סלי חג בפסח ובראש השנה' },
+        { value: '252', label: 'חברים פעילים בעמותה' },
+        { value: '6', label: 'שנים רצופות בלי לפספס' },
+        { value: '18,000+', label: 'חבילות חולקו עד היום' },
       ],
     };
     case 'cta_payment': return {
-      eyebrow: 'בחרו איך להצטרף',
-      headline: 'כל סכום מחזיק את הגמ״ח. *בחרו את האופציה שמתאימה לכם.*',
-      subheadline: 'הוראת קבע חודשית = יציבות לגמ״ח, רגיעה בלב. סליקה מאובטחת עם קבלה לפי סעיף 46.',
-      amounts: [52, 180, 360, 1000],
-      default_amount_index: 1,
+      eyebrow: 'כל שקל. ישר למשפחה.',
+      headline: 'תרומה חד פעמית או הוראת קבע — אתם בוחרים.',
+      subheadline: '₪52 = סל מזון שבועי למשפחה. ₪180 = סל חג מלא. הוראת קבע = יציבות לעמותה ושקט נפשי לכם. סליקה מאובטחת, קבלה לפי סעיף 46 נשלחת ישר למייל.',
+      amounts: [52, 120, 180, 360, 540, 1000],
+      default_amount_index: 2,
       allow_custom: true,
       installments_hint: true,
       receipt_hint: true,
-      cta_label: 'התחל הוראת קבע',
+      cta_label: 'תרמו עכשיו →',
       secure_label: 'סליקה מאובטחת',
       installments_label: 'עד 12 תשלומים',
       receipt_label: 'קבלה לפי סעיף 46',
     };
     case 'join_us': return {
-      eyebrow: 'רוצים להתנדב?',
-      headline: 'כל יד נוספת מתקבלת בברכה.',
-      body: 'אנחנו אורזים בכל יום חמישי. מתנדבים, שכנים, משפחות — אם תרצו לעזור, השאירו לנו הודעה ונחזור אליכם.',
-      submit_label: 'שלחו →',
-      success_title: 'קיבלנו. תודה רבה.',
-      success_message: 'נחזור אליכם תוך מספר ימים.',
+      eyebrow: 'רוצים להיות חלק?',
+      headline: '252 חברים. ועוד מקום אחד מחכה לך.',
+      body: 'תורם קבוע, מתנדב לחלוקה, או סתם רוצה לשמוע יותר על העבודה? השאירו פרטים — מאיר עשור או אחד מצוות העמותה יחזור אליכם תוך יום עסקים.',
+      submit_label: 'אני בפנים →',
+      success_title: 'קיבלנו את הפנייה שלכם.',
+      success_message: 'מאיר או אחד מצוות העמותה יחזור אליכם תוך יום עסקים. תודה שאתם איתנו.',
     };
     case 'faq': return {
       eyebrow: 'שאלות שתורמים שואלים',
-      title: 'שאלות נפוצות.',
+      title: 'תכל׳ס — מה ששואלים אותנו הכי הרבה.',
       items: [
-        { question: 'איך אני יודע שהכסף באמת מגיע למשפחות?', answer: 'אנחנו מפרסמים דוח שבועי — מספר משפחות, מצרכים, עלויות — בעמוד הפייסבוק ובאתר. בנוסף, יש אישור ניהול תקין מרשם העמותות, ואנחנו פתוחים לכל שאלה.' },
-        { question: 'אני יכול לקבל קבלה לצורכי מס?', answer: 'בוודאי. כל תרומה מקבלת אוטומטית קבלה רשמית לפי סעיף 46 — נשלחת למייל תוך 24 שעות.' },
-        { question: 'אפשר להפסיק הוראת קבע מתי שרוצים?', answer: 'כן, בכל רגע, ובלי שאלות. רק שולחים מייל או הודעה ואנחנו מטפלים בזה תוך יום עסקים.' },
-        { question: 'איך נבחרות המשפחות שמקבלות סל?', answer: 'פנייה לוועדה הרבנית של הגמ״ח, בליווי המלצות מרבני קהילה ועובדים סוציאליים. כל מקרה נבדק בדיסקרטיות מלאה ובכבוד.' },
-        { question: 'אני רוצה להתנדב — איך מצטרפים?', answer: 'מלאו את הטופס למעלה או התקשרו אלינו. אנחנו אורזים בכל יום חמישי, וכל יד נוספת מתקבלת בברכה.' },
-        { question: 'אפשר לתרום מצרכי מזון במקום כסף?', answer: 'בהחלט. צרו קשר לתיאום תרומה בעין.' },
+        {
+          question: 'איך אני יודע שהכסף באמת מגיע למשפחות?',
+          answer: 'העמותה רשומה ברשם העמותות, עם אישור ניהול תקין וביקורת רואה חשבון שנתית. כל תרומה מתועדת, וכל סל יוצא עם רישום פנימי. שקיפות זו לא מילה אצלנו — זו תרבות עבודה. אפשר לבקש פרטים בכל עת.',
+        },
+        {
+          question: 'אני מקבל קבלה לצורכי מס?',
+          answer: 'בוודאי. העמותה מאושרת לפי סעיף 46 — קבלה רשמית נשלחת אוטומטית למייל תוך 24 שעות מהתרומה, ומזכה בהחזר של עד 35% ממס הכנסה.',
+        },
+        {
+          question: 'אפשר להפסיק הוראת קבע מתי שרוצים?',
+          answer: 'כן, בכל רגע, בלי שאלות. הודעת וואטסאפ למאיר עשור — 052-205-8629 — ואנחנו מטפלים תוך יום עסקים.',
+        },
+        {
+          question: 'איך נבחרות המשפחות שמקבלות סל?',
+          answer: 'פנייה מתועדת + המלצה מרבני קהילה, עובדים סוציאליים או שכנים. כל מקרה נבדק בדיסקרטיות מוחלטת — השמות סגורים לעיני הוועדה בלבד. אנחנו מקפידים שאף משפחה לא תרגיש שמסתכלים עליה.',
+        },
+        {
+          question: 'אני רוצה להתנדב — איך זה עובד?',
+          answer: '252 החברים שלנו מחולקים לצוותי חלוקה קבועים. אם אתם רוצים להצטרף כמתנדבים — אריזה, חלוקה, רכישה — מלאו את הטופס למעלה או צרו קשר ישירות עם מאיר. כל יד נוספת מתקבלת בברכה.',
+        },
+        {
+          question: 'אפשר לתרום מזון, ריהוט או חפצים במקום כסף?',
+          answer: 'בהחלט. ריהוט, מקררים, מכונות כביסה, מצרכי מזון יבשים — כל תרומה בעין מתקבלת בברכה ומגיעה ישירות למשפחות. תיאום מראש בטלפון 052-205-8629.',
+        },
+        {
+          question: 'מה ההבדל בין סל שבועי לסל חג?',
+          answer: 'סל שבועי הוא חבילה לחיי היומיום — לחם, מוצרי חלב, ירקות, מצרכי יסוד. סל חג (פסח, ראש השנה) הוא חבילה עשירה ומורחבת שכוללת מצרכי חג מלאים, כדי שמשפחה תוכל לקיים את החג בכבוד.',
+        },
+        {
+          question: 'יש דרך לתרום לזכר יקיר?',
+          answer: 'כן, ובהחלט. תרומה לעילוי נשמה היא דרך מכובדת להנציח יקיר ולעשות חסד בשמו — בדיוק כפי שהעמותה עצמה הוקמה לזכר הרב דויד עשור זצ״ל. ציינו זאת בעת התרומה או צרו קשר ישירות.',
+        },
       ],
     };
     case 'footer': return {
-      big_text: 'שבת מגיעה.',
-      big_accent: 'משפחות מחכות.',
-      about: 'כל שקל הופך עכשיו לחלה, לדג, ליין קידוש. בואו תהיו חלק. "כל המקיים נפש אחת מישראל — מעלה עליו הכתוב כאילו קיים עולם מלא" (משנה סנהדרין ד׳:ה׳)',
+      big_text: 'השולחן שלהם',
+      big_accent: 'מחכה לך.',
+      about: 'נחלת דויד — מפעל חסדים לזכר הרב דויד עשור זצ״ל. 40 משפחות, 500 סלי חג, 252 חברים פעילים, 6 שנים ברצף. כל שקל הופך לסל מזון, לריהוט מתחדש, לשמחה בבית של משפחה שצריכה את זה. "כל המקיים נפש אחת מישראל — מעלה עליו הכתוב כאילו קיים עולם מלא" (משנה סנהדרין ד׳:ה׳)',
       visit_label: 'ביקור',
       contact_label: 'יצירת קשר',
       follow_label: 'עקבו',
-      hours: '',
+      hours: 'ניתן ליצור קשר 24/7 דרך וואטסאפ — 052-205-8629',
       registration_number: '',
       section_46: true,
     };
@@ -180,6 +229,7 @@ export default function LandingBuilderPage() {
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   // Local state for settings panel inputs
   const [settingsForm, setSettingsForm] = useState({ title: '', slug: '', theme: 'MODERN', seoDescription: '' });
@@ -296,6 +346,29 @@ export default function LandingBuilderPage() {
     },
     onError: () => {
       showToast('שגיאה ביצירת דף לדוגמה', 'error');
+    },
+  });
+
+  // Reset to defaults — deletes all existing sections, then re-seeds with default content
+  const resetToDefaultsMutation = useMutation({
+    mutationFn: async () => {
+      if (!landing) return;
+      await Promise.all(
+        landing.sections.map(s => api.delete(`/landing/sections/${s.id}`)),
+      );
+      for (const type of EXAMPLE_SECTIONS) {
+        await api.post('/landing/sections', { type, data: getDefaultData(type) });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['landing'] });
+      setSelectedSectionId(null);
+      setShowResetConfirm(false);
+      showToast('הדף אופס לברירת המחדל', 'success');
+    },
+    onError: () => {
+      setShowResetConfirm(false);
+      showToast('שגיאה באיפוס הדף', 'error');
     },
   });
 
@@ -444,6 +517,23 @@ export default function LandingBuilderPage() {
                 />
               </div>
             </div>
+
+            {landing.sections.length > 0 && (
+              <div className="pt-3 mt-1 border-t border-outline/10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div className="flex items-start gap-2 text-body-sm text-on-surface-variant">
+                  <AlertTriangle className="h-4 w-4 mt-0.5 text-warning-strong flex-shrink-0" />
+                  <span>איפוס לברירת מחדל ימחק את כל הסקשנים הקיימים וייצור מחדש את הדף עם התוכן המקורי.</span>
+                </div>
+                <button
+                  onClick={() => setShowResetConfirm(true)}
+                  disabled={resetToDefaultsMutation.isPending}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-body-sm bg-error/10 text-error hover:bg-error/20 transition-colors disabled:opacity-50 flex-shrink-0"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                  {resetToDefaultsMutation.isPending ? 'מאפס...' : 'אפס לברירת מחדל'}
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -500,6 +590,47 @@ export default function LandingBuilderPage() {
             onClose={() => setSelectedSectionId(null)}
           />
         </aside>
+      )}
+
+      {/* Reset confirmation modal */}
+      {showResetConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => !resetToDefaultsMutation.isPending && setShowResetConfirm(false)}
+          />
+          <div className="relative bg-surface rounded-2xl shadow-xl max-w-md w-full p-6 border border-outline/20">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-error/10 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="h-5 w-5 text-error" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-title-md font-headline text-on-surface mb-1">לאפס את הדף לברירת מחדל?</h3>
+                <p className="text-body-sm text-on-surface-variant">
+                  הפעולה תמחק את כל <strong>{landing.sections.length}</strong> הסקשנים הקיימים (כולל תוכן שערכת ותמונות שהעלית), ותיצור מחדש את הדף עם 12 הסקשנים והטקסטים המקוריים.
+                </p>
+                <p className="text-body-sm text-error mt-2 font-medium">לא ניתן לבטל את הפעולה.</p>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                onClick={() => setShowResetConfirm(false)}
+                disabled={resetToDefaultsMutation.isPending}
+                className="px-4 py-2 rounded-lg text-body-sm hover:bg-surface-container transition-colors disabled:opacity-50"
+              >
+                ביטול
+              </button>
+              <button
+                onClick={() => resetToDefaultsMutation.mutate()}
+                disabled={resetToDefaultsMutation.isPending}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-body-sm bg-error text-white hover:bg-error/90 transition-colors disabled:opacity-50"
+              >
+                <RotateCcw className="h-4 w-4" />
+                {resetToDefaultsMutation.isPending ? 'מאפס...' : 'אפס עכשיו'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

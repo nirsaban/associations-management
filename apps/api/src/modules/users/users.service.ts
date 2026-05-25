@@ -15,8 +15,8 @@ export type UserRoleFilter = 'all' | 'ADMIN' | 'USER' | 'GROUP_MANAGER' | 'GROUP
 
 function normalizePhone(phone: string): string {
   const trimmed = phone.trim();
-  if (trimmed.startsWith('+972')) return trimmed;
-  if (trimmed.startsWith('0')) return '+972' + trimmed.slice(1);
+  if (trimmed.startsWith('+972')) return '0' + trimmed.slice(4);
+  if (trimmed.startsWith('972')) return '0' + trimmed.slice(3);
   return trimmed;
 }
 

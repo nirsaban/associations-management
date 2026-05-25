@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
@@ -13,11 +14,17 @@ import {
   MapPin,
   Package,
   Share2,
+  Users2,
+  BookOpen,
+  Clock,
+  Recycle,
+  ChevronLeft,
 } from 'lucide-react';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import { useToast } from '@/components/ui/Toast';
 import { DonationIframeCard, AlertsList, ShareAchievementModal } from '@/components/group-experience';
+import { COMMUNITY_PROFESSIONS_ENABLED } from '@/lib/feature-flags';
 import ReferralCard from './ReferralCard';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -483,40 +490,7 @@ export default function UserDashboardPage() {
         </p>
       </div>
 
-      {/* ── Section 2: Weekly Distribution Status ───────────────────────────── */}
-      <section aria-labelledby="weekly-dist-heading">
-        <h2 id="weekly-dist-heading" className="text-title-lg font-medium mb-4 text-on-surface">
-          חלוקה שבועית
-        </h2>
-
-        {weeklyDistQuery.isLoading ? (
-          <div className="space-y-3">
-            <Skeleton className="h-20 rounded-xl" />
-            <Skeleton className="h-14 rounded-xl" />
-          </div>
-        ) : weeklyDistQuery.isError ? (
-          <div className="rounded-lg bg-error-container text-on-error-container px-5 py-4 flex items-center gap-3">
-            <AlertCircle className="h-5 w-5 shrink-0" />
-            <span className="text-body-md">שגיאה בטעינת נתוני חלוקה</span>
-          </div>
-        ) : weekly?.isDistributor ? (
-          <DistributorSection
-            data={weekly}
-            firstName={firstName}
-            organizationName={donation?.organizationName}
-            organizationLogoUrl={donation?.organizationLogoUrl}
-            landingSlug={referral?.landingSlug}
-            referralCode={referral?.code}
-          />
-        ) : (
-          <NonDistributorCard
-            hasGroup={hasGroup}
-            currentDistributor={groupViewQuery.data?.currentDistributor ?? null}
-          />
-        )}
-      </section>
-
-      {/* ── Section 3: Donation ─────────────────────────────────────────────── */}
+      {/* ── Section 2: Donation (always top, right after welcome) ───────────── */}
       <section aria-labelledby="donation-section-heading">
         <h2 id="donation-section-heading" className="text-title-lg font-medium mb-4 text-on-surface">
           תרומות
@@ -549,11 +523,106 @@ export default function UserDashboardPage() {
         ) : null}
       </section>
 
+      {/* ── Section 3: Weekly Distribution (directly under donation) ────────── */}
+      <section aria-labelledby="weekly-dist-heading">
+        <h2 id="weekly-dist-heading" className="text-title-lg font-medium mb-4 text-on-surface">
+          חלוקה שבועית
+        </h2>
+
+        {weeklyDistQuery.isLoading ? (
+          <div className="space-y-3">
+            <Skeleton className="h-20 rounded-xl" />
+            <Skeleton className="h-14 rounded-xl" />
+          </div>
+        ) : weeklyDistQuery.isError ? (
+          <div className="rounded-lg bg-error-container text-on-error-container px-5 py-4 flex items-center gap-3">
+            <AlertCircle className="h-5 w-5 shrink-0" />
+            <span className="text-body-md">שגיאה בטעינת נתוני חלוקה</span>
+          </div>
+        ) : weekly?.isDistributor ? (
+          <DistributorSection
+            data={weekly}
+            firstName={firstName}
+            organizationName={donation?.organizationName}
+            organizationLogoUrl={donation?.organizationLogoUrl}
+            landingSlug={referral?.landingSlug}
+            referralCode={referral?.code}
+          />
+        ) : (
+          <NonDistributorCard
+            hasGroup={hasGroup}
+            currentDistributor={groupViewQuery.data?.currentDistributor ?? null}
+          />
+        )}
+      </section>
+
+      {/* ── Community CTA (below weekly) ───────────────────────────────────── */}
+      {COMMUNITY_PROFESSIONS_ENABLED && <CommunityHeroCard />}
+
       {/* ── Section 4: My Referral Link ──────────────────────────────────── */}
       <ReferralCard />
 
       {/* ── Section 5: Alerts ───────────────────────────────────────────────── */}
       <AlertsList limit={5} />
     </div>
+  );
+}
+
+// ─── Community Hero Card ───────────────────────────────────────
+
+function CommunityHeroCard() {
+  const tiles: { href: string; label: string; sub: string; icon: React.ComponentType<{ className?: string }> }[] = [
+    { href: '/community/tehillim', label: 'תהילים יומי', sub: 'פרק קהילתי + הקדשה', icon: BookOpen },
+    { href: '/community/pass-it-on', label: 'העברה הלאה', sub: 'חפצים וריהוט בקהילה', icon: Recycle },
+    { href: '/community/zmanim', label: 'זמני היום', sub: 'שבת, פרשה, זמני תפילה', icon: Clock },
+    { href: '/community/people', label: 'אנשים', sub: 'מאגר בעלי מקצוע', icon: Users2 },
+  ];
+
+  return (
+    <section
+      aria-labelledby="community-hero-heading"
+      className="rounded-2xl border border-primary/20 bg-gradient-to-bl from-primary/10 via-primary/5 to-transparent p-5 sm:p-6"
+    >
+      <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-11 h-11 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0">
+            <Users2 className="h-6 w-6 text-primary" />
+          </div>
+          <div className="min-w-0">
+            <h2 id="community-hero-heading" className="text-title-lg font-headline text-on-surface">
+              הקהילה שלך
+            </h2>
+            <p className="text-body-sm text-on-surface-variant">
+              תהילים יומי, מסירת חפצים, זמני יום ומאגר בעלי מקצוע
+            </p>
+          </div>
+        </div>
+        <Link
+          href="/community/tehillim"
+          className="hidden sm:flex items-center gap-1 text-body-sm text-primary font-medium hover:underline"
+        >
+          לתהילים של היום
+          <ChevronLeft className="h-3.5 w-3.5" />
+        </Link>
+      </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {tiles.map(t => {
+          const Icon = t.icon;
+          return (
+            <Link
+              key={t.href}
+              href={t.href}
+              className="group flex flex-col items-start gap-1.5 rounded-xl bg-surface-container-lowest/80 hover:bg-surface-container border border-outline/15 hover:border-primary/30 p-3 transition-all"
+            >
+              <div className="w-8 h-8 rounded-lg bg-primary/10 group-hover:bg-primary/20 flex items-center justify-center transition-colors">
+                <Icon className="h-4 w-4 text-primary" />
+              </div>
+              <p className="text-body-md font-medium text-on-surface">{t.label}</p>
+              <p className="text-label-sm text-on-surface-variant line-clamp-1">{t.sub}</p>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
   );
 }

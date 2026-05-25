@@ -79,8 +79,9 @@ export default function LoginPage() {
       <div className="w-full max-w-md animate-fade-in">
         {/* Header */}
         <div className="mb-12 text-center">
-          <h1 className="text-headline-lg font-headline mb-2">ניהול עמותות</h1>
-          <p className="text-body-md text-on-surface-variant">ברוכים הבאים למערכת ניהול העמותות</p>
+          <img src="/logo.jpeg" alt="נחלת דוד" className="h-20 w-20 rounded-full mx-auto mb-3 object-cover shadow-md" />
+          <h1 className="text-headline-lg font-headline mb-2">נחלת דוד</h1>
+          <p className="text-body-md text-on-surface-variant">מפעל חסדים לזכר הרב דויד עשור זצ״ל</p>
         </div>
 
         {/* Card */}
@@ -132,7 +133,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <p className="text-center text-body-sm text-on-surface-variant mt-8">
-          © {new Date().getFullYear()} ניהול עמותות. כל הזכויות שמורות.
+          © {new Date().getFullYear()} נחלת דוד. כל הזכויות שמורות.
         </p>
       </div>
     </div>

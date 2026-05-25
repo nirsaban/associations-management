@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
@@ -13,10 +14,16 @@ import {
   Bell,
   ChevronDown,
   ChevronUp,
-  Building2,
+  ChevronLeft,
+  Users2,
+  BookOpen,
+  Clock,
+  Recycle,
 } from 'lucide-react';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
+import { COMMUNITY_PROFESSIONS_ENABLED } from '@/lib/feature-flags';
+import { DonationIframeCard } from '@/components/group-experience';
 import ReferralCard from '../../user/dashboard/ReferralCard';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -204,7 +211,35 @@ export default function ManagerDashboardPage() {
         </p>
       </div>
 
-      {/* ── Section 2: Weekly Tasks ─────────────────────────────────────────── */}
+      {/* ── Section 2: Donation (same component as user dashboard) ──────────── */}
+      <section aria-labelledby="donation-section-heading">
+        <h2 id="donation-section-heading" className="text-title-lg font-medium mb-4 text-on-surface">
+          תרומות
+        </h2>
+
+        {donationInfoQuery.isLoading || paymentStatusQuery.isLoading ? (
+          <div className="card-elevated space-y-4">
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <Skeleton className="h-5 w-40" />
+            </div>
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-8 w-44 rounded-full" />
+            <Skeleton className="w-full h-[500px] sm:h-[600px] rounded-lg" />
+          </div>
+        ) : donation ? (
+          <DonationIframeCard
+            paymentLink={donation.paymentLink}
+            paymentDescription={donation.paymentDescription}
+            organizationName={donation.organizationName}
+            organizationLogoUrl={donation.organizationLogoUrl}
+            isPaid={payment?.isPaid ?? false}
+            paidAt={payment?.paidAt ?? null}
+          />
+        ) : null}
+      </section>
+
+      {/* ── Section 3: Weekly Tasks (directly under donation) ──────────────── */}
       <section aria-labelledby="weekly-tasks-heading">
         <h2 id="weekly-tasks-heading" className="text-title-lg font-medium mb-4 text-on-surface">
           משימות שבועיות
@@ -282,98 +317,8 @@ export default function ManagerDashboardPage() {
         </div>
       </section>
 
-      {/* ── Section 3: Donation ─────────────────────────────────────────────── */}
-      <section aria-labelledby="donation-heading">
-        <div className="card-elevated space-y-4">
-
-          {/* Org header */}
-          {donationInfoQuery.isLoading ? (
-            <div className="flex items-center gap-3">
-              <Skeleton className="h-10 w-10 rounded-full" />
-              <Skeleton className="h-5 w-40" />
-            </div>
-          ) : donation ? (
-            <div className="flex items-center gap-3">
-              {donation.organizationLogoUrl ? (
-                <img
-                  src={donation.organizationLogoUrl}
-                  alt={donation.organizationName}
-                  className="h-10 w-10 rounded-full object-cover border border-outline/20 shrink-0"
-                />
-              ) : (
-                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                  <Building2 className="h-5 w-5 text-primary" />
-                </div>
-              )}
-              <span className="text-title-md font-medium text-on-surface">
-                {donation.organizationName}
-              </span>
-            </div>
-          ) : null}
-
-          <div>
-            <h2
-              id="donation-heading"
-              className="text-headline-md font-headline text-on-surface mb-1"
-            >
-              תרומות לעמותה
-            </h2>
-
-            {donationInfoQuery.isLoading ? (
-              <Skeleton className="h-4 w-3/4 mt-2" />
-            ) : (
-              <p className="text-body-md text-on-surface-variant">{donation?.paymentDescription}</p>
-            )}
-          </div>
-
-          {/* Payment status pill */}
-          {paymentStatusQuery.isLoading ? (
-            <Skeleton className="h-8 w-44 rounded-full" />
-          ) : payment ? (
-            <div
-              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-body-sm font-medium ${
-                payment.isPaid
-                  ? 'bg-success-container text-on-success-container'
-                  : 'bg-warning-container text-on-warning-container'
-              }`}
-            >
-              {payment.isPaid ? (
-                <>
-                  <CheckCircle2 className="h-4 w-4" />
-                  שילמת החודש
-                  {payment.paidAt && (
-                    <span className="font-normal opacity-80">
-                      ({format(new Date(payment.paidAt), 'd בMMM', { locale: he })})
-                    </span>
-                  )}
-                </>
-              ) : (
-                <>
-                  <AlertCircle className="h-4 w-4" />
-                  טרם שולם לחודש זה
-                </>
-              )}
-            </div>
-          ) : null}
-
-          {/* Donation iframe */}
-          {donationInfoQuery.isLoading ? (
-            <Skeleton className="w-full h-[500px] sm:h-[600px] rounded-lg" />
-          ) : donation?.paymentLink ? (
-            <iframe
-              src={donation.paymentLink}
-              title="טופס תרומה"
-              sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-              className="w-full rounded-lg border border-outline/20 h-[500px] sm:h-[600px]"
-              loading="lazy"
-            />
-          ) : (
-            <div className="flex items-center justify-center h-32 rounded-lg bg-surface-container text-body-md text-on-surface-variant">
-              קישור לתשלום אינו זמין כרגע
-            </div>
-          )}
-        </div>
-      </section>
+      {/* ── Community CTA (below weekly tasks) ─────────────────────────────── */}
+      {COMMUNITY_PROFESSIONS_ENABLED && <CommunityHeroCard />}
 
       {/* ── Section 4: My Referral Link ──────────────────────────────────── */}
       <ReferralCard />
@@ -412,5 +357,64 @@ export default function ManagerDashboardPage() {
         )}
       </section>
     </div>
+  );
+}
+
+// ─── Community Hero Card ───────────────────────────────────────
+
+function CommunityHeroCard() {
+  const tiles: { href: string; label: string; sub: string; icon: React.ComponentType<{ className?: string }> }[] = [
+    { href: '/community/tehillim', label: 'תהילים יומי', sub: 'פרק קהילתי + הקדשה', icon: BookOpen },
+    { href: '/community/pass-it-on', label: 'העברה הלאה', sub: 'חפצים וריהוט בקהילה', icon: Recycle },
+    { href: '/community/zmanim', label: 'זמני היום', sub: 'שבת, פרשה, זמני תפילה', icon: Clock },
+    { href: '/community/people', label: 'אנשים', sub: 'מאגר בעלי מקצוע', icon: Users2 },
+  ];
+
+  return (
+    <section
+      aria-labelledby="community-hero-heading"
+      className="rounded-2xl border border-primary/20 bg-gradient-to-bl from-primary/10 via-primary/5 to-transparent p-5 sm:p-6"
+    >
+      <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-11 h-11 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0">
+            <Users2 className="h-6 w-6 text-primary" />
+          </div>
+          <div className="min-w-0">
+            <h2 id="community-hero-heading" className="text-title-lg font-headline text-on-surface">
+              הקהילה שלך
+            </h2>
+            <p className="text-body-sm text-on-surface-variant">
+              תהילים יומי, מסירת חפצים, זמני יום ומאגר בעלי מקצוע
+            </p>
+          </div>
+        </div>
+        <Link
+          href="/community/tehillim"
+          className="hidden sm:flex items-center gap-1 text-body-sm text-primary font-medium hover:underline"
+        >
+          לתהילים של היום
+          <ChevronLeft className="h-3.5 w-3.5" />
+        </Link>
+      </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {tiles.map(t => {
+          const Icon = t.icon;
+          return (
+            <Link
+              key={t.href}
+              href={t.href}
+              className="group flex flex-col items-start gap-1.5 rounded-xl bg-surface-container-lowest/80 hover:bg-surface-container border border-outline/15 hover:border-primary/30 p-3 transition-all"
+            >
+              <div className="w-8 h-8 rounded-lg bg-primary/10 group-hover:bg-primary/20 flex items-center justify-center transition-colors">
+                <Icon className="h-4 w-4 text-primary" />
+              </div>
+              <p className="text-body-md font-medium text-on-surface">{t.label}</p>
+              <p className="text-label-sm text-on-surface-variant line-clamp-1">{t.sub}</p>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
   );
 }

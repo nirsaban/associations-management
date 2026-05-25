@@ -399,6 +399,23 @@ export class AlertsService {
     });
   }
 
+  async broadcastPushToOrg(
+    organizationId: string,
+    payload: { title: string; body: string; url?: string; type?: string },
+  ): Promise<number> {
+    const subscriptions = await this.prisma.pushSubscription.findMany({
+      where: { organizationId, isActive: true },
+    });
+    if (subscriptions.length === 0) return 0;
+    this.sendPushNotificationsInBackground('broadcast', subscriptions, {
+      type: payload.type || 'notification',
+      title: payload.title,
+      body: payload.body,
+      url: payload.url || '/',
+    });
+    return subscriptions.length;
+  }
+
   private sendPushNotificationsInBackground(
     alertId: string,
     subscriptions: PushSubscription[],

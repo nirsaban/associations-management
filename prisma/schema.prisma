@@ -25,8 +25,8 @@ enum OrganizationStatus {
 }
 
 enum SystemRole {
-  ADMIN        // Organization administrator
-  USER         // Regular user
+  ADMIN // Organization administrator
+  USER // Regular user
 }
 
 enum GroupRole {
@@ -128,68 +128,102 @@ enum ReviewStatus {
   REJECTED
 }
 
+enum PassItOnStatus {
+  AVAILABLE
+  RESERVED
+  TAKEN
+}
+
+enum PassItOnCategory {
+  FURNITURE // ריהוט
+  APPLIANCE // מוצרי חשמל
+  KITCHEN // מטבח וכלי בית
+  CLOTHING // ביגוד והנעלה
+  BABY // ציוד תינוקות וילדים
+  BOOKS // ספרים וצעצועים
+  OTHER // אחר
+}
+
+enum TehillimDedicationType {
+  BRIAUT // בריאות
+  HATZLACHA // הצלחה
+  PARNASSA // פרנסה
+  ZIVUG // זיווג הגון
+  SIMCHA // שמחה
+  EXAM // הצלחה במבחן
+  BUSINESS // הצלחה בעסקה
+  EMUNAH // אמונה
+  REFUAH // רפואה
+  NESHAMA // לעילוי נשמת
+}
+
 // ============================================================================
 // ORGANIZATION & USERS
 // ============================================================================
 
 model Organization {
-  id              String   @id @default(cuid())
-  name            String   @db.VarChar(255)
-  slug            String   @unique @db.VarChar(100)
-  legalName       String?  @db.VarChar(255)
-  taxId           String?  @db.VarChar(50)
-  contactPhone    String?  @db.VarChar(20)
-  contactEmail    String?  @db.VarChar(255)
-  address         String?  @db.Text
-  addressLine2    String?  @db.VarChar(255)
-  city            String?  @db.VarChar(100)
-  postalCode      String?  @db.VarChar(20)
-  country         String   @default("IL") @db.VarChar(10)
-  logoUrl         String?  @db.VarChar(500)
-  logoAssetId     String?
-  primaryColor    String   @default("#2563eb") @db.VarChar(20)
-  accentColor     String   @default("#f59e0b") @db.VarChar(20)
-  aboutShort      String?  @db.VarChar(280)
-  aboutLong       String?  @db.Text
-  description     String?  @db.Text
-  paymentLink     String?  @db.VarChar(500)
-  defaultPaymentLink String? @db.VarChar(500)
-  paymentDescription String? @db.Text
-  growUserId      String?  @db.VarChar(100)
-  growPageCode    String?  @db.VarChar(100)
-  facebookUrl     String?  @db.VarChar(500)
-  instagramUrl    String?  @db.VarChar(500)
-  whatsappUrl     String?  @db.VarChar(500)
-  websiteUrl      String?  @db.VarChar(500)
-  settings        Json?    @default("{}")
-  status          OrganizationStatus @default(ACTIVE)
-  setupCompleted  Boolean  @default(false)
+  id                    String             @id @default(cuid())
+  name                  String             @db.VarChar(255)
+  slug                  String             @unique @db.VarChar(100)
+  legalName             String?            @db.VarChar(255)
+  taxId                 String?            @db.VarChar(50)
+  contactPhone          String?            @db.VarChar(20)
+  contactEmail          String?            @db.VarChar(255)
+  address               String?            @db.Text
+  addressLine2          String?            @db.VarChar(255)
+  city                  String?            @db.VarChar(100)
+  postalCode            String?            @db.VarChar(20)
+  country               String             @default("IL") @db.VarChar(10)
+  logoUrl               String?            @db.VarChar(500)
+  logoAssetId           String?
+  primaryColor          String             @default("#2563eb") @db.VarChar(20)
+  accentColor           String             @default("#f59e0b") @db.VarChar(20)
+  aboutShort            String?            @db.VarChar(280)
+  aboutLong             String?            @db.Text
+  description           String?            @db.Text
+  paymentLink           String?            @db.VarChar(500)
+  defaultPaymentLink    String?            @db.VarChar(500)
+  paymentDescription    String?            @db.Text
+  growUserId            String?            @db.VarChar(100)
+  growPageCode          String?            @db.VarChar(100)
+  facebookUrl           String?            @db.VarChar(500)
+  instagramUrl          String?            @db.VarChar(500)
+  whatsappUrl           String?            @db.VarChar(500)
+  websiteUrl            String?            @db.VarChar(500)
+  settings              Json?              @default("{}")
+  status                OrganizationStatus @default(ACTIVE)
+  setupCompleted        Boolean            @default(false)
   createdBySuperAdminId String?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  logoAsset               Asset?   @relation("OrgLogo", fields: [logoAssetId], references: [id], onDelete: SetNull)
-  users                   User[]
-  groups                  Group[]
-  families                Family[]
-  groupMemberships        GroupMembership[]
-  weeklyOrders            WeeklyOrder[]
+  logoAsset                    Asset?                        @relation("OrgLogo", fields: [logoAssetId], references: [id], onDelete: SetNull)
+  users                        User[]
+  groups                       Group[]
+  families                     Family[]
+  groupMemberships             GroupMembership[]
+  weeklyOrders                 WeeklyOrder[]
   weeklyDistributorAssignments WeeklyDistributorAssignment[]
-  payments                Payment[]
-  monthlyPaymentStatuses  MonthlyPaymentStatus[]
-  paymentReminders        PaymentReminder[]
-  notifications           Notification[]
-  pushSubscriptions       PushSubscription[]
-  webhookEvents           WebhookEvent[]
-  alerts                  Alert[]
-  weeklyFamilyDeliveries  WeeklyFamilyDelivery[]
-  assets                  Asset[]  @relation("OrgAssets")
-  landingPage             LandingPage?
-  reviews                 Review[]
-  landingLeads            LandingLead[]
-  referrals               Referral[]
+  payments                     Payment[]
+  monthlyPaymentStatuses       MonthlyPaymentStatus[]
+  paymentReminders             PaymentReminder[]
+  notifications                Notification[]
+  pushSubscriptions            PushSubscription[]
+  webhookEvents                WebhookEvent[]
+  alerts                       Alert[]
+  weeklyFamilyDeliveries       WeeklyFamilyDelivery[]
+  assets                       Asset[]                       @relation("OrgAssets")
+  landingPage                  LandingPage?
+  reviews                      Review[]
+  landingLeads                 LandingLead[]
+  passItOnItems                PassItOnItem[]
+  dailyTehillim                DailyTehillim[]
+  tehillimDedications          TehillimDedication[]
+  tehillimReadings             TehillimReading[]
+  referrals                    Referral[]
+  userProfessions              UserProfession[]
 
   @@index([createdAt])
   @@index([status])
@@ -197,39 +231,47 @@ model Organization {
 }
 
 model User {
-  id                     String        @id @default(cuid())
-  organizationId         String?       // Nullable for SUPER_ADMIN users (platform admins)
-  phone                  String        @db.VarChar(20)
-  fullName               String        @db.VarChar(255)
-  email                  String?       @db.VarChar(255)
-  avatarUrl              String?       @db.VarChar(500)
-  platformRole           PlatformRole? // Only set for SUPER_ADMIN
-  systemRole             SystemRole    @default(USER)
-  isActive               Boolean       @default(true)
-  isImported             Boolean       @default(false)
-  registrationCompleted  Boolean       @default(false)
-  activationCompleted    Boolean       @default(false)
-  groupChoiceLocked      Boolean       @default(false)
+  id                    String        @id @default(cuid())
+  organizationId        String? // Nullable for SUPER_ADMIN users (platform admins)
+  phone                 String        @db.VarChar(20)
+  fullName              String        @db.VarChar(255)
+  email                 String?       @db.VarChar(255)
+  avatarUrl             String?       @db.VarChar(500)
+  platformRole          PlatformRole? // Only set for SUPER_ADMIN
+  systemRole            SystemRole    @default(USER)
+  isActive              Boolean       @default(true)
+  isImported            Boolean       @default(false)
+  registrationCompleted Boolean       @default(false)
+  activationCompleted   Boolean       @default(false)
+  groupChoiceLocked     Boolean       @default(false)
+  showInCommunitySearch Boolean       @default(true)
+  shortBio              String?       @db.VarChar(280)
+  otherProfession       String?       @db.VarChar(255)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  organization              Organization?               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  managedGroups             Group[]                     @relation("GroupManager")
-  groupMemberships          GroupMembership[]
-  webauthnCredentials       WebauthnCredential[]
-  weeklyOrdersCreated       WeeklyOrder[]               @relation("OrderCreatedBy")
+  organization                 Organization?                 @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  managedGroups                Group[]                       @relation("GroupManager")
+  groupMemberships             GroupMembership[]
+  webauthnCredentials          WebauthnCredential[]
+  weeklyOrdersCreated          WeeklyOrder[]                 @relation("OrderCreatedBy")
   weeklyDistributorAssignments WeeklyDistributorAssignment[] @relation("AssignedDistributor")
-  weeklyDistributorAssignedBy WeeklyDistributorAssignment[] @relation("AssignedBy")
-  payments                  Payment[]
-  monthlyPaymentStatuses    MonthlyPaymentStatus[]
-  paymentReminders          PaymentReminder[]
-  notifications             Notification[]
-  pushSubscriptions         PushSubscription[]
-  alertsPublished           Alert[]             @relation("AlertsPublishedBy")
-  deliveriesMarked          WeeklyFamilyDelivery[] @relation("DeliveriesMarkedBy")
-  referrals                 Referral[]
+  weeklyDistributorAssignedBy  WeeklyDistributorAssignment[] @relation("AssignedBy")
+  payments                     Payment[]
+  monthlyPaymentStatuses       MonthlyPaymentStatus[]
+  paymentReminders             PaymentReminder[]
+  notifications                Notification[]
+  pushSubscriptions            PushSubscription[]
+  alertsPublished              Alert[]                       @relation("AlertsPublishedBy")
+  deliveriesMarked             WeeklyFamilyDelivery[]        @relation("DeliveriesMarkedBy")
+  referrals                    Referral[]
+  userProfessions              UserProfession[]
+  passItOnItemsPosted          PassItOnItem[]                @relation("PassItOnPostedBy")
+  passItOnItemsClaimed         PassItOnItem[]                @relation("PassItOnClaimedBy")
+  tehillimDedications          TehillimDedication[]          @relation("TehillimDedicationsBy")
+  tehillimReadings             TehillimReading[]             @relation("TehillimReadingsBy")
 
   @@unique([organizationId, phone])
   @@index([organizationId])
@@ -244,14 +286,14 @@ model User {
 // ============================================================================
 
 model Group {
-  id             String   @id @default(cuid())
+  id             String  @id @default(cuid())
   organizationId String
-  name           String   @db.VarChar(255)
+  name           String  @db.VarChar(255)
   managerUserId  String?
-  isActive       Boolean  @default(true)
+  isActive       Boolean @default(true)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   organization                 Organization                  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -268,13 +310,13 @@ model Group {
 }
 
 model GroupMembership {
-  id             String          @id @default(cuid())
+  id             String           @id @default(cuid())
   organizationId String
   groupId        String
   userId         String
   role           GroupRole        @default(MEMBER)
   status         MembershipStatus @default(ACTIVE)
-  joinedAt       DateTime        @default(now())
+  joinedAt       DateTime         @default(now())
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -296,25 +338,25 @@ model GroupMembership {
 // ============================================================================
 
 model Family {
-  id                 String   @id @default(cuid())
+  id                 String  @id @default(cuid())
   organizationId     String
-  groupId            String?  // Optional: family may belong to a group
-  familyName         String   @db.VarChar(255)
-  contactName        String?  @db.VarChar(255)
-  address            String?  @db.Text
-  contactPhone       String?  @db.VarChar(20)
+  groupId            String? // Optional: family may belong to a group
+  familyName         String  @db.VarChar(255)
+  contactName        String? @db.VarChar(255)
+  address            String? @db.Text
+  contactPhone       String? @db.VarChar(20)
   childrenMinorCount Int?
   totalMemberCount   Int?
-  notes              String?  @db.Text
-  metadataJson       Json?    @default("{}")
-  status             String   @default("active") @db.VarChar(50)
+  notes              String? @db.Text
+  metadataJson       Json?   @default("{}")
+  status             String  @default("active") @db.VarChar(50)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  group        Group?         @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  organization Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  group        Group?                 @relation(fields: [groupId], references: [id], onDelete: SetNull)
   weeklyOrders WeeklyOrder[]
   deliveries   WeeklyFamilyDelivery[]
 
@@ -334,7 +376,7 @@ model WeeklyOrder {
   organizationId   String
   groupId          String
   familyId         String
-  weekKey          String      @db.VarChar(10)  // Format: "2026-W16"
+  weekKey          String      @db.VarChar(10) // Format: "2026-W16"
   createdByUserId  String?
   shoppingListJson Json        @default("[]")
   notes            String?     @db.Text
@@ -359,11 +401,11 @@ model WeeklyOrder {
 }
 
 model WeeklyDistributorAssignment {
-  id             String @id @default(cuid())
-  organizationId String
-  groupId        String
-  weekKey        String @db.VarChar(10) // Format: "2026-W16"
-  assignedUserId String
+  id               String  @id @default(cuid())
+  organizationId   String
+  groupId          String
+  weekKey          String  @db.VarChar(10) // Format: "2026-W16"
+  assignedUserId   String
   assignedByUserId String?
 
   createdAt DateTime @default(now())
@@ -374,7 +416,7 @@ model WeeklyDistributorAssignment {
   assignedUser User         @relation("AssignedDistributor", fields: [assignedUserId], references: [id], onDelete: Cascade)
   assignedBy   User?        @relation("AssignedBy", fields: [assignedByUserId], references: [id], onDelete: SetNull)
 
-  deliveries   WeeklyFamilyDelivery[]
+  deliveries WeeklyFamilyDelivery[]
 
   @@unique([groupId, weekKey])
   @@index([organizationId])
@@ -384,21 +426,21 @@ model WeeklyDistributorAssignment {
 }
 
 model WeeklyFamilyDelivery {
-  id                           String   @id @default(cuid())
-  organizationId               String
+  id                            String    @id @default(cuid())
+  organizationId                String
   weeklyDistributorAssignmentId String
-  familyId                     String
-  delivered                    Boolean  @default(false)
-  deliveredAt                  DateTime?
-  markedByUserId               String
+  familyId                      String
+  delivered                     Boolean   @default(false)
+  deliveredAt                   DateTime?
+  markedByUserId                String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  organization                 Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  weeklyDistributorAssignment  WeeklyDistributorAssignment @relation(fields: [weeklyDistributorAssignmentId], references: [id], onDelete: Cascade)
-  family                       Family                      @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  markedByUser                 User                        @relation("DeliveriesMarkedBy", fields: [markedByUserId], references: [id])
+  organization                Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  weeklyDistributorAssignment WeeklyDistributorAssignment @relation(fields: [weeklyDistributorAssignmentId], references: [id], onDelete: Cascade)
+  family                      Family                      @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  markedByUser                User                        @relation("DeliveriesMarkedBy", fields: [markedByUserId], references: [id])
 
   @@unique([weeklyDistributorAssignmentId, familyId])
   @@index([organizationId, weeklyDistributorAssignmentId])
@@ -416,7 +458,7 @@ model Payment {
   userId                String
   amount                Decimal       @db.Decimal(12, 2)
   currency              String        @default("ILS") @db.VarChar(3)
-  monthKey              String        @db.VarChar(7)  // Format: "2026-04"
+  monthKey              String        @db.VarChar(7) // Format: "2026-04"
   paymentDate           DateTime?
   source                String?       @db.VarChar(100)
   externalTransactionId String?       @db.VarChar(255)
@@ -443,15 +485,15 @@ model Payment {
 }
 
 model MonthlyPaymentStatus {
-  id              String    @id @default(cuid())
-  organizationId  String
-  userId          String
-  monthKey        String    @db.VarChar(7) // Format: "2026-04"
-  isPaid          Boolean   @default(false)
-  paidAt          DateTime?
-  paymentId       String?   @unique
-  reminderCount   Int       @default(0)
-  lastReminderAt  DateTime?
+  id             String    @id @default(cuid())
+  organizationId String
+  userId         String
+  monthKey       String    @db.VarChar(7) // Format: "2026-04"
+  isPaid         Boolean   @default(false)
+  paidAt         DateTime?
+  paymentId      String?   @unique
+  reminderCount  Int       @default(0)
+  lastReminderAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -473,7 +515,7 @@ model PaymentReminder {
   organizationId String
   userId         String
   monthKey       String          @db.VarChar(7) // Format: "2026-04"
-  reminderNumber Int             // 1, 2, or 3
+  reminderNumber Int // 1, 2, or 3
   channel        ReminderChannel
   status         ReminderStatus  @default(PENDING)
   sentAt         DateTime?
@@ -567,17 +609,17 @@ model OtpCode {
 // ============================================================================
 
 model WebauthnCredential {
-  id              String   @id @default(cuid())
-  userId          String
-  credentialId    String   @unique @db.Text
-  publicKey       Bytes
-  counter         BigInt   @default(0)
-  deviceType      String?  @db.VarChar(50)  // "singleDevice" | "multiDevice"
-  backedUp        Boolean  @default(false)
-  transports      String[] @default([])     // e.g. ["internal", "hybrid"]
-  deviceName      String?  @db.VarChar(255) // e.g. "iPhone 15 Pro"
+  id           String   @id @default(cuid())
+  userId       String
+  credentialId String   @unique @db.Text
+  publicKey    Bytes
+  counter      BigInt   @default(0)
+  deviceType   String?  @db.VarChar(50) // "singleDevice" | "multiDevice"
+  backedUp     Boolean  @default(false)
+  transports   String[] @default([]) // e.g. ["internal", "hybrid"]
+  deviceName   String?  @db.VarChar(255) // e.g. "iPhone 15 Pro"
 
-  createdAt  DateTime @default(now())
+  createdAt  DateTime  @default(now())
   lastUsedAt DateTime?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -591,21 +633,21 @@ model WebauthnCredential {
 // ============================================================================
 
 model Alert {
-  id              String         @id @default(cuid())
-  organizationId  String
-  title           String         @db.VarChar(255)
-  body            String         @db.Text
-  audience        AlertAudience  @default(ALL_USERS)
-  publishedById   String
-  deliveredCount  Int            @default(0)
-  recipientCount  Int            @default(0)
-  publishedAt     DateTime       @default(now())
-  expiresAt       DateTime?
+  id             String        @id @default(cuid())
+  organizationId String
+  title          String        @db.VarChar(255)
+  body           String        @db.Text
+  audience       AlertAudience @default(ALL_USERS)
+  publishedById  String
+  deliveredCount Int           @default(0)
+  recipientCount Int           @default(0)
+  publishedAt    DateTime      @default(now())
+  expiresAt      DateTime?
 
-  createdAt       DateTime       @default(now())
+  createdAt DateTime @default(now())
 
-  organization    Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  publishedBy     User           @relation("AlertsPublishedBy", fields: [publishedById], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  publishedBy  User         @relation("AlertsPublishedBy", fields: [publishedById], references: [id])
 
   @@index([organizationId, audience, publishedAt])
   @@index([organizationId])
@@ -618,7 +660,7 @@ model Alert {
 
 model WebhookEvent {
   id             String             @id @default(cuid())
-  organizationId String?            // Nullable: platform-level webhooks may not have org
+  organizationId String? // Nullable: platform-level webhooks may not have org
   provider       String             @db.VarChar(100)
   eventId        String?            @db.VarChar(255)
   eventType      String             @db.VarChar(100)
@@ -655,7 +697,7 @@ model Asset {
 
   createdAt DateTime @default(now())
 
-  organization Organization @relation("OrgAssets", fields: [organizationId], references: [id], onDelete: Cascade)
+  organization Organization   @relation("OrgAssets", fields: [organizationId], references: [id], onDelete: Cascade)
   orgLogos     Organization[] @relation("OrgLogo")
 
   @@index([organizationId])
@@ -680,7 +722,7 @@ model LandingPage {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  organization Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   sections     LandingPageSection[]
 
   @@index([slug])
@@ -733,13 +775,13 @@ model Review {
 // ============================================================================
 
 model GrowPaymentProcess {
-  id             String   @id @default(cuid())
+  id             String  @id @default(cuid())
   organizationId String
-  authCode       String   @db.VarChar(255)
-  referralCode   String?  @db.VarChar(20)
-  amount         Decimal  @db.Decimal(12, 2)
-  slug           String   @db.VarChar(100)
-  matched        Boolean  @default(false)
+  authCode       String  @db.VarChar(255)
+  referralCode   String? @db.VarChar(20)
+  amount         Decimal @db.Decimal(12, 2)
+  slug           String  @db.VarChar(100)
+  matched        Boolean @default(false)
 
   createdAt DateTime @default(now())
 
@@ -754,17 +796,17 @@ model GrowPaymentProcess {
 // ============================================================================
 
 model Referral {
-  id             String   @id @default(cuid())
+  id             String  @id @default(cuid())
   organizationId String
   userId         String
-  code           String   @db.VarChar(20)
-  isActive       Boolean  @default(true)
+  code           String  @db.VarChar(20)
+  isActive       Boolean @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   clicks       ReferralClick[]
   payments     Payment[]
 
@@ -776,10 +818,10 @@ model Referral {
 }
 
 model ReferralClick {
-  id         String   @id @default(cuid())
+  id         String  @id @default(cuid())
   referralId String
-  ip         String?  @db.VarChar(45)
-  userAgent  String?  @db.Text
+  ip         String? @db.VarChar(45)
+  userAgent  String? @db.Text
 
   createdAt DateTime @default(now())
 
@@ -788,6 +830,61 @@ model ReferralClick {
   @@index([referralId])
   @@index([createdAt])
   @@map("referral_clicks")
+}
+
+// ============================================================================
+// COMMUNITY — PROFESSIONS
+// ============================================================================
+
+model ProfessionCategory {
+  id        String @id @default(cuid())
+  nameHe    String @unique @db.VarChar(100)
+  sortOrder Int    @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  professions Profession[]
+
+  @@map("profession_categories")
+}
+
+model Profession {
+  id         String @id @default(cuid())
+  categoryId String
+  nameHe     String @db.VarChar(150)
+  sortOrder  Int    @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  category        ProfessionCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  userProfessions UserProfession[]
+
+  @@unique([categoryId, nameHe])
+  @@index([nameHe])
+  @@map("professions")
+}
+
+model UserProfession {
+  id             String  @id @default(cuid())
+  organizationId String
+  userId         String
+  professionId   String
+  isPrimary      Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profession   Profession   @relation(fields: [professionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, professionId])
+  @@index([organizationId])
+  @@index([professionId])
+  @@index([organizationId, professionId])
+  @@map("user_professions")
 }
 
 // ============================================================================
@@ -811,4 +908,99 @@ model LandingLead {
 
   @@index([organizationId])
   @@map("landing_leads")
+}
+
+// ============================================================================
+// PASS-IT-ON — קהילתי, מסירת חפצים/ריהוט
+// ============================================================================
+
+model PassItOnItem {
+  id             String           @id @default(cuid())
+  organizationId String
+  postedById     String
+  claimedById    String?
+
+  title       String           @db.VarChar(120)
+  description String           @db.Text
+  category    PassItOnCategory @default(OTHER)
+  status      PassItOnStatus   @default(AVAILABLE)
+
+  images       String[] // URLs ל-Cloudinary / נכסים שהועלו
+  location     String?  @db.VarChar(120) // עיר/שכונה
+  contactPhone String?  @db.VarChar(20) // אם ריק — נשתמש בטלפון המוסר
+
+  claimedAt DateTime?
+  takenAt   DateTime?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  postedBy     User         @relation("PassItOnPostedBy", fields: [postedById], references: [id])
+  claimedBy    User?        @relation("PassItOnClaimedBy", fields: [claimedById], references: [id])
+
+  @@index([organizationId, status, createdAt])
+  @@index([organizationId, category])
+  @@index([postedById])
+  @@map("pass_it_on_items")
+}
+
+// ============================================================================
+// DAILY TEHILLIM — תהילים יומי קהילתי עם תפיסת תור והקדשות
+// ============================================================================
+
+model DailyTehillim {
+  id              String   @id @default(cuid())
+  organizationId  String
+  date            DateTime @db.Date
+  chapter         Int      // 1–150
+  priorityUserIds String[] // היוזר-IDs של 3 הראשונים שאישרו קריאה אתמול — קיבלו עדיפות להיום
+  pushSentAt      DateTime?
+  createdAt       DateTime @default(now())
+
+  organization Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  dedications  TehillimDedication[]
+  readings     TehillimReading[]
+
+  @@unique([organizationId, date])
+  @@index([organizationId, date])
+  @@map("daily_tehillim")
+}
+
+model TehillimDedication {
+  id              String                 @id @default(cuid())
+  organizationId  String
+  dailyTehillimId String
+  userId          String
+  type            TehillimDedicationType
+  dedicateeName   String?                @db.VarChar(120) // שם המוקדש (אופציונלי)
+  motherName      String?                @db.VarChar(120) // שם האם
+  position        Int // 1, 2, 3
+  createdAt       DateTime               @default(now())
+
+  organization  Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  dailyTehillim DailyTehillim @relation(fields: [dailyTehillimId], references: [id], onDelete: Cascade)
+  user          User          @relation("TehillimDedicationsBy", fields: [userId], references: [id])
+
+  @@unique([dailyTehillimId, position])
+  @@unique([dailyTehillimId, userId])
+  @@index([organizationId, createdAt])
+  @@map("tehillim_dedications")
+}
+
+model TehillimReading {
+  id              String   @id @default(cuid())
+  organizationId  String
+  dailyTehillimId String
+  userId          String
+  readAt          DateTime @default(now())
+
+  organization  Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  dailyTehillim DailyTehillim @relation(fields: [dailyTehillimId], references: [id], onDelete: Cascade)
+  user          User          @relation("TehillimReadingsBy", fields: [userId], references: [id])
+
+  @@unique([dailyTehillimId, userId])
+  @@index([organizationId, dailyTehillimId, readAt])
+  @@map("tehillim_readings")
 }

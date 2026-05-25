@@ -4,11 +4,12 @@ import React, { ReactNode, useEffect, useState, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/auth.store';
-import { Menu, LogOut, Home, Users, CreditCard, Upload, Bell, Truck, ShoppingCart, Heart, UserCircle, Building2, Globe, Link2 } from 'lucide-react';
+import { Menu, LogOut, Home, Users, CreditCard, Upload, Bell, Truck, ShoppingCart, Heart, UserCircle, Building2, Globe, Link2, Globe2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import { AutoPushSubscribe } from '@/components/pwa/AutoPushSubscribe';
+import { COMMUNITY_PROFESSIONS_ENABLED } from '@/lib/feature-flags';
 
 // Full navigation items per role
 const NAVIGATION = {
@@ -27,6 +28,7 @@ const NAVIGATION = {
     { label: 'פרופיל עמותה', href: '/admin/organization/profile', icon: Building2 },
     { label: 'דף נחיתה', href: '/admin/landing', icon: Globe },
     { label: 'הפניות', href: '/admin/referrals', icon: Link2 },
+    ...(COMMUNITY_PROFESSIONS_ENABLED ? [{ label: 'קהילה', href: '/community/people', icon: Globe2 }] : []),
   ],
   USER: [
     { label: 'דף הבית', href: '/user/dashboard', icon: Home },
@@ -34,6 +36,7 @@ const NAVIGATION = {
     { label: 'המשפחות שלי', href: '/user/families', icon: Heart },
     { label: 'התרומות שלי', href: '/user/my-donations', icon: CreditCard },
     { label: 'התראות', href: '/notifications', icon: Bell },
+    ...(COMMUNITY_PROFESSIONS_ENABLED ? [{ label: 'קהילה', href: '/community/people', icon: Globe2 }] : []),
     { label: 'פרופיל', href: '/profile', icon: UserCircle },
   ],
   GROUP_MANAGER: [
@@ -44,6 +47,7 @@ const NAVIGATION = {
     { label: 'הזמנות שבועיות', href: '/manager/weekly-orders', icon: ShoppingCart },
     { label: 'מחלק שבועי', href: '/manager/weekly-distributor', icon: Truck },
     { label: 'התראות', href: '/notifications', icon: Bell },
+    ...(COMMUNITY_PROFESSIONS_ENABLED ? [{ label: 'קהילה', href: '/community/people', icon: Globe2 }] : []),
   ],
   WEEKLY_DISTRIBUTOR: [
     { label: 'בית', href: '/', icon: Home },
@@ -260,7 +264,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               <img src={orgProfile.logoUrl} alt="" className="w-8 h-8 rounded-lg object-contain flex-shrink-0" />
             )}
             <div className="min-w-0">
-              <h1 className="text-headline-sm font-headline truncate">{orgProfile?.name || 'ניהול עמותות'}</h1>
+              <h1 className="text-headline-sm font-headline truncate">{orgProfile?.name || 'נחלת דוד'}</h1>
               <p className="text-label-sm text-on-surface-variant mt-0.5 truncate">{user?.name || user?.phone}</p>
             </div>
           </div>
@@ -306,7 +310,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             {orgProfile?.logoUrl && (
               <img src={orgProfile.logoUrl} alt="" className="w-7 h-7 rounded-lg object-contain flex-shrink-0" />
             )}
-            <h1 className="text-title-sm font-headline truncate">{orgProfile?.name || 'ניהול עמותות'}</h1>
+            <h1 className="text-title-sm font-headline truncate">{orgProfile?.name || 'נחלת דוד'}</h1>
           </div>
           <button
             onClick={logout}

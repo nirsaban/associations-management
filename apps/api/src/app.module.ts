@@ -33,6 +33,8 @@ import { HealthModule } from '@modules/health/health.module';
 import { LandingModule } from '@modules/landing/landing.module';
 import { ReferralsModule } from '@modules/referrals/referrals.module';
 import { SchedulerModule } from '@modules/scheduler/scheduler.module';
+import { CommunityModule } from '@modules/community/community.module';
+import { OmerModule } from '@modules/omer/omer.module';
 
 @Module({
   imports: [
@@ -79,6 +81,8 @@ import { SchedulerModule } from '@modules/scheduler/scheduler.module';
     LandingModule,
     ReferralsModule,
     SchedulerModule,
+    CommunityModule,
+    OmerModule,
   ],
   providers: [
     {

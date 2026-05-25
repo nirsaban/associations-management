@@ -1,5 +1,5 @@
 /**
- * Push Notification Utilities for ניהול עמותות
+ * Push Notification Utilities for נחלת דוד
  * Handles PWA service worker registration and push subscription management
  */
 
@@ -277,7 +277,7 @@ export async function showTestNotification(): Promise<void> {
 
   const registration = await navigator.serviceWorker.ready;
 
-  await registration.showNotification('ניהול עמותות', {
+  await registration.showNotification('נחלת דוד', {
     body: 'זוהי הודעת בדיקה',
     icon: '/icon-192.png',
     badge: '/icon-192.png',

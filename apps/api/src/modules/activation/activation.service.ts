@@ -28,7 +28,7 @@ function getRpId(requestOrigin?: string): string {
 }
 
 function getRpName(): string {
-  return process.env.WEBAUTHN_RP_NAME || 'ניהול עמותות';
+  return process.env.WEBAUTHN_RP_NAME || 'נחלת דוד';
 }
 
 function getOrigin(requestOrigin?: string): string {

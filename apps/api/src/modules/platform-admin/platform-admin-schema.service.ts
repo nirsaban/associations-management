@@ -40,6 +40,28 @@ const MODEL_LABELS: Record<string, string> = {
   Review: 'ביקורת',
   LandingLead: 'ליד',
   WebauthnCredential: 'אימות ביומטרי',
+  ProfessionCategory: 'קטגוריית מקצוע',
+  Profession: 'מקצוע',
+  UserProfession: 'מקצוע משתמש',
+};
+
+const FIELD_LABELS: Record<string, Record<string, string>> = {
+  ProfessionCategory: {
+    nameHe: 'שם בעברית',
+    sortOrder: 'סדר',
+  },
+  Profession: {
+    nameHe: 'שם בעברית',
+    sortOrder: 'סדר',
+  },
+  UserProfession: {
+    isPrimary: 'מקצוע ראשי',
+  },
+  User: {
+    showInCommunitySearch: 'מופיע בחיפוש קהילה',
+    shortBio: 'ביוגרפיה קצרה',
+    otherProfession: 'מקצוע אחר',
+  },
 };
 
 // Fields that should render as textarea
@@ -58,6 +80,7 @@ const DISPLAY_FIELD_PRIORITY = [
 
 export interface FieldMeta {
   name: string;
+  label?: string;
   type: string;
   kind: 'scalar' | 'enum' | 'object';
   isList: boolean;
@@ -157,8 +180,11 @@ export class PlatformAdminSchemaService {
           field.type === 'String' &&
           TEXTAREA_FIELD_PATTERNS.some((p) => field.name.toLowerCase().includes(p));
 
+        const fieldLabel = FIELD_LABELS[model.name]?.[field.name];
+
         const meta: FieldMeta = {
           name: field.name,
+          ...(fieldLabel ? { label: fieldLabel } : {}),
           type: field.type,
           kind: field.kind === 'enum' ? 'enum' : 'scalar',
           isList: field.isList,

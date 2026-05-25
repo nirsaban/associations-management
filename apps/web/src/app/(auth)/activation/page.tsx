@@ -7,9 +7,11 @@ import { PushNotificationStep } from './_components/PushNotificationStep';
 import { BiometryStep } from './_components/BiometryStep';
 import { PwaInstallInstructions } from './_components/PwaInstallInstructions';
 import { GroupConfirmStep } from './_components/GroupConfirmStep';
+import { ProfessionStep } from './_components/ProfessionStep';
+import { COMMUNITY_PROFESSIONS_ENABLED } from '@/lib/feature-flags';
 import api from '@/lib/api';
 
-type Step = 'group' | 'push' | 'biometry' | 'pwa';
+type Step = 'group' | 'profession' | 'push' | 'biometry' | 'pwa';
 
 function isStandalone(): boolean {
   if (typeof window === 'undefined') return false;
@@ -26,40 +28,66 @@ function isIosDevice(): boolean {
 /**
  * Build step list based on platform capabilities and user role:
  * - Non-admin users get a group confirmation step first
+ * - Profession step is inserted after group step when feature flag is on
+ *   and user is not SUPER_ADMIN and does not already have a primary profession
  * - iOS non-PWA: push won't work → show PWA install first, then biometry
  * - Already in PWA: skip PWA step → push + biometry
  * - Android/Desktop browser: push works → push + biometry + PWA
  */
-function buildSteps(isAdmin: boolean): Step[] {
+function buildSteps(isAdmin: boolean, hasProfession: boolean, isSuperAdmin: boolean): Step[] {
   const standalone = isStandalone();
   const ios = isIosDevice();
 
   const groupStep: Step[] = isAdmin ? [] : ['group'];
 
-  if (standalone) {
-    return [...groupStep, 'push', 'biometry'];
-  }
+  // Insert profession step when community flag is on and applicable
+  const professionStep: Step[] =
+    COMMUNITY_PROFESSIONS_ENABLED && !isSuperAdmin && !hasProfession
+      ? ['profession']
+      : [];
 
-  if (ios) {
-    return [...groupStep, 'pwa', 'biometry'];
-  }
+  const platformSteps: Step[] = standalone
+    ? ['push', 'biometry']
+    : ios
+      ? ['pwa', 'biometry']
+      : ['push', 'biometry', 'pwa'];
 
-  return [...groupStep, 'push', 'biometry', 'pwa'];
+  return [...groupStep, ...professionStep, ...platformSteps];
 }
 
 export default function ActivationPage() {
   const router = useRouter();
   const { user } = useAuthStore();
   const isAdmin = user?.systemRole === 'ADMIN' || user?.platformRole === 'SUPER_ADMIN';
+  const isSuperAdmin = user?.platformRole === 'SUPER_ADMIN';
+
   const [steps, setSteps] = useState<Step[]>(['push', 'biometry', 'pwa']);
   const [currentStep, setCurrentStep] = useState<Step>('push');
+  const [hasProfession, setHasProfession] = useState(false);
+  const [profileChecked, setProfileChecked] = useState(false);
 
-  // Compute steps on client only (needs navigator)
+  // Check if the user already has a primary profession (skip step if so)
   useEffect(() => {
-    const computed = buildSteps(!!isAdmin);
+    if (!COMMUNITY_PROFESSIONS_ENABLED || isSuperAdmin) {
+      setProfileChecked(true);
+      return;
+    }
+    api
+      .get<{ data: { primaryProfessionId?: string } }>('/auth/me')
+      .then((res) => {
+        setHasProfession(!!res.data?.data?.primaryProfessionId);
+      })
+      .catch(() => {})
+      .finally(() => setProfileChecked(true));
+  }, [isSuperAdmin]);
+
+  // Compute steps on client only (needs navigator) — wait for profile check
+  useEffect(() => {
+    if (!profileChecked) return;
+    const computed = buildSteps(!!isAdmin, hasProfession, !!isSuperAdmin);
     setSteps(computed);
     setCurrentStep(computed[0]);
-  }, [isAdmin]);
+  }, [isAdmin, hasProfession, isSuperAdmin, profileChecked]);
 
   const goToNext = useCallback(async (fromStep: Step) => {
     const idx = steps.indexOf(fromStep);
@@ -113,6 +141,9 @@ export default function ActivationPage() {
         <div className="card-elevated">
           {currentStep === 'group' && (
             <GroupConfirmStep onComplete={() => goToNext('group')} />
+          )}
+          {currentStep === 'profession' && (
+            <ProfessionStep onComplete={() => goToNext('profession')} />
           )}
           {currentStep === 'push' && (
             <PushNotificationStep onComplete={() => goToNext('push')} />

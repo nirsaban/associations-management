@@ -35,7 +35,7 @@ export class GreenApiService {
    * @param otp 6-digit OTP code
    */
   async sendOtpSms(phone: string, otp: string): Promise<void> {
-    const message = `קוד האימות שלך: ${otp}\n\nהקוד תקף ל-5 דקות.\n\n🔐 ניהול עמותות`;
+    const message = `קוד האימות שלך: ${otp}\n\nהקוד תקף ל-5 דקות.\n\n🔐 נחלת דוד`;
 
     // If Green API is not enabled, just log the OTP
     if (!this.enabled || !this.apiUrl) {

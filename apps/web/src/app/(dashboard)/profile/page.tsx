@@ -1,11 +1,19 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { useAuthStore } from '@/store/auth.store';
-import { User, Phone, Mail, Building2, Users, AlertCircle } from 'lucide-react';
+import { User, Phone, Mail, Building2, Users, AlertCircle, Briefcase, Edit2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { API_ROUTES } from '@/lib/constants';
+import { COMMUNITY_PROFESSIONS_ENABLED } from '@/lib/feature-flags';
+
+interface ProfessionItem {
+  id: string;
+  nameHe: string;
+  category: { id: string; nameHe: string };
+}
 
 interface UserProfile {
   id: string;
@@ -24,6 +32,12 @@ interface UserProfile {
     isActive?: boolean;
   };
   registrationCompleted?: boolean;
+  // Community fields (present when COMMUNITY_PROFESSIONS_ENABLED)
+  primaryProfession?: ProfessionItem;
+  secondaryProfessions?: ProfessionItem[];
+  otherProfession?: string;
+  shortBio?: string;
+  showInCommunitySearch?: boolean;
 }
 
 export default function ProfilePage() {
@@ -63,10 +77,19 @@ export default function ProfilePage() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 max-w-4xl">
-      {/* Header */}
-      <div>
-        <h1 className="text-headline-md sm:text-headline-lg font-headline mb-1 sm:mb-2">הפרופיל שלי</h1>
-        <p className="text-body-md text-on-surface-variant">פרטים אישיים והגדרות חשבון</p>
+      {/* Header with edit button */}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-headline-md sm:text-headline-lg font-headline mb-1 sm:mb-2">הפרופיל שלי</h1>
+          <p className="text-body-md text-on-surface-variant">פרטים אישיים והגדרות חשבון</p>
+        </div>
+        <Link
+          href="/profile/edit"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-on-primary text-label-md font-medium hover:bg-primary/90 transition-colors shrink-0"
+        >
+          <Edit2 className="h-4 w-4" />
+          ערוך פרופיל
+        </Link>
       </div>
 
       {/* Personal Information */}
@@ -128,6 +151,71 @@ export default function ProfilePage() {
         </div>
       </div>
 
+      {/* Community fields — only shown when feature flag is on */}
+      {COMMUNITY_PROFESSIONS_ENABLED && (
+        <div className="card-elevated">
+          <h2 className="text-title-lg font-medium mb-6 flex items-center gap-3">
+            <Briefcase className="h-6 w-6 text-tertiary" />
+            קהילה ומקצוע
+          </h2>
+
+          <div className="space-y-4">
+            {/* Short bio */}
+            {profile?.shortBio && (
+              <div className="p-4 rounded-lg bg-surface-container">
+                <p className="text-label-sm text-on-surface-variant mb-1">ביוגרפיה</p>
+                <p className="text-body-md">{profile.shortBio}</p>
+              </div>
+            )}
+
+            {/* Primary profession */}
+            {profile?.primaryProfession && (
+              <div className="p-4 rounded-lg bg-surface-container">
+                <p className="text-label-sm text-on-surface-variant mb-2">מקצוע ראשי</p>
+                <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary text-label-md font-medium">
+                  {profile.primaryProfession.nameHe}
+                  <span className="ms-1.5 text-primary/60 text-label-sm">
+                    · {profile.primaryProfession.category.nameHe}
+                  </span>
+                </span>
+              </div>
+            )}
+
+            {/* Secondary professions */}
+            {profile?.secondaryProfessions && profile.secondaryProfessions.length > 0 && (
+              <div className="p-4 rounded-lg bg-surface-container">
+                <p className="text-label-sm text-on-surface-variant mb-2">מקצועות נוספים</p>
+                <div className="flex flex-wrap gap-2">
+                  {profile.secondaryProfessions.map((p) => (
+                    <span
+                      key={p.id}
+                      className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-secondary/10 text-secondary text-label-sm"
+                    >
+                      {p.nameHe}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Other profession */}
+            {profile?.otherProfession && (
+              <div className="p-4 rounded-lg bg-surface-container">
+                <p className="text-label-sm text-on-surface-variant mb-1">מקצוע אחר</p>
+                <p className="text-body-md italic">{profile.otherProfession}</p>
+              </div>
+            )}
+
+            {/* Community search visibility */}
+            <div className="p-4 rounded-lg bg-surface-container">
+              <p className="text-label-sm text-on-surface-variant mb-1">מופיע בחיפוש קהילה</p>
+              <p className="text-body-md font-medium">
+                {profile?.showInCommunitySearch === false ? 'לא' : 'כן'}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

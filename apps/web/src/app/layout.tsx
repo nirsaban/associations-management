@@ -4,8 +4,8 @@ import { Providers } from './providers';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'ניהול עמותות',
-  description: 'מערכת ניהול לעמותות ישראליות',
+  title: 'נחלת דוד',
+  description: 'נחלת דוד — מפעל חסדים לזכר הרב דויד עשור זצ״ל',
   manifest: '/manifest.json',
   icons: {
     icon: '/favicon.ico',
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'ניהול עמותות',
+    title: 'נחלת דוד',
   },
   viewport: {
     width: 'device-width',
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     userScalable: true,
   },
   themeColor: '#A74C66',
-  applicationName: 'ניהול עמותות',
+  applicationName: 'נחלת דוד',
   formatDetection: {
     telephone: false,
   },

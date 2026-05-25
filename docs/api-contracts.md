@@ -1236,4 +1236,64 @@ Response:
 }
 ```
 Notes: Resolves manager user IDs for the given groups (scoped to org), creates an Alert with audience GROUP_MANAGERS, and fan-outs push notifications only to those specific managers. Reuses the existing alerts pipeline via AlertsService.createAlertForUsers.
+
+---
+
+## Community Module (Phase 1)
+
+All endpoints in this module are gated behind the `COMMUNITY_PROFESSIONS` feature flag.
+When the flag is off all endpoints return 404 — as if they do not exist.
+
+### Community — GET /api/v1/professions
+Method: GET
+Path: /api/v1/professions
+Auth: JwtAuthGuard + FeatureFlagGuard
+Request: –
+Response: `{ data: [{ id, nameHe, sortOrder, professions: [{ id, nameHe, sortOrder }] }] }`
+Headers: `Cache-Control: public, max-age=300`
+Notes: Platform-level catalog — not tenant-scoped. Ordered by sortOrder then nameHe.
+Errors: 401, 404 (flag off)
+
+### Community — GET /api/v1/professions/search
+Method: GET
+Path: /api/v1/professions/search?q=<string>
+Auth: JwtAuthGuard + FeatureFlagGuard
+Request: `q` (min 1 char, required)
+Response: `{ data: [{ id, nameHe, category: { id, nameHe } }] }` — flat list, max 30 results
+Notes: Case-insensitive match on Profession.nameHe OR ProfessionCategory.nameHe.
+Errors: 400 (q too short), 401, 404 (flag off)
+
+### Community — PUT /api/v1/users/me/professions
+Method: PUT
+Path: /api/v1/users/me/professions
+Auth: JwtAuthGuard + FeatureFlagGuard
+Request: `{ primary: string, secondary?: string[] (max 5), otherProfession?: string (max 120) }`
+Response: `{ data: { primary: { id, nameHe, category: { id, nameHe } }, secondary: [...], otherProfession: string | null } }`
+Errors: 400 `INVALID_PROFESSION` (invalid/dup professionId), 401, 403 `SUPER_ADMIN_NO_PROFESSION` (platform admin), 404 (flag off)
+Notes: Transactional replace — deletes all existing UserProfession rows then inserts new ones.
+
+### Community — PUT /api/v1/users/me/privacy
+Method: PUT
+Path: /api/v1/users/me/privacy
+Auth: JwtAuthGuard + FeatureFlagGuard
+Request: `{ showInCommunitySearch: boolean }`
+Response: `{ data: { showInCommunitySearch: boolean } }`
+Errors: 400, 401, 404 (flag off)
+
+### Community — PUT /api/v1/users/me/bio
+Method: PUT
+Path: /api/v1/users/me/bio
+Auth: JwtAuthGuard + FeatureFlagGuard
+Request: `{ shortBio: string (max 280, empty clears) }`
+Response: `{ data: { shortBio: string | null } }`
+Errors: 400, 401, 404 (flag off)
+
+### Community — GET /api/v1/community/people
+Method: GET
+Path: /api/v1/community/people
+Auth: JwtAuthGuard + FeatureFlagGuard
+Request (query params): `name?`, `professionId?`, `categoryId?`, `q?`, `cursor?`, `limit?` (default 20, max 50)
+Response: `{ data: { items: [{ id, fullName, avatarUrl, professions: [{ id, nameHe, isPrimary, category: { id, nameHe } }], otherProfession, shortBio, phone }], nextCursor: string | null } }`
+Notes: Tenant-scoped. Excludes requesting user, users with showInCommunitySearch=false, SUPER_ADMIN users, soft-deleted users. Cursor pagination on id ASC.
+Errors: 401, 404 (flag off)
 Errors: 400, 401, 403
