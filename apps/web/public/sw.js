@@ -1,7 +1,7 @@
 /* eslint-disable no-restricted-globals */
-// Service Worker for ניהול עמותות PWA
+// Service Worker for נחלת דוד PWA
 
-const CACHE_NAME = 'amutot-v1';
+const CACHE_NAME = 'amutot-v2';
 const OFFLINE_URL = '/offline.html';
 
 // Core assets to cache on install
