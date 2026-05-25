@@ -146,6 +146,7 @@ enum PassItOnCategory {
 
 enum TehillimDedicationType {
   BRIAUT // בריאות
+  MILUIM //
   HATZLACHA // הצלחה
   PARNASSA // פרנסה
   ZIVUG // זיווג הגון

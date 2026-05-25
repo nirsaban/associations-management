@@ -6,10 +6,11 @@ import { BookOpen, Loader2, Check, Crown, Clock, AlertTriangle, Heart, Sparkles,
 
 type DedicationType =
   | 'BRIAUT' | 'HATZLACHA' | 'PARNASSA' | 'ZIVUG' | 'SIMCHA'
-  | 'EXAM' | 'BUSINESS' | 'EMUNAH' | 'REFUAH' | 'NESHAMA';
+  | 'EXAM' | 'BUSINESS' | 'EMUNAH' | 'REFUAH' | 'NESHAMA' | 'MILUIM';
 
 const DEDICATION_LABELS: Record<DedicationType, string> = {
   BRIAUT: 'בריאות',
+  MILUIM:'שמירה והצלחה בשירות צבאי/מילואים',
   HATZLACHA: 'הצלחה',
   PARNASSA: 'פרנסה',
   ZIVUG: 'זיווג הגון',

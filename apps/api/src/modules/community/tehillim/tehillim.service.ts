@@ -17,6 +17,7 @@ const PRIORITY_GRACE_MINUTES = 60; // עד שעה אחרי 10:00 — רק מי �
 
 const DEDICATION_LABELS: Record<TehillimDedicationType, string> = {
   BRIAUT: 'בריאות',
+  MILUIM:'הצלחה ושמירה בצבא/מילואים',
   HATZLACHA: 'הצלחה',
   PARNASSA: 'פרנסה',
   ZIVUG: 'זיווג הגון',
