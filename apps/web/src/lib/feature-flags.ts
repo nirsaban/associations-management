@@ -5,6 +5,8 @@
  * that need to be accessible in the browser.
  */
 
+// Default ON. Explicitly set NEXT_PUBLIC_COMMUNITY_PROFESSIONS=off to disable.
 export const COMMUNITY_PROFESSIONS_ENABLED =
-  process.env.NEXT_PUBLIC_COMMUNITY_PROFESSIONS === 'on' ||
-  process.env.NEXT_PUBLIC_COMMUNITY_PROFESSIONS === 'true';
+  process.env.NEXT_PUBLIC_COMMUNITY_PROFESSIONS !== 'off' &&
+  process.env.NEXT_PUBLIC_COMMUNITY_PROFESSIONS !== 'false' &&
+  process.env.NEXT_PUBLIC_COMMUNITY_PROFESSIONS !== '0';
