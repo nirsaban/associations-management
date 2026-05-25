@@ -35,22 +35,49 @@ export class UsersService {
 
     const phone = normalizePhone(createUserDto.phone);
     const rawPhone = createUserDto.phone.trim();
+    // Also normalize the inverse — if someone enters 0XX we check +972XX too,
+    // and vice versa. The DB has historical data in both formats.
+    const legacyIntlPhone = phone.startsWith('0') ? `+972${phone.slice(1)}` : null;
     const fullName = stripHtml(createUserDto.fullName);
 
-    // Phone is unique within an organization — check both normalized and raw formats
-    const existingByPhone = await this.prisma.user.findFirst({
+    // Look across ALL rows (including soft-deleted) because the UNIQUE
+    // constraint (organizationId, phone) doesn't honour deletedAt.
+    const phoneVariants = [phone, rawPhone, legacyIntlPhone].filter(Boolean) as string[];
+    const matching = await this.prisma.user.findMany({
       where: {
         organizationId,
-        deletedAt: null,
-        OR: [{ phone }, { phone: rawPhone }],
+        phone: { in: phoneVariants },
       },
     });
 
-    if (existingByPhone) {
+    const activeMatch = matching.find(u => !u.deletedAt);
+    if (activeMatch) {
       throw new ConflictException('משתמש עם מספר טלפון זה כבר קיים בעמותה');
     }
 
-    // Email uniqueness within org only
+    // All matches are soft-deleted — restore the most recent one instead of
+    // inserting a duplicate (which would trip the DB UNIQUE constraint).
+    const softDeletedMatch = matching
+      .filter(u => u.deletedAt)
+      .sort((a, b) => (b.deletedAt!.getTime() - a.deletedAt!.getTime()))[0];
+    if (softDeletedMatch) {
+      this.logger.log(
+        `Restoring soft-deleted user ${softDeletedMatch.id} for phone ${phone}`,
+      );
+      const restored = await this.prisma.user.update({
+        where: { id: softDeletedMatch.id },
+        data: {
+          deletedAt: null,
+          fullName,
+          phone, // normalize to current canonical format (0...)
+          email: createUserDto.email ?? softDeletedMatch.email,
+          isActive: true,
+        },
+      });
+      return this.mapToDto(restored);
+    }
+
+    // Email uniqueness within org only (also check soft-deleted to avoid DB conflicts)
     if (createUserDto.email) {
       const existingByEmail = await this.prisma.user.findFirst({
         where: { email: createUserDto.email, organizationId, deletedAt: null },
