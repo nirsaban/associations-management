@@ -90,10 +90,12 @@ export function useAuth() {
         setTokens(accessToken, refreshToken);
 
         // Set a cookie so the middleware can read the token for server-side routing.
-        // SameSite=Strict prevents CSRF; Secure is set in production via HTTPS.
+        // SameSite=Lax (not Strict) — Strict can be silently dropped inside an
+        // iOS PWA standalone context, which causes a redirect loop after the
+        // user installs the app to the home screen.
         // Max-Age matches the JWT access token TTL (1 hour = 3600 seconds).
         const secure = window.location.protocol === 'https:';
-        document.cookie = `auth_token=${accessToken}; path=/; max-age=3600; SameSite=Strict${secure ? '; Secure' : ''}`;
+        document.cookie = `auth_token=${accessToken}; path=/; max-age=3600; SameSite=Lax${secure ? '; Secure' : ''}`;
       } finally {
         setLoading(false);
       }
@@ -106,9 +108,12 @@ export function useAuth() {
       await api.post(API_ROUTES.AUTH.LOGOUT);
     } finally {
       logout();
-      // Clear the auth_token cookie used by middleware
+      // Clear the auth_token cookie used by middleware. Wipe with both
+      // SameSite variants because older sessions may have set Strict.
       const secureClear = window.location.protocol === 'https:' ? '; Secure' : '';
+      document.cookie = `auth_token=; path=/; max-age=0; SameSite=Lax${secureClear}`;
       document.cookie = `auth_token=; path=/; max-age=0; SameSite=Strict${secureClear}`;
+      try { sessionStorage.removeItem('login-loop-started-at'); } catch {}
       window.location.href = '/login';
     }
   }, [logout]);

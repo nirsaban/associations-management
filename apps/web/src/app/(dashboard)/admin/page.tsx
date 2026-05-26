@@ -86,9 +86,7 @@ const AUDIENCE_OPTIONS: AlertAudience[] = [
   'GROUP_MANAGERS',
 ];
 
-// ─── Template helpers (localStorage) ────────────────────────────────────────
-
-const TEMPLATES_KEY = 'amutot-alert-templates';
+// ─── AlertTemplate type ──────────────────────────────────────────────────────
 
 interface AlertTemplate {
   id: string;
@@ -96,21 +94,8 @@ interface AlertTemplate {
   title: string;
   body: string;
   audience: AlertAudience;
-}
-
-function getTemplates(): AlertTemplate[] {
-  try { return JSON.parse(localStorage.getItem(TEMPLATES_KEY) || '[]'); }
-  catch { return []; }
-}
-
-function saveTemplateToStorage(template: AlertTemplate): void {
-  const templates = getTemplates();
-  templates.push(template);
-  localStorage.setItem(TEMPLATES_KEY, JSON.stringify(templates));
-}
-
-function deleteTemplateFromStorage(id: string): void {
-  localStorage.setItem(TEMPLATES_KEY, JSON.stringify(getTemplates().filter(t => t.id !== id)));
+  createdAt: string;
+  updatedAt: string;
 }
 
 
@@ -118,9 +103,19 @@ function deleteTemplateFromStorage(id: string): void {
 
 function DashboardAlertComposer({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
   const { showToast } = useToast();
+  const queryClient = useQueryClient();
   const [form, setForm] = useState({ title: '', body: '', audience: 'ALL_USERS' as AlertAudience });
-  const [templates, setTemplates] = useState<AlertTemplate[]>(() => getTemplates());
   const [showTemplates, setShowTemplates] = useState(false);
+
+  // Fetch templates from API
+  const { data: templatesData } = useQuery<{ data: AlertTemplate[] }>({
+    queryKey: ['admin', 'alert-templates'],
+    queryFn: async () => {
+      const { data } = await api.get('/admin/alerts/templates');
+      return data;
+    },
+  });
+  const templates = templatesData?.data ?? [];
 
   const mutation = useMutation({
     mutationFn: async (payload: { title: string; body: string; audience: AlertAudience }) => {
@@ -129,6 +124,29 @@ function DashboardAlertComposer({ onClose, onSuccess }: { onClose: () => void; o
     },
     onSuccess: () => { showToast('ההודעה פורסמה בהצלחה', 'success'); onSuccess(); },
     onError: () => { showToast('שגיאה בפרסום ההודעה', 'error'); },
+  });
+
+  const saveTemplateMutation = useMutation({
+    mutationFn: async (payload: { name: string; title: string; body: string; audience: AlertAudience }) => {
+      const { data } = await api.post('/admin/alerts/templates', payload);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'alert-templates'] });
+      showToast('התבנית נשמרה', 'success');
+    },
+    onError: () => { showToast('שגיאה בשמירת התבנית', 'error'); },
+  });
+
+  const deleteTemplateMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/admin/alerts/templates/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'alert-templates'] });
+      showToast('התבנית נמחקה', 'success');
+    },
+    onError: () => { showToast('שגיאה במחיקת התבנית', 'error'); },
   });
 
   return (
@@ -155,10 +173,20 @@ function DashboardAlertComposer({ onClose, onSuccess }: { onClose: () => void; o
             <div className="absolute top-full left-0 right-0 mt-1 bg-surface border border-outline rounded-lg shadow-lg z-10 max-h-48 overflow-auto">
               {templates.map((t) => (
                 <div key={t.id} className="flex items-center justify-between px-3 py-2 hover:bg-surface-container cursor-pointer gap-2">
-                  <button type="button" onClick={() => { deleteTemplateFromStorage(t.id); setTemplates(getTemplates()); }} className="p-1 text-error hover:bg-error-container rounded shrink-0" aria-label="מחק תבנית">
+                  <button
+                    type="button"
+                    onClick={() => deleteTemplateMutation.mutate(t.id)}
+                    disabled={deleteTemplateMutation.isPending}
+                    className="p-1 text-error hover:bg-error-container rounded shrink-0 disabled:opacity-60"
+                    aria-label="מחק תבנית"
+                  >
                     <Trash2 className="h-3 w-3" />
                   </button>
-                  <button type="button" onClick={() => { setForm({ title: t.title, body: t.body, audience: t.audience }); setShowTemplates(false); }} className="flex-1 text-right text-sm min-w-0 truncate">
+                  <button
+                    type="button"
+                    onClick={() => { setForm({ title: t.title, body: t.body, audience: t.audience }); setShowTemplates(false); }}
+                    className="flex-1 text-right text-sm min-w-0 truncate"
+                  >
                     {t.name}
                   </button>
                 </div>
@@ -172,11 +200,10 @@ function DashboardAlertComposer({ onClose, onSuccess }: { onClose: () => void; o
             if (!form.title.trim()) { showToast('נא למלא כותרת לפני שמירה', 'error'); return; }
             const name = prompt('שם התבנית:');
             if (!name) return;
-            saveTemplateToStorage({ id: Date.now().toString(), name, title: form.title, body: form.body, audience: form.audience });
-            setTemplates(getTemplates());
-            showToast('התבנית נשמרה', 'success');
+            saveTemplateMutation.mutate({ name, title: form.title, body: form.body, audience: form.audience });
           }}
-          className="btn-outline text-sm flex items-center justify-center gap-2 whitespace-nowrap"
+          disabled={saveTemplateMutation.isPending}
+          className="btn-outline text-sm flex items-center justify-center gap-2 whitespace-nowrap disabled:opacity-60"
         >
           <Save className="h-4 w-4 shrink-0" />
           שמור כתבנית
@@ -546,7 +573,7 @@ export default function AdminDashboardPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <h2 className="text-title-lg font-medium flex items-center gap-3 min-w-0">
             <Bell className="h-6 w-6 text-tertiary shrink-0" />
-            <span className="truncate">פרסום הודעות</span>
+            <span className="truncate">התראות</span>
           </h2>
           <div className="flex flex-wrap items-center gap-2">
             <Link href="/admin/alerts/templates" className="btn-outline btn-sm flex items-center gap-1 whitespace-nowrap">
@@ -687,12 +714,6 @@ export default function AdminDashboardPage() {
             <Upload className="h-8 w-8 text-secondary mb-3" />
             <h3 className="text-title-md font-medium mb-2">ייבוא CSV</h3>
             <p className="text-body-sm text-on-surface-variant">ייבוא משתמשים, קבוצות ומשפחות</p>
-          </Link>
-
-          <Link href="/admin/alerts" className="card hover:shadow-lg transition-shadow">
-            <Bell className="h-8 w-8 text-tertiary mb-3" />
-            <h3 className="text-title-md font-medium mb-2">התראות</h3>
-            <p className="text-body-sm text-on-surface-variant">שליחת התראות והודעות</p>
           </Link>
         </div>
       </div>

@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { BookOpen, Plus, Pencil, Trash2, X, Save, ArrowRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { BookOpen, Plus, Pencil, Trash2, X, Save, ArrowRight, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import api from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
 
 type AlertAudience = 'ALL_USERS' | 'GROUP_MANAGERS' | 'UNPAID_THIS_MONTH' | 'CURRENT_DISTRIBUTORS';
@@ -13,9 +15,9 @@ interface AlertTemplate {
   title: string;
   body: string;
   audience: AlertAudience;
+  createdAt: string;
+  updatedAt: string;
 }
-
-const TEMPLATES_KEY = 'amutot-alert-templates';
 
 const AUDIENCE_LABELS: Record<AlertAudience, string> = {
   ALL_USERS: 'כל המשתמשים ומנהלי קבוצות',
@@ -26,30 +28,74 @@ const AUDIENCE_LABELS: Record<AlertAudience, string> = {
 
 const AUDIENCE_OPTIONS: AlertAudience[] = ['ALL_USERS', 'UNPAID_THIS_MONTH', 'CURRENT_DISTRIBUTORS', 'GROUP_MANAGERS'];
 
-function getTemplates(): AlertTemplate[] {
-  try { return JSON.parse(localStorage.getItem(TEMPLATES_KEY) || '[]'); }
-  catch { return []; }
-}
-
-function saveTemplates(templates: AlertTemplate[]): void {
-  localStorage.setItem(TEMPLATES_KEY, JSON.stringify(templates));
-}
-
 export default function AlertTemplatesPage() {
   const { showToast } = useToast();
-  const [templates, setTemplates] = useState<AlertTemplate[]>([]);
+  const queryClient = useQueryClient();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState<Omit<AlertTemplate, 'id'>>({
+  const [form, setForm] = useState<Omit<AlertTemplate, 'id' | 'createdAt' | 'updatedAt'>>({
     name: '',
     title: '',
     body: '',
     audience: 'ALL_USERS',
   });
 
-  useEffect(() => {
-    setTemplates(getTemplates());
-  }, []);
+  // Fetch templates from API
+  const { data: templatesData, isLoading } = useQuery<{ data: AlertTemplate[] }>({
+    queryKey: ['admin', 'alert-templates'],
+    queryFn: async () => {
+      const { data } = await api.get('/admin/alerts/templates');
+      return data;
+    },
+  });
+
+  const templates = templatesData?.data ?? [];
+
+  // Create mutation
+  const createMutation = useMutation({
+    mutationFn: async (payload: Omit<AlertTemplate, 'id' | 'createdAt' | 'updatedAt'>) => {
+      const { data } = await api.post('/admin/alerts/templates', payload);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'alert-templates'] });
+      showToast('התבנית נוצרה', 'success');
+      resetForm();
+    },
+    onError: () => {
+      showToast('שגיאה ביצירת התבנית', 'error');
+    },
+  });
+
+  // Update mutation
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, ...payload }: Omit<AlertTemplate, 'createdAt' | 'updatedAt'>) => {
+      const { data } = await api.patch(`/admin/alerts/templates/${id}`, payload);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'alert-templates'] });
+      showToast('התבנית עודכנה', 'success');
+      resetForm();
+    },
+    onError: () => {
+      showToast('שגיאה בעדכון התבנית', 'error');
+    },
+  });
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/admin/alerts/templates/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'alert-templates'] });
+      showToast('התבנית נמחקה', 'success');
+    },
+    onError: () => {
+      showToast('שגיאה במחיקת התבנית', 'error');
+    },
+  });
 
   function resetForm() {
     setForm({ name: '', title: '', body: '', audience: 'ALL_USERS' });
@@ -63,21 +109,11 @@ export default function AlertTemplatesPage() {
       return;
     }
 
-    let updated: AlertTemplate[];
     if (editingId) {
-      updated = templates.map((t) =>
-        t.id === editingId ? { ...t, ...form } : t,
-      );
-      showToast('התבנית עודכנה', 'success');
+      updateMutation.mutate({ id: editingId, ...form });
     } else {
-      const newTemplate: AlertTemplate = { id: Date.now().toString(), ...form };
-      updated = [...templates, newTemplate];
-      showToast('התבנית נוצרה', 'success');
+      createMutation.mutate(form);
     }
-
-    saveTemplates(updated);
-    setTemplates(updated);
-    resetForm();
   }
 
   function handleEdit(template: AlertTemplate) {
@@ -88,11 +124,10 @@ export default function AlertTemplatesPage() {
 
   function handleDelete(id: string) {
     if (!window.confirm('האם למחוק תבנית זו?')) return;
-    const updated = templates.filter((t) => t.id !== id);
-    saveTemplates(updated);
-    setTemplates(updated);
-    showToast('התבנית נמחקה', 'success');
+    deleteMutation.mutate(id);
   }
+
+  const isSaving = createMutation.isPending || updateMutation.isPending;
 
   return (
     <div className="flex flex-col gap-6 p-4 sm:p-6 max-w-3xl" dir="rtl">
@@ -179,8 +214,13 @@ export default function AlertTemplatesPage() {
           </div>
 
           <div className="flex gap-2 pt-2">
-            <button type="button" onClick={handleSave} className="btn-primary flex items-center gap-1">
-              <Save className="h-4 w-4" />
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={isSaving}
+              className="btn-primary flex items-center gap-1 disabled:opacity-60"
+            >
+              {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               {editingId ? 'עדכן תבנית' : 'שמור תבנית'}
             </button>
             <button type="button" onClick={resetForm} className="btn-outline">ביטול</button>
@@ -188,14 +228,21 @@ export default function AlertTemplatesPage() {
         </div>
       )}
 
+      {/* Loading state */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-primary opacity-60" />
+        </div>
+      )}
+
       {/* Templates List */}
-      {templates.length === 0 && !showForm ? (
+      {!isLoading && templates.length === 0 && !showForm ? (
         <div className="card-elevated flex flex-col items-center justify-center gap-3 py-16 text-on-surface-variant">
           <BookOpen className="w-12 h-12 opacity-30" />
           <p className="text-body-md">אין תבניות עדיין</p>
           <p className="text-body-sm">צרו תבנית ראשונה לשליחת הודעות מהירה</p>
         </div>
-      ) : (
+      ) : !isLoading && templates.length > 0 ? (
         <div className="space-y-3">
           {templates.map((template) => (
             <div key={template.id} className="card-elevated p-4">
@@ -228,7 +275,8 @@ export default function AlertTemplatesPage() {
                   <button
                     type="button"
                     onClick={() => handleDelete(template.id)}
-                    className="btn-ghost p-2 rounded-lg text-error hover:bg-error/10 transition-colors"
+                    disabled={deleteMutation.isPending}
+                    className="btn-ghost p-2 rounded-lg text-error hover:bg-error/10 transition-colors disabled:opacity-60"
                     aria-label="מחק"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -238,7 +286,7 @@ export default function AlertTemplatesPage() {
             </div>
           ))}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

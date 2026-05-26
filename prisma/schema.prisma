@@ -214,6 +214,7 @@ model Organization {
   pushSubscriptions            PushSubscription[]
   webhookEvents                WebhookEvent[]
   alerts                       Alert[]
+  alertTemplates               AlertTemplate[]
   weeklyFamilyDeliveries       WeeklyFamilyDelivery[]
   assets                       Asset[]                       @relation("OrgAssets")
   landingPage                  LandingPage?
@@ -267,6 +268,7 @@ model User {
   notifications                Notification[]
   pushSubscriptions            PushSubscription[]
   alertsPublished              Alert[]                       @relation("AlertsPublishedBy")
+  alertTemplatesCreated        AlertTemplate[]               @relation("AlertTemplatesCreatedBy")
   deliveriesMarked             WeeklyFamilyDelivery[]        @relation("DeliveriesMarkedBy")
   referrals                    Referral[]
   userProfessions              UserProfession[]
@@ -659,6 +661,26 @@ model Alert {
   @@index([organizationId, audience, publishedAt])
   @@index([organizationId])
   @@map("alerts")
+}
+
+model AlertTemplate {
+  id             String        @id @default(cuid())
+  organizationId String
+  name           String        @db.VarChar(255)
+  title          String        @db.VarChar(255)
+  body           String        @db.Text
+  audience       AlertAudience @default(ALL_USERS)
+  createdById    String
+  deletedAt      DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy    User         @relation("AlertTemplatesCreatedBy", fields: [createdById], references: [id])
+
+  @@index([organizationId, deletedAt])
+  @@map("alert_templates")
 }
 
 // ============================================================================

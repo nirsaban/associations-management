@@ -172,7 +172,22 @@
       "Bash(rsvg-convert -w 192 -h 192 /tmp/logo-square.svg)",
       "Bash(rsvg-convert -w 180 -h 180 /tmp/logo-square.svg)",
       "Bash(rsvg-convert -w 64  -h 64  /tmp/logo-square.svg)",
-      "Bash(rsvg-convert -w 192 -h 192 /tmp/logo-maskable.svg)"
+      "Bash(rsvg-convert -w 192 -h 192 /tmp/logo-maskable.svg)",
+      "Bash(NEXT_PUBLIC_API_URL=/api/v1 pnpm --filter web build)",
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(cp ~/Downloads/nachalat_david_192.png icon-192.png)",
+      "Bash(cp ~/Downloads/nachalat_david_512.png icon-512.png)",
+      "Bash(cp ~/Downloads/nachalat_david_maskable_192.png icon-192-maskable.png)",
+      "Bash(cp ~/Downloads/nachalat_david_maskable_512.png icon-512-maskable.png)",
+      "Bash(cp ~/Downloads/nachalat_david_1024.png icon-1024.png)",
+      "Bash(sips -Z 64  -s format png ~/Downloads/nachalat_david_192.png --out favicon.png)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('url:', d.get\\('secure_url','ERROR'\\)\\); print\\('error:', d.get\\('error',{}\\).get\\('message','none'\\)\\)\")",
+      "Bash(lsof -ti:3010)",
+      "Bash(kill 89109 89084)",
+      "Bash(kill -9 34693)",
+      "Bash(rm -rf .next)",
+      "Bash(nohup pnpm *)",
+      "Bash(echo \"started PID $!\")"
     ]
   }
 }

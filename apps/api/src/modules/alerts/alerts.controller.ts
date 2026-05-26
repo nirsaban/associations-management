@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Delete,
   Body,
   Param,
@@ -23,7 +24,9 @@ import { Roles } from '@common/decorators/roles.decorator';
 import { CurrentUser, type CurrentUser as ICurrentUser } from '@common/decorators/current-user.decorator';
 import { AlertsService } from './alerts.service';
 import { CreateAlertDto } from './dto/create-alert.dto';
-import { Alert } from '@prisma/client';
+import { CreateAlertTemplateDto } from './dto/create-alert-template.dto';
+import { UpdateAlertTemplateDto } from './dto/update-alert-template.dto';
+import { Alert, AlertTemplate } from '@prisma/client';
 
 @ApiTags('Alerts')
 @ApiBearerAuth('access-token')
@@ -92,6 +95,81 @@ export class AlertsController {
     @Param('id') id: string,
   ): Promise<void> {
     await this.alertsService.deleteAlert(user.organizationId, id);
+  }
+
+  // --------------------------------------------------------------------------
+  // Alert template endpoints (admin)
+  // --------------------------------------------------------------------------
+
+  @Get('admin/alerts/templates')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  @ApiOperation({
+    summary: 'List alert templates',
+    description: 'קבלת רשימת כל תבניות ההתראות של העמותה (לא נמחקות)',
+  })
+  async listTemplates(
+    @CurrentUser() user: ICurrentUser,
+  ): Promise<{ data: AlertTemplate[] }> {
+    const templates = await this.alertsService.listTemplates(user.organizationId);
+    return { data: templates };
+  }
+
+  @Post('admin/alerts/templates')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: 'Create alert template',
+    description: 'יצירת תבנית התראה חדשה לעמותה',
+  })
+  async createTemplate(
+    @CurrentUser() user: ICurrentUser,
+    @Body() dto: CreateAlertTemplateDto,
+  ): Promise<{ data: AlertTemplate }> {
+    const template = await this.alertsService.createTemplate(
+      user.organizationId,
+      user.id || user.sub,
+      dto,
+    );
+    return { data: template };
+  }
+
+  @Patch('admin/alerts/templates/:id')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  @ApiOperation({
+    summary: 'Update alert template',
+    description: 'עדכון שדות תבנית התראה קיימת (שדות חלקיים בלבד)',
+  })
+  @ApiParam({ name: 'id', description: 'מזהה תבנית ההתראה' })
+  async updateTemplate(
+    @CurrentUser() user: ICurrentUser,
+    @Param('id') id: string,
+    @Body() dto: UpdateAlertTemplateDto,
+  ): Promise<{ data: AlertTemplate }> {
+    const template = await this.alertsService.updateTemplate(
+      user.organizationId,
+      id,
+      dto,
+    );
+    return { data: template };
+  }
+
+  @Delete('admin/alerts/templates/:id')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: 'Delete alert template',
+    description: 'מחיקה רכה של תבנית התראה (deletedAt)',
+  })
+  @ApiParam({ name: 'id', description: 'מזהה תבנית ההתראה' })
+  async deleteTemplate(
+    @CurrentUser() user: ICurrentUser,
+    @Param('id') id: string,
+  ): Promise<void> {
+    await this.alertsService.softDeleteTemplate(user.organizationId, id);
   }
 
   // --------------------------------------------------------------------------

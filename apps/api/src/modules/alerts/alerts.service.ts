@@ -1,9 +1,11 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '@common/prisma/prisma.service';
-import { Alert, AlertAudience, GroupRole, PaymentStatus, PushSubscription } from '@prisma/client';
+import { Alert, AlertAudience, AlertTemplate, GroupRole, PaymentStatus, PushSubscription } from '@prisma/client';
 import webpush from 'web-push';
 import { CreateAlertDto } from './dto/create-alert.dto';
+import { CreateAlertTemplateDto } from './dto/create-alert-template.dto';
+import { UpdateAlertTemplateDto } from './dto/update-alert-template.dto';
 
 /** Returns the ISO week key for the given date, e.g. "2026-W19" */
 function isoWeekKey(date: Date): string {
@@ -414,6 +416,73 @@ export class AlertsService {
       url: payload.url || '/',
     });
     return subscriptions.length;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Alert templates
+  // ---------------------------------------------------------------------------
+
+  async listTemplates(organizationId: string): Promise<AlertTemplate[]> {
+    return this.prisma.alertTemplate.findMany({
+      where: { organizationId, deletedAt: null },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async createTemplate(
+    organizationId: string,
+    createdById: string,
+    dto: CreateAlertTemplateDto,
+  ): Promise<AlertTemplate> {
+    return this.prisma.alertTemplate.create({
+      data: {
+        organizationId,
+        createdById,
+        name: dto.name,
+        title: dto.title,
+        body: dto.body,
+        audience: dto.audience ?? AlertAudience.ALL_USERS,
+      },
+    });
+  }
+
+  async updateTemplate(
+    organizationId: string,
+    templateId: string,
+    dto: UpdateAlertTemplateDto,
+  ): Promise<AlertTemplate> {
+    const existing = await this.prisma.alertTemplate.findFirst({
+      where: { id: templateId, organizationId, deletedAt: null },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('תבנית ההתראה לא נמצאה');
+    }
+
+    return this.prisma.alertTemplate.update({
+      where: { id: templateId },
+      data: {
+        ...(dto.name !== undefined && { name: dto.name }),
+        ...(dto.title !== undefined && { title: dto.title }),
+        ...(dto.body !== undefined && { body: dto.body }),
+        ...(dto.audience !== undefined && { audience: dto.audience }),
+      },
+    });
+  }
+
+  async softDeleteTemplate(organizationId: string, templateId: string): Promise<void> {
+    const existing = await this.prisma.alertTemplate.findFirst({
+      where: { id: templateId, organizationId, deletedAt: null },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('תבנית ההתראה לא נמצאה');
+    }
+
+    await this.prisma.alertTemplate.update({
+      where: { id: templateId },
+      data: { deletedAt: new Date() },
+    });
   }
 
   private sendPushNotificationsInBackground(

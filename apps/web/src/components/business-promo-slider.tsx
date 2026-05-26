@@ -32,6 +32,12 @@ interface Business {
 
 // Read speed for the marquee, in px per second. Lower = slower / easier to read.
 const PX_PER_SECOND = 130;
+// Cap duration so very large lists don't feel infinitely slow.
+const MAX_DURATION_S = 60;
+const MIN_DURATION_S = 20;
+// Estimated width (px) of a single business chip including gap, used for
+// pre-layout repeat count before the DOM is measured.
+const ESTIMATED_ITEM_WIDTH_PX = 320;
 
 export function BusinessPromoSlider() {
   const [businesses, setBusinesses] = useState<Business[]>([]);
@@ -39,6 +45,7 @@ export function BusinessPromoSlider() {
   const [paused, setPaused] = useState(false);
   const [open, setOpen] = useState<Business | null>(null);
   const [duration, setDuration] = useState(40);
+  const [repeatCount, setRepeatCount] = useState(2);
   const trackRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -47,7 +54,9 @@ export function BusinessPromoSlider() {
       .get<{ data: Business[] }>('/community/businesses')
       .then((res) => {
         if (cancelled) return;
-        setBusinesses(res.data.data);
+        const list = res.data.data;
+        console.debug('[BusinessSlider] loaded', list.length, 'businesses');
+        setBusinesses(list);
       })
       .catch(() => {})
       .finally(() => {
@@ -58,21 +67,43 @@ export function BusinessPromoSlider() {
     };
   }, []);
 
-  // Compute animation duration from actual content width so speed is constant
-  // regardless of how many businesses are loaded.
+  // After the businesses are set, compute how many times the list must be
+  // repeated so the track fills at least two full viewport widths. This ensures
+  // the seamless loop works even when the business list is very short (1-2 items).
+  useEffect(() => {
+    if (businesses.length === 0) return;
+
+    const container = trackRef.current?.parentElement;
+    const viewportWidth = container?.clientWidth ?? (typeof window !== 'undefined' ? window.innerWidth : 1280);
+
+    const estimatedContentWidth = businesses.length * ESTIMATED_ITEM_WIDTH_PX;
+    // We need the total track (= repeats × contentWidth) to be >= 2 × viewportWidth
+    // so that -50% translation always covers one full loop.
+    const neededRepeats = Math.max(2, Math.ceil((viewportWidth * 2) / estimatedContentWidth));
+    setRepeatCount(neededRepeats);
+  }, [businesses]);
+
+  // Compute animation duration from actual rendered content width so speed is
+  // constant regardless of how many businesses are loaded. Runs after repeatCount
+  // settles so scrollWidth reflects the final DOM layout.
   useEffect(() => {
     if (!trackRef.current || businesses.length === 0) return;
-    // The track contains the list duplicated twice → animate by exactly half.
-    const halfWidth = trackRef.current.scrollWidth / 2;
-    if (halfWidth > 0) {
-      setDuration(Math.max(20, halfWidth / PX_PER_SECOND));
+    // The animation translates from 0 to -(1/repeatCount) of the total width,
+    // i.e. exactly one copy of the content. scrollWidth / repeatCount = contentWidth.
+    const contentWidth = trackRef.current.scrollWidth / repeatCount;
+    if (contentWidth > 0) {
+      const raw = contentWidth / PX_PER_SECOND;
+      setDuration(Math.min(MAX_DURATION_S, Math.max(MIN_DURATION_S, raw)));
     }
-  }, [businesses]);
+  }, [businesses, repeatCount]);
 
   if (loading || businesses.length === 0) return null;
 
-  // Duplicate the list so the loop is seamless. Keys are suffixed by half index.
-  const loop = [...businesses, ...businesses];
+  // Build the looped track: repeat the list `repeatCount` times so short lists
+  // always fill the viewport and the seamless animation works correctly.
+  const loop = Array.from({ length: repeatCount }, (_, rep) =>
+    businesses.map((b) => ({ ...b, _key: `${b.id}-${rep}` })),
+  ).flat();
 
   return (
     <>
@@ -116,16 +147,19 @@ export function BusinessPromoSlider() {
           ref={trackRef}
           className="news-ticker__track"
           style={{
-            // Tracks runs in LTR direction so translateX math is predictable;
+            // Track runs in LTR direction so translateX math is predictable;
             // each chip carries its own dir-aware text alignment.
+            // The keyframe animates by -(100/repeatCount)% so exactly one copy
+            // of the content scrolls through before the loop restarts.
             animationDuration: `${duration}s`,
             animationPlayState: paused ? 'paused' : 'running',
+            ['--repeat-count' as string]: repeatCount,
           }}
         >
-          {loop.map((b, i) => (
+          {loop.map(({ _key, ...b }) => (
             <button
               type="button"
-              key={`${b.id}-${i}`}
+              key={_key}
               onClick={() => setOpen(b)}
               className="news-ticker__item"
               aria-label={`פתח את ${b.title}`}
@@ -318,7 +352,7 @@ export function BusinessPromoSlider() {
 
           @keyframes nt-scroll {
             from { transform: translateX(0); }
-            to   { transform: translateX(-50%); }
+            to   { transform: translateX(calc(-100% / var(--repeat-count, 2))); }
           }
 
           /* ── Item ── */

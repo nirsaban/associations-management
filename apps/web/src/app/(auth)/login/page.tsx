@@ -37,11 +37,51 @@ export default function LoginPage() {
     if (decisionLockedRef.current) return;
     decisionLockedRef.current = true;
     const authNow = useAuthStore.getState().isAuthenticated;
-    setHadInitialAuth(authNow);
-    setMounted(true);
-    if (authNow) {
-      router.replace('/');
+
+    if (!authNow) {
+      try { sessionStorage.removeItem('login-loop-started-at'); } catch {}
+      setHadInitialAuth(false);
+      setMounted(true);
+      return;
     }
+
+    // We have local auth but middleware just sent us to /login — that means
+    // the auth_token cookie is missing. AuthCookieSync runs in parallel and
+    // should restore it from localStorage; the redirect below will then pass.
+    // If we keep landing back here for more than 5s, the cookie sync isn't
+    // working (iOS PWA can silently drop cookies set via document.cookie
+    // depending on Safari version / ITP rules). Break the loop with a force
+    // logout instead of leaving the user staring at a spinner forever.
+    const now = Date.now();
+    let startedAt = now;
+    try {
+      const stored = sessionStorage.getItem('login-loop-started-at');
+      if (stored) {
+        startedAt = Number(stored) || now;
+      } else {
+        sessionStorage.setItem('login-loop-started-at', String(now));
+      }
+    } catch {
+      // sessionStorage unavailable — fall through, no loop protection
+    }
+
+    if (now - startedAt > 5000) {
+      try { sessionStorage.removeItem('login-loop-started-at'); } catch {}
+      const { logout } = useAuthStore.getState();
+      logout();
+      if (typeof document !== 'undefined') {
+        const secureClear = window.location.protocol === 'https:' ? '; Secure' : '';
+        document.cookie = `auth_token=; path=/; max-age=0; SameSite=Lax${secureClear}`;
+        document.cookie = `auth_token=; path=/; max-age=0; SameSite=Strict${secureClear}`;
+      }
+      setHadInitialAuth(false);
+      setMounted(true);
+      return;
+    }
+
+    setHadInitialAuth(true);
+    setMounted(true);
+    router.replace('/');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -65,6 +105,7 @@ export default function LoginPage() {
     logout();
     if (typeof document !== 'undefined') {
       const secureClear = window.location.protocol === 'https:' ? '; Secure' : '';
+      document.cookie = `auth_token=; path=/; max-age=0; SameSite=Lax${secureClear}`;
       document.cookie = `auth_token=; path=/; max-age=0; SameSite=Strict${secureClear}`;
     }
 
