@@ -46,10 +46,11 @@ api.interceptors.response.use(
 
           useAuthStore.getState().setTokens(newAccessToken, newRefreshToken);
 
-          // Keep the middleware cookie in sync with the refreshed token
+          // Keep the middleware cookie in sync with the refreshed token.
+          // SameSite=Lax — Strict is silently dropped inside iOS PWA standalone.
           if (typeof document !== 'undefined') {
             const secure = window.location.protocol === 'https:';
-            document.cookie = `auth_token=${newAccessToken}; path=/; max-age=3600; SameSite=Strict${secure ? '; Secure' : ''}`;
+            document.cookie = `auth_token=${newAccessToken}; path=/; max-age=3600; SameSite=Lax${secure ? '; Secure' : ''}`;
           }
 
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
@@ -59,6 +60,7 @@ api.interceptors.response.use(
         useAuthStore.getState().logout();
         if (typeof document !== 'undefined') {
           const secureClear = window.location.protocol === 'https:' ? '; Secure' : '';
+          document.cookie = `auth_token=; path=/; max-age=0; SameSite=Lax${secureClear}`;
           document.cookie = `auth_token=; path=/; max-age=0; SameSite=Strict${secureClear}`;
         }
         if (typeof window !== 'undefined') {

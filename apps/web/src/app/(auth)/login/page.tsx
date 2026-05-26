@@ -36,22 +36,50 @@ export default function LoginPage() {
   React.useEffect(() => {
     if (decisionLockedRef.current) return;
     decisionLockedRef.current = true;
-    const authNow = useAuthStore.getState().isAuthenticated;
 
-    if (!authNow) {
+    const { isAuthenticated: authNow, accessToken } = useAuthStore.getState();
+
+    if (!authNow || !accessToken) {
       try { sessionStorage.removeItem('login-loop-started-at'); } catch {}
       setHadInitialAuth(false);
       setMounted(true);
       return;
     }
 
-    // We have local auth but middleware just sent us to /login — that means
-    // the auth_token cookie is missing. AuthCookieSync runs in parallel and
-    // should restore it from localStorage; the redirect below will then pass.
-    // If we keep landing back here for more than 5s, the cookie sync isn't
-    // working (iOS PWA can silently drop cookies set via document.cookie
-    // depending on Safari version / ITP rules). Break the loop with a force
-    // logout instead of leaving the user staring at a spinner forever.
+    // We have local auth but the middleware just sent us here, which means
+    // the auth_token cookie is missing (typical after the PWA was added to
+    // the home screen and iOS gave the standalone context its own cookie jar
+    // separate from Safari's). Restore the cookie from localStorage *inline*
+    // before redirecting, so the next middleware hit succeeds atomically and
+    // we never race with sibling-effect ordering.
+    const hasCookie = document.cookie
+      .split(';')
+      .some((c) => c.trim().startsWith('auth_token='));
+
+    if (!hasCookie) {
+      const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+      document.cookie = `auth_token=${accessToken}; path=/; max-age=3600; SameSite=Lax${secure}`;
+
+      const stuck = document.cookie
+        .split(';')
+        .some((c) => c.trim().startsWith('auth_token='));
+
+      if (!stuck) {
+        // Browser silently rejected the cookie write. The loop cannot be
+        // resolved by retrying — force-clear the local auth so the user
+        // can sign in again cleanly.
+        try { sessionStorage.removeItem('login-loop-started-at'); } catch {}
+        const { logout } = useAuthStore.getState();
+        logout();
+        setHadInitialAuth(false);
+        setMounted(true);
+        return;
+      }
+    }
+
+    // 5-second loop watchdog: if we keep being bounced back to /login despite
+    // the cookie being set, the middleware/cookie pipeline is broken — wipe
+    // and start over instead of spinning forever.
     const now = Date.now();
     let startedAt = now;
     try {
@@ -69,11 +97,9 @@ export default function LoginPage() {
       try { sessionStorage.removeItem('login-loop-started-at'); } catch {}
       const { logout } = useAuthStore.getState();
       logout();
-      if (typeof document !== 'undefined') {
-        const secureClear = window.location.protocol === 'https:' ? '; Secure' : '';
-        document.cookie = `auth_token=; path=/; max-age=0; SameSite=Lax${secureClear}`;
-        document.cookie = `auth_token=; path=/; max-age=0; SameSite=Strict${secureClear}`;
-      }
+      const secureClear = window.location.protocol === 'https:' ? '; Secure' : '';
+      document.cookie = `auth_token=; path=/; max-age=0; SameSite=Lax${secureClear}`;
+      document.cookie = `auth_token=; path=/; max-age=0; SameSite=Strict${secureClear}`;
       setHadInitialAuth(false);
       setMounted(true);
       return;

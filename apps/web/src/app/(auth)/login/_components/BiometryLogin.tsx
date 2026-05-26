@@ -44,9 +44,10 @@ export function BiometryLogin({ onFallbackToOtp: _onFallbackToOtp }: BiometryLog
       setUser(result.user as unknown as User);
       setTokens(result.accessToken, result.refreshToken);
 
-      // Set cookie for middleware
+      // Set cookie for middleware. SameSite=Lax — Strict is silently dropped
+      // inside iOS PWA standalone, which causes a redirect loop.
       const secure = window.location.protocol === 'https:';
-      document.cookie = `auth_token=${result.accessToken}; path=/; max-age=3600; SameSite=Strict${secure ? '; Secure' : ''}`;
+      document.cookie = `auth_token=${result.accessToken}; path=/; max-age=3600; SameSite=Lax${secure ? '; Secure' : ''}`;
 
       // Check activation status + group manager flag
       let meData: Record<string, unknown> | null = null;
