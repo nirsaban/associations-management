@@ -2,6 +2,7 @@ import React from 'react';
 import type { Metadata } from 'next';
 import { Providers } from './providers';
 import { themeBootstrapScript } from '@/components/theme/theme-bootstrap';
+import { loopBootstrapScript } from '@/components/loop-bootstrap';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -46,6 +47,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="he" dir="rtl">
       <head>
+        {/* Emergency loop-breaker — must be first so it runs before the React
+            bundle. Detects /login ↔ / redirect loops in the cached old bundle
+            and wipes localStorage + cookies + SW + Cache Storage. */}
+        <script dangerouslySetInnerHTML={{ __html: loopBootstrapScript }} />
         <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
