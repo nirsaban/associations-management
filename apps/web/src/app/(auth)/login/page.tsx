@@ -37,49 +37,46 @@ export default function LoginPage() {
     if (decisionLockedRef.current) return;
     decisionLockedRef.current = true;
 
-    const { isAuthenticated: authNow, accessToken } = useAuthStore.getState();
+    const decodeExp = (token: string): number => {
+      try {
+        const parts = token.split('.');
+        if (parts.length !== 3) return 0;
+        const padded = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+        const json = atob(padded.padEnd(padded.length + ((4 - (padded.length % 4)) % 4), '='));
+        return (JSON.parse(json).exp as number) || 0;
+      } catch {
+        return 0;
+      }
+    };
 
-    if (!authNow || !accessToken) {
+    const writeCookie = (token: string): boolean => {
+      const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+      document.cookie = `auth_token=${token}; path=/; max-age=3600; SameSite=Lax${secure}`;
+      return document.cookie.split(';').some((c) => c.trim().startsWith('auth_token='));
+    };
+
+    const wipeAndShowForm = () => {
+      try { sessionStorage.removeItem('login-loop-started-at'); } catch {}
+      const { logout } = useAuthStore.getState();
+      logout();
+      const secureClear = window.location.protocol === 'https:' ? '; Secure' : '';
+      document.cookie = `auth_token=; path=/; max-age=0; SameSite=Lax${secureClear}`;
+      document.cookie = `auth_token=; path=/; max-age=0; SameSite=Strict${secureClear}`;
+      setHadInitialAuth(false);
+      setMounted(true);
+    };
+
+    const state = useAuthStore.getState();
+    if (!state.isAuthenticated || !state.accessToken) {
       try { sessionStorage.removeItem('login-loop-started-at'); } catch {}
       setHadInitialAuth(false);
       setMounted(true);
       return;
     }
 
-    // We have local auth but the middleware just sent us here, which means
-    // the auth_token cookie is missing (typical after the PWA was added to
-    // the home screen and iOS gave the standalone context its own cookie jar
-    // separate from Safari's). Restore the cookie from localStorage *inline*
-    // before redirecting, so the next middleware hit succeeds atomically and
-    // we never race with sibling-effect ordering.
-    const hasCookie = document.cookie
-      .split(';')
-      .some((c) => c.trim().startsWith('auth_token='));
-
-    if (!hasCookie) {
-      const secure = window.location.protocol === 'https:' ? '; Secure' : '';
-      document.cookie = `auth_token=${accessToken}; path=/; max-age=3600; SameSite=Lax${secure}`;
-
-      const stuck = document.cookie
-        .split(';')
-        .some((c) => c.trim().startsWith('auth_token='));
-
-      if (!stuck) {
-        // Browser silently rejected the cookie write. The loop cannot be
-        // resolved by retrying — force-clear the local auth so the user
-        // can sign in again cleanly.
-        try { sessionStorage.removeItem('login-loop-started-at'); } catch {}
-        const { logout } = useAuthStore.getState();
-        logout();
-        setHadInitialAuth(false);
-        setMounted(true);
-        return;
-      }
-    }
-
-    // 5-second loop watchdog: if we keep being bounced back to /login despite
-    // the cookie being set, the middleware/cookie pipeline is broken — wipe
-    // and start over instead of spinning forever.
+    // 5-second loop watchdog — set BEFORE any redirect so consecutive
+    // arrivals at /login from a bouncing middleware see an accumulating
+    // elapsed time, and we break out after 5s instead of spinning.
     const now = Date.now();
     let startedAt = now;
     try {
@@ -92,22 +89,59 @@ export default function LoginPage() {
     } catch {
       // sessionStorage unavailable — fall through, no loop protection
     }
-
     if (now - startedAt > 5000) {
-      try { sessionStorage.removeItem('login-loop-started-at'); } catch {}
-      const { logout } = useAuthStore.getState();
-      logout();
-      const secureClear = window.location.protocol === 'https:' ? '; Secure' : '';
-      document.cookie = `auth_token=; path=/; max-age=0; SameSite=Lax${secureClear}`;
-      document.cookie = `auth_token=; path=/; max-age=0; SameSite=Strict${secureClear}`;
-      setHadInitialAuth(false);
-      setMounted(true);
+      wipeAndShowForm();
       return;
     }
 
-    setHadInitialAuth(true);
-    setMounted(true);
-    router.replace('/');
+    // Decide whether the access token is still valid. The middleware rejects
+    // expired JWTs, so writing an expired token to the cookie would put us
+    // straight back at /login. If expired, refresh first.
+    const expSec = decodeExp(state.accessToken);
+    const isExpired = expSec > 0 && expSec * 1000 < Date.now() + 30_000; // 30s skew
+
+    const proceedWithToken = (token: string) => {
+      if (!writeCookie(token)) {
+        // Browser silently rejected the cookie write — unrecoverable.
+        wipeAndShowForm();
+        return;
+      }
+      setHadInitialAuth(true);
+      setMounted(true);
+      router.replace('/');
+    };
+
+    if (!isExpired) {
+      proceedWithToken(state.accessToken);
+      return;
+    }
+
+    // Access token is expired. Try to refresh it BEFORE redirecting, so
+    // the cookie we write actually passes middleware verification.
+    if (!state.refreshToken) {
+      wipeAndShowForm();
+      return;
+    }
+
+    (async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
+        const res = await fetch(`${apiUrl}/auth/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken: state.refreshToken }),
+        });
+        if (!res.ok) throw new Error('refresh failed');
+        const json = await res.json();
+        const newAccess = json?.data?.accessToken;
+        const newRefresh = json?.data?.refreshToken;
+        if (!newAccess) throw new Error('no access token in refresh response');
+        useAuthStore.getState().setTokens(newAccess, newRefresh ?? state.refreshToken);
+        proceedWithToken(newAccess);
+      } catch {
+        wipeAndShowForm();
+      }
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
