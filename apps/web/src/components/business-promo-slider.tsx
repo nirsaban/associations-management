@@ -30,11 +30,11 @@ interface Business {
   };
 }
 
-// Read speed for the marquee, in px per second. Lower = slower / easier to read.
-const PX_PER_SECOND = 130;
+// Read speed for the marquee, in px per second. Higher = faster.
+const PX_PER_SECOND = 380;
 // Cap duration so very large lists don't feel infinitely slow.
-const MAX_DURATION_S = 60;
-const MIN_DURATION_S = 20;
+const MAX_DURATION_S = 25;
+const MIN_DURATION_S = 6;
 // Estimated width (px) of a single business chip including gap, used for
 // pre-layout repeat count before the DOM is measured.
 const ESTIMATED_ITEM_WIDTH_PX = 320;
@@ -344,6 +344,7 @@ export function BusinessPromoSlider() {
             animation-timing-function: linear;
             animation-iteration-count: infinite;
             direction: ltr; /* track is laid out LTR; each item carries its own dir */
+            min-width: max-content; /* prevent any wrapping/stacking even on narrow viewports */
           }
 
           @media (max-width: 640px) {
@@ -396,6 +397,7 @@ export function BusinessPromoSlider() {
             font-size: 14px;
             line-height: 1.2;
             white-space: nowrap;
+            flex: 0 0 auto;
           }
           .news-ticker__title {
             font-weight: 700;
@@ -412,6 +414,7 @@ export function BusinessPromoSlider() {
             text-overflow: ellipsis;
             display: inline-block;
             vertical-align: bottom;
+            white-space: nowrap;
           }
           .news-ticker__author {
             color: rgb(var(--text-muted));

@@ -10,7 +10,6 @@ import Link from 'next/link';
 import { api } from '@/lib/api';
 import { AutoPushSubscribe } from '@/components/pwa/AutoPushSubscribe';
 import { COMMUNITY_PROFESSIONS_ENABLED } from '@/lib/feature-flags';
-import { ThemeSwitchButton } from '@/components/theme/ThemeSwitchButton';
 
 // Full navigation items per role
 const NAVIGATION = {
@@ -315,9 +314,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </nav>
 
         <div className="border-t border-outline/30 px-3 py-4 space-y-2">
-          <div className="px-2">
-            <ThemeSwitchButton className="w-full justify-center" />
-          </div>
           <button
             onClick={handlePwaRefresh}
             disabled={isRefreshing}
@@ -347,7 +343,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             <h1 className="text-title-sm font-headline truncate">{orgProfile?.name || 'נחלת דוד'}</h1>
           </div>
           <div className="flex items-center gap-1 shrink-0">
-            <ThemeSwitchButton size="sm" showLabel={false} />
             <button
               onClick={handlePwaRefresh}
               disabled={isRefreshing}

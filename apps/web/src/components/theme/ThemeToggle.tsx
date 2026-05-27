@@ -4,8 +4,8 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTheme } from './ThemeProvider';
 
 const POS_KEY = 'amutot.theme.toggle.pos';
-const TOGGLE_W = 96;
-const TOGGLE_H = 44;
+const TOGGLE_W = 64;
+const TOGGLE_H = 30;
 const EDGE_PAD = 8;
 
 type Pos = { x: number; y: number };
@@ -194,9 +194,9 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
           align-items: center;
           justify-content: space-between;
           gap: 0;
-          width: 96px;
-          height: 44px;
-          padding: 4px;
+          width: 64px;
+          height: 30px;
+          padding: 3px;
           border-radius: 9999px;
           border: 1px solid rgb(var(--border-strong));
           background-color: rgb(var(--surface));
@@ -266,9 +266,9 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
         }
 
         .theme-toggle__seg {
-          flex: 0 0 36px;
-          width: 36px;
-          height: 36px;
+          flex: 0 0 24px;
+          width: 24px;
+          height: 24px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -292,9 +292,9 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
 
         .theme-toggle__thumb {
           position: absolute;
-          top: 3px;
-          width: 36px;
-          height: 36px;
+          top: 2px;
+          width: 24px;
+          height: 24px;
           border-radius: 9999px;
           display: flex;
           align-items: center;
@@ -305,7 +305,7 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
           z-index: 2;
         }
         .theme-toggle.is-tulip .theme-toggle__thumb {
-          left: 3px;
+          left: 2px;
           background: linear-gradient(160deg, #ffffff 0%, #f9f2e2 100%);
           box-shadow:
             0 2px 6px rgba(167, 76, 102, 0.35),
@@ -314,7 +314,7 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
           color: #a74c66;
         }
         .theme-toggle.is-nachalat .theme-toggle__thumb {
-          left: calc(100% - 39px);
+          left: calc(100% - 26px);
           background: radial-gradient(circle at 30% 30%, #f0dca8 0%, #c9a961 50%, #8b7355 100%);
           box-shadow:
             0 2px 8px rgba(201, 169, 97, 0.55),
