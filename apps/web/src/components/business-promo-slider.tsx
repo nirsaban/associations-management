@@ -31,10 +31,10 @@ interface Business {
 }
 
 // Read speed for the marquee, in px per second. Higher = faster.
-const PX_PER_SECOND = 200;
+const PX_PER_SECOND = 100;
 // Cap duration so very large lists don't feel infinitely slow.
-const MAX_DURATION_S = 20;
-const MIN_DURATION_S = 6;
+const MAX_DURATION_S = 40;
+const MIN_DURATION_S = 12;
 // Estimated width (px) of a single business chip including gap, used for
 // pre-layout repeat count before the DOM is measured.
 const ESTIMATED_ITEM_WIDTH_PX = 320;
