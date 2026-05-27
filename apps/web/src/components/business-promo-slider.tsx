@@ -31,7 +31,7 @@ interface Business {
 }
 
 // Read speed for the marquee, in px per second. Higher = faster.
-const PX_PER_SECOND = 380;
+const PX_PER_SECOND = 280;
 // Cap duration so very large lists don't feel infinitely slow.
 const MAX_DURATION_S = 25;
 const MIN_DURATION_S = 6;
