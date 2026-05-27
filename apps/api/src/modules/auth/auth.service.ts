@@ -6,7 +6,7 @@ import { LoginDto } from './dto/login.dto';
 import { LoginResponseDto } from './dto/login-response.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { TokenResponseDto } from './dto/token-response.dto';
-import { randomBytes } from 'crypto';
+import { randomBytes, randomInt } from 'crypto';
 
 interface UserSession {
   sessionId: string;
@@ -72,8 +72,8 @@ export class AuthService {
     // Generate session ID
     const sessionId = randomBytes(16).toString('hex');
 
-    // Generate 6-digit OTP — fixed to 123456 for all environments
-    const otp = '123456';
+    // Generate random 6-digit OTP
+    const otp = (randomInt(0, 1_000_000)).toString().padStart(6, '0');
 
     // OTP expires in 5 minutes
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000);

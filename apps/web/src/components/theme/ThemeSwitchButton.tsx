@@ -22,7 +22,7 @@ export function ThemeSwitchButton({
   const { theme, toggleTheme } = useTheme();
   const isNachalat = theme === 'nachalat';
 
-  const dim = size === 'sm' ? 32 : 38;
+  const dim = size === 'sm' ? 26 : 32;
   const label = isNachalat ? 'מצב טוליפ' : 'מצב נחלת';
   const ariaLabel = isNachalat ? 'החלף למצב טוליפ' : 'החלף למצב נחלת דוד';
 
@@ -44,14 +44,14 @@ export function ThemeSwitchButton({
         .theme-switch-btn {
           display: inline-flex;
           align-items: center;
-          gap: 8px;
-          padding: ${size === 'sm' ? '4px 8px' : '6px 10px'};
+          gap: 6px;
+          padding: ${size === 'sm' ? '3px 6px' : '5px 8px'};
           border-radius: 9999px;
           border: 1px solid rgb(var(--border));
           background-color: rgb(var(--surface));
           color: rgb(var(--text));
           font-family: var(--font-label, system-ui), sans-serif;
-          font-size: ${size === 'sm' ? '11px' : '12px'};
+          font-size: ${size === 'sm' ? '10px' : '11px'};
           font-weight: 600;
           line-height: 1;
           cursor: pointer;
@@ -81,8 +81,8 @@ export function ThemeSwitchButton({
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          width: ${dim - (size === 'sm' ? 10 : 12)}px;
-          height: ${dim - (size === 'sm' ? 10 : 12)}px;
+          width: ${dim - (size === 'sm' ? 8 : 10)}px;
+          height: ${dim - (size === 'sm' ? 8 : 10)}px;
           border-radius: 9999px;
           flex: 0 0 auto;
           transition: background 200ms ease, box-shadow 200ms ease, color 200ms ease;

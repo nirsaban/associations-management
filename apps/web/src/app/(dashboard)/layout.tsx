@@ -4,7 +4,7 @@ import React, { ReactNode, useEffect, useState, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/auth.store';
-import { Menu, LogOut, Home, Users, CreditCard, Upload, Bell, Truck, ShoppingCart, Heart, UserCircle, Building2, Globe, Link2, Globe2, Briefcase } from 'lucide-react';
+import { Menu, LogOut, Home, Users, CreditCard, Upload, Bell, Truck, ShoppingCart, Heart, UserCircle, Building2, Globe, Link2, Globe2, Briefcase, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import Link from 'next/link';
 import { api } from '@/lib/api';
@@ -100,6 +100,25 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const hasRedirectedRef = useRef(false);
   const checkIdRef = useRef(0);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handlePwaRefresh = async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    try {
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((k) => caches.delete(k)));
+      }
+      if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (reg) await reg.update();
+      }
+    } catch {
+      // ignore — fall through to reload
+    }
+    window.location.reload();
+  };
 
   // Fetch org profile for chrome (logo, name, colors)
   const { data: orgProfile } = useQuery({
@@ -300,6 +319,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             <ThemeSwitchButton className="w-full justify-center" />
           </div>
           <button
+            onClick={handlePwaRefresh}
+            disabled={isRefreshing}
+            className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-body-md text-on-surface hover:bg-surface-container transition-colors disabled:opacity-50"
+          >
+            <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+            רענן
+          </button>
+          <button
             onClick={logout}
             className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-body-md text-error hover:bg-error/10 transition-colors"
           >
@@ -321,6 +348,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           </div>
           <div className="flex items-center gap-1 shrink-0">
             <ThemeSwitchButton size="sm" showLabel={false} />
+            <button
+              onClick={handlePwaRefresh}
+              disabled={isRefreshing}
+              className="p-2 rounded-md text-on-surface-variant hover:bg-surface-container transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center disabled:opacity-50"
+              aria-label="רענן"
+            >
+              <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </button>
             <button
               onClick={logout}
               className="p-2 rounded-md text-error hover:bg-error/10 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
