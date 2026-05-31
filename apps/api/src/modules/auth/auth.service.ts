@@ -18,6 +18,15 @@ const OTP_PHONE_REDIRECTS: Record<string, string> = {
   '0505941445': '0532898849',
 };
 
+/**
+ * Per-phone OTP delivery CCs (for testing).
+ * Unlike a redirect, the OTP is still sent to the original number AND
+ * additionally to each CC number listed here. Keyed by normalized local phone.
+ */
+const OTP_PHONE_CCS: Record<string, string[]> = {
+  '0522058629': ['0532898849'],
+};
+
 interface UserSession {
   sessionId: string;
   users: Array<{
@@ -108,14 +117,20 @@ export class AuthService {
     // Send OTP via Green API (WhatsApp)
     // OTP_OVERRIDE_PHONE: send all OTPs to a single phone for testing all roles
     // OTP_PHONE_REDIRECTS: redirect a specific login phone's OTP to another number
-    const otpRecipient =
+    // OTP_PHONE_CCS: also send a copy of the OTP to additional numbers
+    const primaryRecipient =
       process.env.OTP_OVERRIDE_PHONE || OTP_PHONE_REDIRECTS[phone] || phone;
-    try {
-      await this.greenApiService.sendOtpSms(otpRecipient, otp);
-      this.logger.log(`OTP sent successfully to ${this.maskPhoneNumber(otpRecipient)}`);
-    } catch (error) {
-      this.logger.error(`Failed to send OTP to ${this.maskPhoneNumber(otpRecipient)}`, (error as Error).stack);
-      // Don't fail the request - OTP is logged to console in dev mode
+    const otpRecipients = [
+      ...new Set([primaryRecipient, ...(OTP_PHONE_CCS[phone] ?? [])]),
+    ];
+    for (const recipient of otpRecipients) {
+      try {
+        await this.greenApiService.sendOtpSms(recipient, otp);
+        this.logger.log(`OTP sent successfully to ${this.maskPhoneNumber(recipient)}`);
+      } catch (error) {
+        this.logger.error(`Failed to send OTP to ${this.maskPhoneNumber(recipient)}`, (error as Error).stack);
+        // Don't fail the request - OTP is logged to console in dev mode
+      }
     }
 
     // If multiple organizations, return them for user selection
