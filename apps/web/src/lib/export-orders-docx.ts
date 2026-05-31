@@ -17,21 +17,29 @@ interface OrderGroup {
   families: OrderFamily[];
 }
 
+// Collapse every newline and run of whitespace into a single space,
+// so line breaks behave exactly like spaces in the exported document.
+function normalizeWhitespace(text: string): string {
+  return text.replace(/\s+/g, ' ').trim();
+}
+
 function formatItems(items: unknown): string {
   if (!items) return 'ללא פריטים';
   if (Array.isArray(items)) {
-    return items
-      .map((item: Record<string, unknown>) => {
-        if (item.item) return `${item.item} - ${item.quantity || ''} ${item.unit || ''}`.trim();
-        return JSON.stringify(item);
-      })
-      .join(', ') || 'ללא פריטים';
+    return normalizeWhitespace(
+      items
+        .map((item: Record<string, unknown>) => {
+          if (item.item) return `${item.item} - ${item.quantity || ''} ${item.unit || ''}`.trim();
+          return JSON.stringify(item);
+        })
+        .join(', '),
+    ) || 'ללא פריטים';
   }
   if (typeof items === 'object' && items !== null) {
     const obj = items as Record<string, unknown>;
-    if (obj.text) return String(obj.text);
+    if (obj.text) return normalizeWhitespace(String(obj.text));
   }
-  return String(items);
+  return normalizeWhitespace(String(items));
 }
 
 export async function exportOrdersToDocx(
@@ -72,6 +80,19 @@ export async function exportOrdersToDocx(
       children: [
         new TextRun({ text: `תאריך הפקה: ${new Date().toLocaleDateString('he-IL')}`, size: 20, font: 'David', color: '666666' }),
       ],
+      spacing: { after: 200 },
+    }),
+  );
+
+  // Total families across all groups
+  const totalFamilies = groups.reduce((sum, g) => sum + g.families.length, 0);
+  children.push(
+    new Paragraph({
+      alignment: AlignmentType.RIGHT,
+      bidirectional: true,
+      children: [
+        new TextRun({ text: `סה"כ משפחות: ${totalFamilies}`, bold: true, size: 24, font: 'David' }),
+      ],
       spacing: { after: 400 },
     }),
   );
@@ -108,30 +129,30 @@ export async function exportOrdersToDocx(
     }
 
     for (const family of group.families) {
-      // Family name
+      // Family name (address intentionally omitted)
       children.push(
         new Paragraph({
           alignment: AlignmentType.RIGHT,
           bidirectional: true,
           children: [
             new TextRun({ text: `${family.familyName}`, bold: true, size: 24, font: 'David' }),
-            ...(family.address ? [new TextRun({ text: ` - ${family.address}`, size: 20, font: 'David', color: '666666' })] : []),
           ],
           spacing: { before: 200 },
         }),
       );
 
-      // Items
+      // Items — the focus of the document, rendered larger
       const itemsText = formatItems(family.items);
       children.push(
         new Paragraph({
           alignment: AlignmentType.RIGHT,
           bidirectional: true,
           children: [
-            new TextRun({ text: `פריטים: `, bold: true, size: 22, font: 'David' }),
-            new TextRun({ text: itemsText, size: 22, font: 'David' }),
+            new TextRun({ text: `פריטים: `, bold: true, size: 32, font: 'David' }),
+            new TextRun({ text: itemsText, bold: true, size: 32, font: 'David' }),
           ],
           indent: { right: 400 },
+          spacing: { before: 100, after: 100 },
         }),
       );
 

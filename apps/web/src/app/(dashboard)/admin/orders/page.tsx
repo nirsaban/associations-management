@@ -77,11 +77,20 @@ export default function AdminOrdersPage() {
     enabled: !!user,
   });
 
+  const { data: orgProfile } = useQuery<{ name?: string }>({
+    queryKey: ['organization', 'profile'],
+    queryFn: async () => {
+      const res = await api.get('/organization/profile');
+      return res.data;
+    },
+    enabled: !!user,
+  });
+
   const handleExport = async () => {
     if (!data) return;
     setExporting(true);
     try {
-      const orgName = user?.name || 'עמותה';
+      const orgName = orgProfile?.name || 'עמותה';
       await exportOrdersToDocx(orgName, data.weekKey, data.groups);
     } finally {
       setExporting(false);
