@@ -270,31 +270,36 @@ export default function WeeklyOrdersPage() {
                   key={family.familyId}
                   className="p-4 rounded-lg bg-surface-container hover:bg-surface-variant/50 transition-colors"
                 >
-                  <div className="flex items-center justify-between gap-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
                     {/* Family Name & Status */}
                     <div className="flex items-center gap-4 flex-1 min-w-0">
                       {getStatusIcon(status)}
                       <div className="flex-1 min-w-0">
-                        <p className="text-body-lg font-medium truncate">{family.familyName}</p>
+                        <p className="text-body-lg font-medium break-words">{family.familyName}</p>
                         {family.contactPhone && (
                           <p className="text-body-sm text-on-surface-variant mt-0.5" dir="ltr">
                             {family.contactPhone}
                           </p>
                         )}
                       </div>
+                      <span
+                        className={`sm:hidden px-3 py-1 rounded-full text-label-sm font-medium shrink-0 ${getStatusColor(status)}`}
+                      >
+                        {getStatusLabel(status)}
+                      </span>
                     </div>
 
                     {/* Status Badge & Action */}
-                    <div className="flex items-center gap-3 shrink-0">
+                    <div className="flex items-center gap-3 sm:shrink-0">
                       <span
-                        className={`px-3 py-1 rounded-full text-label-sm font-medium ${getStatusColor(status)}`}
+                        className={`hidden sm:inline-block px-3 py-1 rounded-full text-label-sm font-medium ${getStatusColor(status)}`}
                       >
                         {getStatusLabel(status)}
                       </span>
                       {!family.hasOrder ? (
                         <button
                           onClick={() => openModal(family)}
-                          className="btn-primary flex items-center gap-2"
+                          className="btn-primary flex items-center justify-center gap-2 w-full sm:w-auto"
                         >
                           <Plus className="h-4 w-4" />
                           מלא הזמנה
@@ -302,7 +307,7 @@ export default function WeeklyOrdersPage() {
                       ) : (
                         <button
                           onClick={() => openModal(family)}
-                          className="btn-outline flex items-center gap-2"
+                          className="btn-outline flex items-center justify-center gap-2 w-full sm:w-auto"
                         >
                           <Edit className="h-4 w-4" />
                           ערוך
