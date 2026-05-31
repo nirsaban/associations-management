@@ -113,3 +113,6 @@ perf_hooks-*.json
 
 # Uploaded files
 uploads/
+
+# TypeScript incremental build info
+*.tsbuildinfo
