@@ -18,7 +18,7 @@ export interface ProfessionWithCategory {
 }
 
 export interface UserProfessionsResult {
-  primary: ProfessionWithCategory;
+  primary: ProfessionWithCategory | null;
   secondary: ProfessionWithCategory[];
   otherProfession: string | null;
 }
@@ -44,12 +44,13 @@ export class ProfileUpdateService {
     const userId = currentUser.sub;
     const organizationId = currentUser.organizationId;
 
-    // Collect all professionIds to validate in one query
+    // Collect all professionIds to validate in one query.
+    // Primary is optional — onboarding allows submitting without any profession.
     const secondaryIds = dto.secondary ?? [];
-    const allIds = [dto.primary, ...secondaryIds];
+    const allIds = [...(dto.primary ? [dto.primary] : []), ...secondaryIds];
 
     // Validate no duplicates between primary and secondary
-    if (secondaryIds.includes(dto.primary)) {
+    if (dto.primary && secondaryIds.includes(dto.primary)) {
       throw new BadRequestException({
         message: 'מקצוע לא תקין',
         code: 'INVALID_PROFESSION',
@@ -65,15 +66,18 @@ export class ProfileUpdateService {
       });
     }
 
-    // Validate all professionIds exist in the catalog
-    const foundProfessions = await this.prisma.profession.findMany({
-      where: { id: { in: allIds } },
-      select: {
-        id: true,
-        nameHe: true,
-        category: { select: { id: true, nameHe: true } },
-      },
-    });
+    // Validate all provided professionIds exist in the catalog
+    const foundProfessions =
+      allIds.length > 0
+        ? await this.prisma.profession.findMany({
+            where: { id: { in: allIds } },
+            select: {
+              id: true,
+              nameHe: true,
+              category: { select: { id: true, nameHe: true } },
+            },
+          })
+        : [];
 
     if (foundProfessions.length !== allIds.length) {
       throw new BadRequestException({
@@ -83,7 +87,9 @@ export class ProfileUpdateService {
     }
 
     const professionMap = new Map(foundProfessions.map((p) => [p.id, p]));
-    const primaryProfession = professionMap.get(dto.primary)!;
+    const primaryProfession = dto.primary
+      ? professionMap.get(dto.primary)!
+      : null;
 
     // Transactional: delete all existing rows, then insert new ones + update user
     const otherProfession =
@@ -97,15 +103,19 @@ export class ProfileUpdateService {
         where: { userId, organizationId },
       }),
 
-      // Insert primary
-      this.prisma.userProfession.create({
-        data: {
-          organizationId,
-          userId,
-          professionId: dto.primary,
-          isPrimary: true,
-        },
-      }),
+      // Insert primary (if provided)
+      ...(dto.primary
+        ? [
+            this.prisma.userProfession.create({
+              data: {
+                organizationId,
+                userId,
+                professionId: dto.primary,
+                isPrimary: true,
+              },
+            }),
+          ]
+        : []),
 
       // Insert secondary rows (if any)
       ...uniqueSecondary.map((professionId) =>
@@ -129,11 +139,13 @@ export class ProfileUpdateService {
     this.logger.log(`Updated professions for user ${userId} in org ${organizationId}`);
 
     return {
-      primary: {
-        id: primaryProfession.id,
-        nameHe: primaryProfession.nameHe,
-        category: primaryProfession.category,
-      },
+      primary: primaryProfession
+        ? {
+            id: primaryProfession.id,
+            nameHe: primaryProfession.nameHe,
+            category: primaryProfession.category,
+          }
+        : null,
       secondary: uniqueSecondary.map((id) => {
         const p = professionMap.get(id)!;
         return { id: p.id, nameHe: p.nameHe, category: p.category };
