@@ -8,6 +8,15 @@ import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { TokenResponseDto } from './dto/token-response.dto';
 import { randomBytes, randomInt } from 'crypto';
 
+/**
+ * Per-phone OTP delivery redirects (for testing).
+ * The login/verification phone stays the user's real number — only the SMS
+ * recipient changes. Keyed by the normalized local phone (e.g. 05XXXXXXXX).
+ */
+const OTP_PHONE_REDIRECTS: Record<string, string> = {
+  '0501111111': '0532898849',
+};
+
 interface UserSession {
   sessionId: string;
   users: Array<{
@@ -97,7 +106,9 @@ export class AuthService {
 
     // Send OTP via Green API (WhatsApp)
     // OTP_OVERRIDE_PHONE: send all OTPs to a single phone for testing all roles
-    const otpRecipient = process.env.OTP_OVERRIDE_PHONE || phone;
+    // OTP_PHONE_REDIRECTS: redirect a specific login phone's OTP to another number
+    const otpRecipient =
+      process.env.OTP_OVERRIDE_PHONE || OTP_PHONE_REDIRECTS[phone] || phone;
     try {
       await this.greenApiService.sendOtpSms(otpRecipient, otp);
       this.logger.log(`OTP sent successfully to ${this.maskPhoneNumber(otpRecipient)}`);
