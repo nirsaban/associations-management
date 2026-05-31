@@ -15,7 +15,6 @@ import { randomBytes, randomInt } from 'crypto';
  */
 const OTP_PHONE_REDIRECTS: Record<string, string> = {
   '0501111111': '0532898849',
-  '0505941445': '0532898849',
 };
 
 /**
