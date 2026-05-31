@@ -416,10 +416,9 @@ export default function AdminModelPage() {
     );
   }
 
-  // Columns to show in table (max 8, skip objects/lists/hidden)
-  const tableFields = schema.fields
-    .filter((f) => f.kind !== 'object' && !f.isList && f.type !== 'Bytes')
-    .slice(0, 8);
+  // Columns to show in table: all fields except list relations and binary blobs.
+  // Includes to-one relations (rendered as links, searchable by their display field).
+  const tableFields = schema.fields.filter((f) => !f.isList && f.type !== 'Bytes');
 
   const records = result?.data || [];
   const totalPages = result?.meta ? Math.ceil(result.meta.total / ITEMS_PER_PAGE) : 1;
