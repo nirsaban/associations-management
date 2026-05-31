@@ -20,12 +20,11 @@ export function ProfessionStep({ onComplete }: ProfessionStepProps) {
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async () => {
-    if (!primary) return;
     setSaving(true);
     setError(null);
     try {
       await api.put('/users/me/professions', {
-        primary: primary.id,
+        primary: primary?.id,
         secondary: secondary.map((p) => p.id),
         otherProfession: otherProfession.trim() || undefined,
       });
@@ -70,8 +69,8 @@ export function ProfessionStep({ onComplete }: ProfessionStepProps) {
       {/* Primary profession */}
       <div className="space-y-1.5">
         <label className="block text-label-md font-medium text-on-surface">
-          מקצוע ראשי
-          <span className="text-error ms-1">*</span>
+          מקצוע ראשי{' '}
+          <span className="text-on-surface-variant font-normal">(אופציונלי)</span>
         </label>
         <ProfessionTypeahead
           mode="single"
@@ -135,7 +134,7 @@ export function ProfessionStep({ onComplete }: ProfessionStepProps) {
       <button
         type="button"
         onClick={handleSubmit}
-        disabled={!primary || saving}
+        disabled={saving}
         className="btn-primary w-full py-3 text-title-md disabled:opacity-50"
       >
         {saving ? 'שומר...' : 'המשך'}

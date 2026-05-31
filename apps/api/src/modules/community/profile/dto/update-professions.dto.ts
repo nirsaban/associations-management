@@ -10,12 +10,14 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateProfessionsDto {
   @ApiProperty({
-    description: 'מזהה המקצוע הראשי (חובה)',
+    description: 'מזהה המקצוע הראשי (אופציונלי)',
     example: 'cld123abc456',
+    required: false,
   })
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
-  primary!: string;
+  primary?: string;
 
   @ApiProperty({
     description: 'מזהי מקצועות משניים (אופציונלי, עד 5)',

@@ -29,7 +29,7 @@ export class ProfileUpdateController {
   @Put('professions')
   @ApiOperation({
     summary: 'עדכון מקצועות משתמש',
-    description: 'מחליף את כל המקצועות של המשתמש המחובר. דורש מקצוע ראשי תקין.',
+    description: 'מחליף את כל המקצועות של המשתמש המחובר. כל השדות אופציונליים.',
   })
   async updateProfessions(
     @CurrentUser() user: ICurrentUser,
