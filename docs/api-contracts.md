@@ -200,10 +200,43 @@ Returns personalized homepage context based on user role and status.
 
 All manager routes require `JwtAuthGuard` and verify the user is a group manager.
 
+### GET /api/v1/manager/groups
+List all groups managed by the authenticated user, ordered by createdAt ascending.
+
+**Auth:** JwtAuthGuard
+
+**Notes:**
+- Single-group managers receive a 1-element array — identical behavior to before.
+- Multi-group managers receive all their groups.
+- Use the returned `id` as the `?groupId` query parameter on all other manager endpoints to target a specific group.
+
+**Response:**
+```json
+{
+  "data": [
+    {
+      "id": "string",
+      "name": "string",
+      "memberCount": number,
+      "familyCount": number,
+      "createdAt": "ISO date"
+    }
+  ]
+}
+```
+
+**Errors:**
+- 401: Unauthorized
+
+---
+
 ### GET /api/v1/manager/group
 Get managed group details.
 
 **Auth:** JwtAuthGuard
+
+**Query params:**
+- `groupId` (optional) — target group ID. When omitted, resolves the first managed group (ordered by createdAt asc). Single-group managers may omit this param; multi-group managers should pass it.
 
 **Response:**
 ```json
@@ -220,6 +253,7 @@ Get managed group details.
 
 **Errors:**
 - 401: Unauthorized
+- 403: groupId provided but user does not manage that group
 - 404: No managed group found
 
 ---

@@ -91,6 +91,7 @@ export function OtpVerification({
             ...user,
             isGroupManager: !!meData.isGroupManager,
             managedGroupId: (meData.managedGroupId as string) ?? null,
+            managedGroups: (meData.managedGroups as Array<{ id: string; name: string }>) ?? [],
             groupMembershipGroupId: (meData.groupMembershipGroupId as string) ?? null,
           });
         }

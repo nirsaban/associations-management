@@ -23,6 +23,8 @@ import {
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import { COMMUNITY_PROFESSIONS_ENABLED } from '@/lib/feature-flags';
+import { GroupSwitcher } from '../_components/GroupSwitcher';
+import { withGroupId } from '../_components/groupIdParam';
 import { DonationIframeCard } from '@/components/group-experience';
 import { BusinessPromoSlider } from '@/components/business-promo-slider';
 import ReferralCard from '../../user/dashboard/ReferralCard';
@@ -150,16 +152,18 @@ function AlertCard({ alert }: { alert: Alert }) {
 
 export default function ManagerDashboardPage() {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, activeManagedGroupId } = useAuthStore();
 
   const firstName = getFirstName(user?.name);
 
   // ── Queries ────────────────────────────────────────────────────────────────
 
   const weeklyStatusQuery = useQuery({
-    queryKey: ['manager-weekly-status'],
+    queryKey: ['manager-weekly-status', activeManagedGroupId],
     queryFn: async () => {
-      const res = await api.get<{ data: WeeklyStatusData }>('/manager/group/weekly-status');
+      const res = await api.get<{ data: WeeklyStatusData }>(
+        withGroupId('/manager/group/weekly-status', activeManagedGroupId),
+      );
       return res.data.data;
     },
     enabled: !!user,
@@ -203,13 +207,16 @@ export default function ManagerDashboardPage() {
     <div className="p-4 sm:p-6 lg:p-8 space-y-8 max-w-4xl mx-auto">
 
       {/* ── Section 1: Welcome ──────────────────────────────────────────────── */}
-      <div>
-        <h1 className="text-headline-lg font-headline text-on-surface">
-          שלום{firstName ? `, ${firstName}` : ''}
-        </h1>
-        <p className="text-body-md text-on-surface-variant mt-1 capitalize">
-          {currentHebrewDate()}
-        </p>
+      <div className="space-y-3">
+        <div>
+          <h1 className="text-headline-lg font-headline text-on-surface">
+            שלום{firstName ? `, ${firstName}` : ''}
+          </h1>
+          <p className="text-body-md text-on-surface-variant mt-1 capitalize">
+            {currentHebrewDate()}
+          </p>
+        </div>
+        <GroupSwitcher />
       </div>
 
       {/* ── Business promo slider (auto-rotating, community-only) ───────────── */}

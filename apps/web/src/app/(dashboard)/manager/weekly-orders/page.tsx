@@ -18,6 +18,8 @@ import { useAuthStore } from '@/store/auth.store';
 import { getCurrentWeekKey } from '@/lib/utils';
 import { useToast } from '@/components/ui/Toast';
 import Link from 'next/link';
+import { GroupSwitcher } from '../_components/GroupSwitcher';
+import { withGroupId } from '../_components/groupIdParam';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -94,7 +96,7 @@ function getStatusIcon(status: string): React.ReactNode {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function WeeklyOrdersPage() {
-  const { user } = useAuthStore();
+  const { user, activeManagedGroupId } = useAuthStore();
   const queryClient = useQueryClient();
   const weekKey = getCurrentWeekKey();
   const { showToast } = useToast();
@@ -109,10 +111,10 @@ export default function WeeklyOrdersPage() {
   // ── Query ──────────────────────────────────────────────────────────────────
 
   const { data: families, isLoading, error } = useQuery({
-    queryKey: ['manager-weekly-tasks', user?.id, weekKey],
+    queryKey: ['manager-weekly-tasks', activeManagedGroupId, weekKey],
     queryFn: async () => {
       const response = await api.get<{ data: FamilyOrderStatus[] }>(
-        `/manager/group/weekly-tasks?weekKey=${weekKey}`,
+        withGroupId(`/manager/group/weekly-tasks?weekKey=${weekKey}`, activeManagedGroupId),
       );
       return response.data.data;
     },
@@ -124,13 +126,13 @@ export default function WeeklyOrdersPage() {
   const saveOrderMutation = useMutation({
     mutationFn: async ({ familyId, content }: { familyId: string; content: string }) => {
       const res = await api.put(
-        `/manager/group/families/${familyId}/weekly-order`,
+        withGroupId(`/manager/group/families/${familyId}/weekly-order`, activeManagedGroupId),
         { content, weekKey },
       );
       return res.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['manager-weekly-tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['manager-weekly-tasks', activeManagedGroupId, weekKey] });
       showToast('ההזמנה נשמרה בהצלחה', 'success');
       closeModal();
     },
@@ -151,7 +153,12 @@ export default function WeeklyOrdersPage() {
     // Fetch existing order content if it exists
     if (family.hasOrder) {
       try {
-        const res = await api.get(`/manager/group/families/${family.familyId}/weekly-order?weekKey=${weekKey}`);
+        const res = await api.get(
+          withGroupId(
+            `/manager/group/families/${family.familyId}/weekly-order?weekKey=${weekKey}`,
+            activeManagedGroupId,
+          ),
+        );
         const orderData = res.data.data;
         if (orderData.exists && orderData.order) {
           setOrderContent(extractTextContent(orderData.order.shoppingListJson));
@@ -211,32 +218,35 @@ export default function WeeklyOrdersPage() {
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 max-w-6xl">
 
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Link
-            href="/manager/dashboard"
-            className="p-2 rounded-lg hover:bg-surface-container transition-colors text-on-surface-variant"
-            aria-label="חזור ללוח הבקרה"
-          >
-            <ChevronRight className="h-5 w-5" />
-          </Link>
-          <div>
-            <h1 className="text-headline-md sm:text-headline-lg font-headline mb-1 sm:mb-2">
-              הזמנות שבועיות
-            </h1>
-            <p className="text-body-md text-on-surface-variant">
-              ניהול הזמנות עבור שבוע {weekKey}
+      <div className="space-y-3">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <Link
+              href="/manager/dashboard"
+              className="p-2 rounded-lg hover:bg-surface-container transition-colors text-on-surface-variant"
+              aria-label="חזור ללוח הבקרה"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </Link>
+            <div>
+              <h1 className="text-headline-md sm:text-headline-lg font-headline mb-1 sm:mb-2">
+                הזמנות שבועיות
+              </h1>
+              <p className="text-body-md text-on-surface-variant">
+                ניהול הזמנות עבור שבוע {weekKey}
+              </p>
+            </div>
+          </div>
+
+          {/* Progress Badge */}
+          <div className="card-elevated px-6 py-3 text-center shrink-0">
+            <p className="text-label-sm text-on-surface-variant mb-1">התקדמות</p>
+            <p className="text-headline-md font-bold text-primary">
+              {completedCount} / {totalCount}
             </p>
           </div>
         </div>
-
-        {/* Progress Badge */}
-        <div className="card-elevated px-6 py-3 text-center shrink-0">
-          <p className="text-label-sm text-on-surface-variant mb-1">התקדמות</p>
-          <p className="text-headline-md font-bold text-primary">
-            {completedCount} / {totalCount}
-          </p>
-        </div>
+        <GroupSwitcher />
       </div>
 
       {/* All-filled celebratory banner */}

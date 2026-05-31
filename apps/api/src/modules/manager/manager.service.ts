@@ -9,7 +9,7 @@ import { PrismaService } from '@common/prisma/prisma.service';
 import { AlertsService } from '@modules/alerts/alerts.service';
 import { getCurrentWeekKey, getCurrentMonthKey, weekKeyToMondayIso, weekKeyNWeeksAgo } from '@common/utils/week';
 import { Prisma, OrderStatus } from '@prisma/client';
-import { GroupDetailsDto, MemberWithStatusDto, WeeklyTaskStatusDto } from './dto';
+import { GroupDetailsDto, ManagedGroupSummaryDto, MemberWithStatusDto, WeeklyTaskStatusDto } from './dto';
 import type { UpdateFamilyDto } from './dto';
 
 @Injectable()
@@ -21,15 +21,16 @@ export class ManagerService {
     private readonly alertsService: AlertsService,
   ) {}
 
-  async getManagedGroup(userId: string, organizationId: string): Promise<GroupDetailsDto> {
+  async getManagedGroup(userId: string, organizationId: string, groupId?: string): Promise<GroupDetailsDto> {
     this.logger.log(`Getting managed group for user ${userId}`);
 
-    const group = await this.prisma.group.findFirst({
-      where: {
-        managerUserId: userId,
-        organizationId,
-        deletedAt: null,
-      },
+    // resolveManagedGroup applies managerUserId + organizationId + deletedAt + orderBy createdAt asc.
+    // For a single-group manager with no groupId param this returns that one group — identical to before.
+    const base = await this.resolveManagedGroup(userId, organizationId, groupId);
+
+    // Fetch the counts for the resolved group.
+    const group = await this.prisma.group.findUnique({
+      where: { id: base.id },
       include: {
         _count: {
           select: {
@@ -53,23 +54,48 @@ export class ManagerService {
     };
   }
 
-  async getGroupMembers(
-    userId: string,
-    organizationId: string,
-  ): Promise<{ data: MemberWithStatusDto[] }> {
-    this.logger.log(`Getting group members for manager ${userId}`);
+  /**
+   * Returns all groups managed by this user, ordered by createdAt asc.
+   * Single-group managers get a 1-element array — no behavior change for them.
+   * Multi-group managers see all their groups and can pick a groupId for other endpoints.
+   */
+  async getManagedGroups(userId: string, organizationId: string): Promise<ManagedGroupSummaryDto[]> {
+    this.logger.log(`Getting all managed groups for user ${userId}`);
 
-    const group = await this.prisma.group.findFirst({
+    const groups = await this.prisma.group.findMany({
       where: {
         managerUserId: userId,
         organizationId,
         deletedAt: null,
       },
+      include: {
+        _count: {
+          select: {
+            memberships: true,
+            families: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'asc' },
     });
 
-    if (!group) {
-      throw new ForbiddenException('אינך מנהל קבוצה');
-    }
+    return groups.map((g) => ({
+      id: g.id,
+      name: g.name,
+      memberCount: g._count.memberships,
+      familyCount: g._count.families,
+      createdAt: g.createdAt,
+    }));
+  }
+
+  async getGroupMembers(
+    userId: string,
+    organizationId: string,
+    groupId?: string,
+  ): Promise<{ data: MemberWithStatusDto[] }> {
+    this.logger.log(`Getting group members for manager ${userId}`);
+
+    const group = await this.resolveManagedGroup(userId, organizationId, groupId);
 
     const currentMonth = this.getCurrentMonthKey();
 
@@ -119,20 +145,11 @@ export class ManagerService {
   async getGroupFamilies(
     userId: string,
     organizationId: string,
+    groupId?: string,
   ): Promise<{ data: Array<Record<string, unknown>> }> {
     this.logger.log(`Getting families for manager ${userId}`);
 
-    const group = await this.prisma.group.findFirst({
-      where: {
-        managerUserId: userId,
-        organizationId,
-        deletedAt: null,
-      },
-    });
-
-    if (!group) {
-      throw new ForbiddenException('אינך מנהל קבוצה');
-    }
+    const group = await this.resolveManagedGroup(userId, organizationId, groupId);
 
     const families = await this.prisma.family.findMany({
       where: {
@@ -160,21 +177,12 @@ export class ManagerService {
   async getWeeklyTasks(
     userId: string,
     organizationId: string,
+    groupId?: string,
     weekKey?: string,
   ): Promise<{ data: WeeklyTaskStatusDto[] }> {
     this.logger.log(`Getting weekly tasks for manager ${userId}, week ${weekKey}`);
 
-    const group = await this.prisma.group.findFirst({
-      where: {
-        managerUserId: userId,
-        organizationId,
-        deletedAt: null,
-      },
-    });
-
-    if (!group) {
-      throw new ForbiddenException('אינך מנהל קבוצה');
-    }
+    const group = await this.resolveManagedGroup(userId, organizationId, groupId);
 
     const week = weekKey || this.getCurrentWeekKey();
 
@@ -224,20 +232,11 @@ export class ManagerService {
     weekKey: string,
     items?: unknown[],
     notes?: string,
+    groupId?: string,
   ): Promise<{ data: Record<string, unknown> }> {
     this.logger.log(`Creating weekly order for family ${familyId}`);
 
-    const group = await this.prisma.group.findFirst({
-      where: {
-        managerUserId: userId,
-        organizationId,
-        deletedAt: null,
-      },
-    });
-
-    if (!group) {
-      throw new ForbiddenException('אינך מנהל קבוצה');
-    }
+    const group = await this.resolveManagedGroup(userId, organizationId, groupId);
 
     const family = await this.prisma.family.findFirst({
       where: {
@@ -288,20 +287,11 @@ export class ManagerService {
     items?: unknown[],
     notes?: string,
     status?: string,
+    groupId?: string,
   ): Promise<{ data: Record<string, unknown> }> {
     this.logger.log(`Updating weekly order ${orderId}`);
 
-    const group = await this.prisma.group.findFirst({
-      where: {
-        managerUserId: userId,
-        organizationId,
-        deletedAt: null,
-      },
-    });
-
-    if (!group) {
-      throw new ForbiddenException('אינך מנהל קבוצה');
-    }
+    const group = await this.resolveManagedGroup(userId, organizationId, groupId);
 
     const order = await this.prisma.weeklyOrder.findFirst({
       where: {
@@ -332,20 +322,11 @@ export class ManagerService {
     organizationId: string,
     assigneeUserId: string,
     weekKey: string,
+    groupId?: string,
   ): Promise<{ data: Record<string, unknown> }> {
     this.logger.log(`Assigning weekly distributor: ${assigneeUserId} for week ${weekKey}`);
 
-    const group = await this.prisma.group.findFirst({
-      where: {
-        managerUserId: userId,
-        organizationId,
-        deletedAt: null,
-      },
-    });
-
-    if (!group) {
-      throw new ForbiddenException('אינך מנהל קבוצה');
-    }
+    const group = await this.resolveManagedGroup(userId, organizationId, groupId);
 
     const membership = await this.prisma.groupMembership.findFirst({
       where: {
@@ -396,21 +377,12 @@ export class ManagerService {
   async getWeeklyStatus(
     userId: string,
     organizationId: string,
+    groupId?: string,
     weekKey?: string,
   ): Promise<{ data: Record<string, unknown> }> {
     this.logger.log(`Getting weekly status for manager ${userId}`);
 
-    const group = await this.prisma.group.findFirst({
-      where: {
-        managerUserId: userId,
-        organizationId,
-        deletedAt: null,
-      },
-    });
-
-    if (!group) {
-      throw new ForbiddenException('אינך מנהל קבוצה');
-    }
+    const group = await this.resolveManagedGroup(userId, organizationId, groupId);
 
     const week = weekKey || this.getCurrentWeekKey();
     const weekStart = this.weekKeyToMondayIso(week);
@@ -520,20 +492,11 @@ export class ManagerService {
     organizationId: string,
     familyId: string,
     dto: UpdateFamilyDto,
+    groupId?: string,
   ): Promise<{ data: Record<string, unknown> }> {
     this.logger.log(`Updating family ${familyId} by manager ${userId}`);
 
-    const group = await this.prisma.group.findFirst({
-      where: {
-        managerUserId: userId,
-        organizationId,
-        deletedAt: null,
-      },
-    });
-
-    if (!group) {
-      throw new ForbiddenException('אינך מנהל קבוצה');
-    }
+    const group = await this.resolveManagedGroup(userId, organizationId, groupId);
 
     const family = await this.prisma.family.findFirst({
       where: {
@@ -583,20 +546,11 @@ export class ManagerService {
     organizationId: string,
     familyId: string,
     weekKey?: string,
+    groupId?: string,
   ): Promise<{ data: Record<string, unknown> }> {
     this.logger.log(`Getting weekly order for family ${familyId}`);
 
-    const group = await this.prisma.group.findFirst({
-      where: {
-        managerUserId: userId,
-        organizationId,
-        deletedAt: null,
-      },
-    });
-
-    if (!group) {
-      throw new ForbiddenException('אינך מנהל קבוצה');
-    }
+    const group = await this.resolveManagedGroup(userId, organizationId, groupId);
 
     const family = await this.prisma.family.findFirst({
       where: {
@@ -667,20 +621,11 @@ export class ManagerService {
     familyId: string,
     content: string,
     weekKey?: string,
+    groupId?: string,
   ): Promise<{ data: Record<string, unknown> }> {
     this.logger.log(`Upserting weekly order for family ${familyId}`);
 
-    const group = await this.prisma.group.findFirst({
-      where: {
-        managerUserId: userId,
-        organizationId,
-        deletedAt: null,
-      },
-    });
-
-    if (!group) {
-      throw new ForbiddenException('אינך מנהל קבוצה');
-    }
+    const group = await this.resolveManagedGroup(userId, organizationId, groupId);
 
     const family = await this.prisma.family.findFirst({
       where: {
@@ -727,20 +672,11 @@ export class ManagerService {
   async getMembersWithPaymentStatus(
     userId: string,
     organizationId: string,
+    groupId?: string,
   ): Promise<{ data: Array<Record<string, unknown>> }> {
     this.logger.log(`Getting members with payment status for manager ${userId}`);
 
-    const group = await this.prisma.group.findFirst({
-      where: {
-        managerUserId: userId,
-        organizationId,
-        deletedAt: null,
-      },
-    });
-
-    if (!group) {
-      throw new ForbiddenException('אינך מנהל קבוצה');
-    }
+    const group = await this.resolveManagedGroup(userId, organizationId, groupId);
 
     const currentMonth = this.getCurrentMonthKey();
 
@@ -801,20 +737,11 @@ export class ManagerService {
   async getDistributorWorkload(
     userId: string,
     organizationId: string,
+    groupId?: string,
   ): Promise<{ data: Record<string, unknown> }> {
     this.logger.log(`Getting distributor workload for manager ${userId}`);
 
-    const group = await this.prisma.group.findFirst({
-      where: {
-        managerUserId: userId,
-        organizationId,
-        deletedAt: null,
-      },
-    });
-
-    if (!group) {
-      throw new ForbiddenException('אינך מנהל קבוצה');
-    }
+    const group = await this.resolveManagedGroup(userId, organizationId, groupId);
 
     // Compute the weekKey from 52 weeks ago
     const fiftyTwoWeeksAgo = this.weekKeyNWeeksAgo(52);
@@ -900,20 +827,11 @@ export class ManagerService {
   async getGroupRevenue(
     userId: string,
     organizationId: string,
+    groupId?: string,
   ): Promise<{ data: Record<string, unknown> }> {
     this.logger.log(`Getting group revenue for manager ${userId}`);
 
-    const group = await this.prisma.group.findFirst({
-      where: {
-        managerUserId: userId,
-        organizationId,
-        deletedAt: null,
-      },
-    });
-
-    if (!group) {
-      throw new ForbiddenException('אינך מנהל קבוצה');
-    }
+    const group = await this.resolveManagedGroup(userId, organizationId, groupId);
 
     // Get all member user IDs in the group
     const memberships = await this.prisma.groupMembership.findMany({
@@ -1396,6 +1314,22 @@ export class ManagerService {
   }
 
   // ─── Private helpers ─────────────────────────────────────────────────────────
+
+  private async resolveManagedGroup(userId: string, organizationId: string, groupId?: string) {
+    const group = await this.prisma.group.findFirst({
+      where: {
+        ...(groupId ? { id: groupId } : {}),
+        managerUserId: userId,
+        organizationId,
+        deletedAt: null,
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+    if (!group) {
+      throw new ForbiddenException(groupId ? 'אינך מנהל קבוצה זו' : 'אינך מנהל קבוצה');
+    }
+    return group;
+  }
 
   private getCurrentMonthKey(): string {
     return getCurrentMonthKey();

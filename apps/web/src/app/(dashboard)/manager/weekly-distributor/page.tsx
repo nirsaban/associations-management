@@ -14,6 +14,8 @@ import { useAuthStore } from '@/store/auth.store';
 import { getCurrentWeekKey } from '@/lib/utils';
 import { useToast } from '@/components/ui/Toast';
 import Link from 'next/link';
+import { GroupSwitcher } from '../_components/GroupSwitcher';
+import { withGroupId } from '../_components/groupIdParam';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -98,7 +100,7 @@ function weekStartToRange(weekStart: string): string {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function WeeklyDistributorPage() {
-  const { user } = useAuthStore();
+  const { user, activeManagedGroupId } = useAuthStore();
   const weekKey = getCurrentWeekKey();
   const queryClient = useQueryClient();
   const { showToast } = useToast();
@@ -106,10 +108,10 @@ export default function WeeklyDistributorPage() {
   // ── Queries ────────────────────────────────────────────────────────────────
 
   const workloadQuery = useQuery({
-    queryKey: ['manager-distributor-workload'],
+    queryKey: ['manager-distributor-workload', activeManagedGroupId],
     queryFn: async () => {
       const res = await api.get<{ data: DistributorWorkloadData }>(
-        '/manager/group/distributor-workload',
+        withGroupId('/manager/group/distributor-workload', activeManagedGroupId),
       );
       return res.data.data;
     },
@@ -117,9 +119,11 @@ export default function WeeklyDistributorPage() {
   });
 
   const weeklyStatusQuery = useQuery({
-    queryKey: ['manager-weekly-status'],
+    queryKey: ['manager-weekly-status', activeManagedGroupId],
     queryFn: async () => {
-      const res = await api.get<{ data: WeeklyStatusData }>('/manager/group/weekly-status');
+      const res = await api.get<{ data: WeeklyStatusData }>(
+        withGroupId('/manager/group/weekly-status', activeManagedGroupId),
+      );
       return res.data.data;
     },
     enabled: !!user,
@@ -129,17 +133,20 @@ export default function WeeklyDistributorPage() {
 
   const assignMutation = useMutation({
     mutationFn: async (userId: string) => {
-      const res = await api.post('/manager/group/weekly-distributor', { userId, weekKey });
+      const res = await api.post(
+        withGroupId('/manager/group/weekly-distributor', activeManagedGroupId),
+        { userId, weekKey },
+      );
       return res.data;
     },
     onMutate: async (userId) => {
       // Optimistic update: mark new distributor in weekly status
-      await queryClient.cancelQueries({ queryKey: ['manager-weekly-status'] });
-      const previous = queryClient.getQueryData<WeeklyStatusData>(['manager-weekly-status']);
+      await queryClient.cancelQueries({ queryKey: ['manager-weekly-status', activeManagedGroupId] });
+      const previous = queryClient.getQueryData<WeeklyStatusData>(['manager-weekly-status', activeManagedGroupId]);
 
       const member = workloadQuery.data?.members.find((m) => m.userId === userId);
       if (member) {
-        queryClient.setQueryData<WeeklyStatusData>(['manager-weekly-status'], (old) => {
+        queryClient.setQueryData<WeeklyStatusData>(['manager-weekly-status', activeManagedGroupId], (old) => {
           if (!old) return old;
           return {
             ...old,
@@ -156,14 +163,14 @@ export default function WeeklyDistributorPage() {
     },
     onError: (_err, _userId, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(['manager-weekly-status'], context.previous);
+        queryClient.setQueryData(['manager-weekly-status', activeManagedGroupId], context.previous);
       }
       showToast('שגיאה במינוי המחלק', 'error');
     },
     onSuccess: () => {
       showToast('המחלק נקבע בהצלחה', 'success');
-      queryClient.invalidateQueries({ queryKey: ['manager-weekly-status'] });
-      queryClient.invalidateQueries({ queryKey: ['manager-distributor-workload'] });
+      queryClient.invalidateQueries({ queryKey: ['manager-weekly-status', activeManagedGroupId] });
+      queryClient.invalidateQueries({ queryKey: ['manager-distributor-workload', activeManagedGroupId] });
     },
   });
 
@@ -184,20 +191,23 @@ export default function WeeklyDistributorPage() {
     <div className="p-4 sm:p-6 lg:p-8 space-y-8 max-w-4xl">
 
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <Link
-          href="/manager/dashboard"
-          className="p-2 rounded-lg hover:bg-surface-container transition-colors text-on-surface-variant"
-          aria-label="חזור ללוח הבקרה"
-        >
-          <ChevronRight className="h-5 w-5" />
-        </Link>
-        <div>
-          <h1 className="text-headline-md sm:text-headline-lg font-headline mb-0.5">
-            מחלק שבועי
-          </h1>
-          <p className="text-body-md text-on-surface-variant">{weekLabel}</p>
+      <div className="space-y-3">
+        <div className="flex items-center gap-3">
+          <Link
+            href="/manager/dashboard"
+            className="p-2 rounded-lg hover:bg-surface-container transition-colors text-on-surface-variant"
+            aria-label="חזור ללוח הבקרה"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </Link>
+          <div>
+            <h1 className="text-headline-md sm:text-headline-lg font-headline mb-0.5">
+              מחלק שבועי
+            </h1>
+            <p className="text-body-md text-on-surface-variant">{weekLabel}</p>
+          </div>
         </div>
+        <GroupSwitcher />
       </div>
 
       {/* Current assignment summary */}

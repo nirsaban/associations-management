@@ -318,8 +318,9 @@ export class AuthService {
           select: { groupId: true, role: true },
         },
         managedGroups: {
-          select: { id: true },
+          select: { id: true, name: true },
           where: { deletedAt: null },
+          orderBy: { createdAt: 'asc' },
         },
       },
     });
@@ -348,6 +349,7 @@ export class AuthService {
       activationCompleted: user.activationCompleted,
       isGroupManager,
       managedGroupId,
+      managedGroups: user.managedGroups,
       groupMembershipGroupId,
       createdAt: user.createdAt,
     };

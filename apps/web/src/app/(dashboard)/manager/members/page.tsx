@@ -7,6 +7,8 @@ import api from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
+import { GroupSwitcher } from '../_components/GroupSwitcher';
+import { withGroupId } from '../_components/groupIdParam';
 
 interface GroupMember {
   id: string;
@@ -17,16 +19,18 @@ interface GroupMember {
 }
 
 export default function ManagerMembersPage() {
-  const { user } = useAuthStore();
+  const { user, activeManagedGroupId } = useAuthStore();
 
   const {
     data: members,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['manager-members', user?.id],
+    queryKey: ['manager-members', activeManagedGroupId],
     queryFn: async () => {
-      const response = await api.get<{ data: GroupMember[] }>('/manager/group/members');
+      const response = await api.get<{ data: GroupMember[] }>(
+        withGroupId('/manager/group/members', activeManagedGroupId),
+      );
       return response.data.data;
     },
     enabled: !!user,
@@ -57,9 +61,12 @@ export default function ManagerMembersPage() {
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 max-w-6xl">
       {/* Header */}
-      <div>
-        <h1 className="text-headline-md sm:text-headline-lg font-headline mb-1 sm:mb-2">חברי הקבוצה</h1>
-        <p className="text-body-md text-on-surface-variant">רשימת חברים וסטטוס תשלומים</p>
+      <div className="space-y-3">
+        <div>
+          <h1 className="text-headline-md sm:text-headline-lg font-headline mb-1 sm:mb-2">חברי הקבוצה</h1>
+          <p className="text-body-md text-on-surface-variant">רשימת חברים וסטטוס תשלומים</p>
+        </div>
+        <GroupSwitcher />
       </div>
 
       {/* Important Warning */}

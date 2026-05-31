@@ -17,6 +17,8 @@ import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
+import { GroupSwitcher } from '../_components/GroupSwitcher';
+import { withGroupId } from '../_components/groupIdParam';
 
 // ─── Type definitions ───────────────────────────────────────────────────────
 
@@ -245,7 +247,7 @@ function ErrorState({ message }: { message: string }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ManagerMyGroupPage() {
-  const { user } = useAuthStore();
+  const { user, activeManagedGroupId } = useAuthStore();
   const [workloadExpanded, setWorkloadExpanded] = useState(false);
 
   // ── Query: group info
@@ -254,9 +256,11 @@ export default function ManagerMyGroupPage() {
     isLoading: loadingGroup,
     error: errorGroup,
   } = useQuery({
-    queryKey: ['manager-my-group-info', user?.id],
+    queryKey: ['manager-my-group-info', activeManagedGroupId],
     queryFn: async () => {
-      const res = await api.get<{ data: GroupInfo }>('/manager/group');
+      const res = await api.get<{ data: GroupInfo }>(
+        withGroupId('/manager/group', activeManagedGroupId),
+      );
       return res.data.data;
     },
     enabled: !!user,
@@ -268,10 +272,10 @@ export default function ManagerMyGroupPage() {
     isLoading: loadingMembers,
     error: errorMembers,
   } = useQuery({
-    queryKey: ['manager-my-group-members', user?.id],
+    queryKey: ['manager-my-group-members', activeManagedGroupId],
     queryFn: async () => {
       const res = await api.get<{ data: MemberPaymentStatus[] }>(
-        '/manager/group/members-and-payment-status',
+        withGroupId('/manager/group/members-and-payment-status', activeManagedGroupId),
       );
       return res.data.data;
     },
@@ -284,10 +288,10 @@ export default function ManagerMyGroupPage() {
     isLoading: loadingWorkload,
     error: errorWorkload,
   } = useQuery({
-    queryKey: ['manager-my-group-workload', user?.id],
+    queryKey: ['manager-my-group-workload', activeManagedGroupId],
     queryFn: async () => {
       const res = await api.get<{ data: DistributorWorkload }>(
-        '/manager/group/distributor-workload',
+        withGroupId('/manager/group/distributor-workload', activeManagedGroupId),
       );
       return res.data.data;
     },
@@ -300,9 +304,11 @@ export default function ManagerMyGroupPage() {
     isLoading: loadingRevenue,
     error: errorRevenue,
   } = useQuery({
-    queryKey: ['manager-my-group-revenue', user?.id],
+    queryKey: ['manager-my-group-revenue', activeManagedGroupId],
     queryFn: async () => {
-      const res = await api.get<{ data: Revenue }>('/manager/group/revenue');
+      const res = await api.get<{ data: Revenue }>(
+        withGroupId('/manager/group/revenue', activeManagedGroupId),
+      );
       return res.data.data;
     },
     enabled: !!user,
@@ -344,15 +350,18 @@ export default function ManagerMyGroupPage() {
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 max-w-6xl">
       {/* ── Header ── */}
-      <div>
-        <h1 className="text-headline-md sm:text-headline-lg font-headline mb-1 sm:mb-2">
-          הקבוצה שלי{groupInfo?.name ? ` – ${groupInfo.name}` : ''}
-        </h1>
-        {groupInfo?.createdAt && (
-          <p className="text-body-sm text-on-surface-variant">
-            נוצרה ב-{format(new Date(groupInfo.createdAt), 'd MMMM yyyy', { locale: he })}
-          </p>
-        )}
+      <div className="space-y-3">
+        <div>
+          <h1 className="text-headline-md sm:text-headline-lg font-headline mb-1 sm:mb-2">
+            הקבוצה שלי{groupInfo?.name ? ` – ${groupInfo.name}` : ''}
+          </h1>
+          {groupInfo?.createdAt && (
+            <p className="text-body-sm text-on-surface-variant">
+              נוצרה ב-{format(new Date(groupInfo.createdAt), 'd MMMM yyyy', { locale: he })}
+            </p>
+          )}
+        </div>
+        <GroupSwitcher />
       </div>
 
       {/* ── Stat cards ── */}

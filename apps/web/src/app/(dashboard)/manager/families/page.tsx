@@ -19,6 +19,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import { useToast } from '@/components/ui/Toast';
+import { GroupSwitcher } from '../_components/GroupSwitcher';
+import { withGroupId } from '../_components/groupIdParam';
 
 interface Family {
   id: string;
@@ -345,7 +347,7 @@ function FamilyCard({ family, onSaveField, isSaving }: FamilyCardProps) {
 }
 
 export default function ManagerFamiliesPage() {
-  const { user } = useAuthStore();
+  const { user, activeManagedGroupId } = useAuthStore();
   const queryClient = useQueryClient();
   const { showToast } = useToast();
 
@@ -354,9 +356,11 @@ export default function ManagerFamiliesPage() {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['manager-families'],
+    queryKey: ['manager-families', activeManagedGroupId],
     queryFn: async () => {
-      const response = await api.get<{ data: Family[] }>('/manager/group/families');
+      const response = await api.get<{ data: Family[] }>(
+        withGroupId('/manager/group/families', activeManagedGroupId),
+      );
       return response.data.data;
     },
     enabled: !!user,
@@ -370,13 +374,16 @@ export default function ManagerFamiliesPage() {
       familyId: string;
       data: Record<string, unknown>;
     }) => {
-      const response = await api.patch(`/manager/group/families/${familyId}`, data);
+      const response = await api.patch(
+        withGroupId(`/manager/group/families/${familyId}`, activeManagedGroupId),
+        data,
+      );
       return response.data;
     },
     onMutate: async ({ familyId, data }) => {
-      await queryClient.cancelQueries({ queryKey: ['manager-families'] });
-      const previous = queryClient.getQueryData<Family[]>(['manager-families']);
-      queryClient.setQueryData<Family[]>(['manager-families'], (old) =>
+      await queryClient.cancelQueries({ queryKey: ['manager-families', activeManagedGroupId] });
+      const previous = queryClient.getQueryData<Family[]>(['manager-families', activeManagedGroupId]);
+      queryClient.setQueryData<Family[]>(['manager-families', activeManagedGroupId], (old) =>
         old
           ? old.map((f) => (f.id === familyId ? { ...f, ...data } : f))
           : old,
@@ -385,12 +392,12 @@ export default function ManagerFamiliesPage() {
     },
     onError: (_err, _vars, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(['manager-families'], context.previous);
+        queryClient.setQueryData(['manager-families', activeManagedGroupId], context.previous);
       }
       showToast('שגיאה בשמירה', 'error');
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['manager-families'] });
+      queryClient.invalidateQueries({ queryKey: ['manager-families', activeManagedGroupId] });
       showToast('נשמר', 'success');
     },
   });
@@ -428,11 +435,14 @@ export default function ManagerFamiliesPage() {
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-5xl">
       {/* Header */}
-      <div>
-        <h1 className="text-headline-md sm:text-headline-lg font-headline mb-1">המשפחות שלי</h1>
-        <p className="text-body-md text-on-surface-variant">
-          משפחות תחת ניהול הקבוצה שלך
-        </p>
+      <div className="space-y-3">
+        <div>
+          <h1 className="text-headline-md sm:text-headline-lg font-headline mb-1">המשפחות שלי</h1>
+          <p className="text-body-md text-on-surface-variant">
+            משפחות תחת ניהול הקבוצה שלך
+          </p>
+        </div>
+        <GroupSwitcher />
       </div>
 
       {/* Families grid */}

@@ -206,6 +206,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               ...currentUser,
               isGroupManager: !!me.isGroupManager,
               managedGroupId: (me.managedGroupId as string) ?? null,
+              managedGroups: (me.managedGroups as Array<{ id: string; name: string }>) ?? [],
               groupMembershipGroupId: (me.groupMembershipGroupId as string) ?? null,
             });
             // Re-read after enrichment

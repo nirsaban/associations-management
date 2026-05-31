@@ -15,6 +15,7 @@ import { CurrentUser, type CurrentUser as ICurrentUser } from '@common/decorator
 import { ManagerService } from './manager.service';
 import {
   GroupDetailsDto,
+  ManagedGroupSummaryDto,
   MemberWithStatusDto,
   WeeklyTaskStatusDto,
   UpdateFamilyDto,
@@ -31,15 +32,29 @@ import { AssignDistributorDto } from '@modules/weekly-distributors/dto/assign-di
 export class ManagerController {
   constructor(private readonly managerService: ManagerService) {}
 
+  @Get('groups')
+  @ApiOperation({
+    summary: 'List all managed groups',
+    description: 'קבלת כל הקבוצות שבניהול המשתמש המחובר. מנהל קבוצה אחת מקבל מערך עם רכיב אחד. מנהל כמה קבוצות מקבל את כולן, ממוינות לפי תאריך יצירה (ישן ביותר ראשון). ה-groupId מהתשובה משמש כפרמטר ?groupId בכל שאר נקודות הקצה של המנהל.',
+  })
+  async getManagedGroups(
+    @CurrentUser() user: ICurrentUser,
+  ): Promise<{ data: ManagedGroupSummaryDto[] }> {
+    const groups = await this.managerService.getManagedGroups(user.id, user.organizationId);
+    return { data: groups };
+  }
+
   @Get('group')
   @ApiOperation({
     summary: 'Get managed group',
     description: 'קבלת פרטי הקבוצה המנוהלת על ידי המנהל',
   })
+  @ApiQuery({ name: 'groupId', required: false, description: 'מזהה הקבוצה (אופציונלי — ברירת מחדל: הקבוצה הראשונה שבניהול)' })
   async getManagedGroup(
     @CurrentUser() user: ICurrentUser,
+    @Query('groupId') groupId?: string,
   ): Promise<{ data: GroupDetailsDto }> {
-    const group = await this.managerService.getManagedGroup(user.id, user.organizationId);
+    const group = await this.managerService.getManagedGroup(user.id, user.organizationId, groupId);
     return { data: group };
   }
 
@@ -48,10 +63,12 @@ export class ManagerController {
     summary: 'Get group members',
     description: 'קבלת רשימת חברי הקבוצה עם סטטוס תשלום (שולם/לא שולם בלבד, ללא סכומים)',
   })
+  @ApiQuery({ name: 'groupId', required: false, description: 'מזהה הקבוצה (אופציונלי — ברירת מחדל: הקבוצה הראשונה שבניהול)' })
   async getGroupMembers(
     @CurrentUser() user: ICurrentUser,
+    @Query('groupId') groupId?: string,
   ): Promise<{ data: MemberWithStatusDto[] }> {
-    return this.managerService.getGroupMembers(user.id, user.organizationId);
+    return this.managerService.getGroupMembers(user.id, user.organizationId, groupId);
   }
 
   @Get('group/families')
@@ -59,10 +76,12 @@ export class ManagerController {
     summary: 'Get group families',
     description: 'קבלת רשימת משפחות בקבוצה',
   })
+  @ApiQuery({ name: 'groupId', required: false, description: 'מזהה הקבוצה (אופציונלי — ברירת מחדל: הקבוצה הראשונה שבניהול)' })
   async getGroupFamilies(
     @CurrentUser() user: ICurrentUser,
+    @Query('groupId') groupId?: string,
   ): Promise<{ data: Array<Record<string, unknown>> }> {
-    return this.managerService.getGroupFamilies(user.id, user.organizationId);
+    return this.managerService.getGroupFamilies(user.id, user.organizationId, groupId);
   }
 
   @Get('group/weekly-tasks')
@@ -70,12 +89,14 @@ export class ManagerController {
     summary: 'Get weekly tasks',
     description: 'קבלת סטטוס הזמנות שבועיות לכל משפחה',
   })
+  @ApiQuery({ name: 'groupId', required: false, description: 'מזהה הקבוצה (אופציונלי — ברירת מחדל: הקבוצה הראשונה שבניהול)' })
   @ApiQuery({ name: 'weekKey', required: false, description: 'מפתח שבוע בפורמט YYYY-WNN' })
   async getWeeklyTasks(
     @CurrentUser() user: ICurrentUser,
+    @Query('groupId') groupId?: string,
     @Query('weekKey') weekKey?: string,
   ): Promise<{ data: WeeklyTaskStatusDto[] }> {
-    return this.managerService.getWeeklyTasks(user.id, user.organizationId, weekKey);
+    return this.managerService.getWeeklyTasks(user.id, user.organizationId, groupId, weekKey);
   }
 
   @Get('group/weekly-status')
@@ -83,12 +104,14 @@ export class ManagerController {
     summary: 'Get weekly operational status',
     description: 'קבלת סטטוס תפעולי שבועי כולל משפחות, הזמנות ומחלק שבועי',
   })
+  @ApiQuery({ name: 'groupId', required: false, description: 'מזהה הקבוצה (אופציונלי — ברירת מחדל: הקבוצה הראשונה שבניהול)' })
   @ApiQuery({ name: 'weekKey', required: false, description: 'מפתח שבוע בפורמט YYYY-WNN' })
   async getWeeklyStatus(
     @CurrentUser() user: ICurrentUser,
+    @Query('groupId') groupId?: string,
     @Query('weekKey') weekKey?: string,
   ): Promise<{ data: Record<string, unknown> }> {
-    return this.managerService.getWeeklyStatus(user.id, user.organizationId, weekKey);
+    return this.managerService.getWeeklyStatus(user.id, user.organizationId, groupId, weekKey);
   }
 
   @Get('group/members-and-payment-status')
@@ -96,10 +119,12 @@ export class ManagerController {
     summary: 'Get members with full payment info',
     description: 'קבלת רשימת חברי הקבוצה עם סטטוס תשלום מלא לחודש הנוכחי',
   })
+  @ApiQuery({ name: 'groupId', required: false, description: 'מזהה הקבוצה (אופציונלי — ברירת מחדל: הקבוצה הראשונה שבניהול)' })
   async getMembersWithPaymentStatus(
     @CurrentUser() user: ICurrentUser,
+    @Query('groupId') groupId?: string,
   ): Promise<{ data: Array<Record<string, unknown>> }> {
-    return this.managerService.getMembersWithPaymentStatus(user.id, user.organizationId);
+    return this.managerService.getMembersWithPaymentStatus(user.id, user.organizationId, groupId);
   }
 
   @Get('group/distributor-workload')
@@ -107,10 +132,12 @@ export class ManagerController {
     summary: 'Get distributor workload stats',
     description: 'קבלת נתוני עומס חלוקה לפי חבר קבוצה ב-52 השבועות האחרונים',
   })
+  @ApiQuery({ name: 'groupId', required: false, description: 'מזהה הקבוצה (אופציונלי — ברירת מחדל: הקבוצה הראשונה שבניהול)' })
   async getDistributorWorkload(
     @CurrentUser() user: ICurrentUser,
+    @Query('groupId') groupId?: string,
   ): Promise<{ data: Record<string, unknown> }> {
-    return this.managerService.getDistributorWorkload(user.id, user.organizationId);
+    return this.managerService.getDistributorWorkload(user.id, user.organizationId, groupId);
   }
 
   @Get('group/revenue')
@@ -118,10 +145,12 @@ export class ManagerController {
     summary: 'Get group revenue',
     description: 'קבלת סיכום הכנסות קבוצה לחודש הנוכחי ולשנה הנוכחית',
   })
+  @ApiQuery({ name: 'groupId', required: false, description: 'מזהה הקבוצה (אופציונלי — ברירת מחדל: הקבוצה הראשונה שבניהול)' })
   async getGroupRevenue(
     @CurrentUser() user: ICurrentUser,
+    @Query('groupId') groupId?: string,
   ): Promise<{ data: Record<string, unknown> }> {
-    return this.managerService.getGroupRevenue(user.id, user.organizationId);
+    return this.managerService.getGroupRevenue(user.id, user.organizationId, groupId);
   }
 
   @Get('group/families/:familyId/weekly-order')
@@ -129,10 +158,12 @@ export class ManagerController {
     summary: 'Get family weekly order',
     description: 'קבלת הזמנה שבועית למשפחה ספציפית בשבוע נתון',
   })
+  @ApiQuery({ name: 'groupId', required: false, description: 'מזהה הקבוצה (אופציונלי — ברירת מחדל: הקבוצה הראשונה שבניהול)' })
   @ApiQuery({ name: 'weekKey', required: false, description: 'מפתח שבוע בפורמט YYYY-WNN' })
   async getFamilyWeeklyOrder(
     @CurrentUser() user: ICurrentUser,
     @Param('familyId') familyId: string,
+    @Query('groupId') groupId?: string,
     @Query('weekKey') weekKey?: string,
   ): Promise<{ data: Record<string, unknown> }> {
     return this.managerService.getFamilyWeeklyOrder(
@@ -140,6 +171,7 @@ export class ManagerController {
       user.organizationId,
       familyId,
       weekKey,
+      groupId,
     );
   }
 
@@ -148,10 +180,12 @@ export class ManagerController {
     summary: 'Create weekly order',
     description: 'יצירת הזמנה שבועית למשפחה',
   })
+  @ApiQuery({ name: 'groupId', required: false, description: 'מזהה הקבוצה (אופציונלי — ברירת מחדל: הקבוצה הראשונה שבניהול)' })
   async createWeeklyOrder(
     @CurrentUser() user: ICurrentUser,
     @Param('familyId') familyId: string,
     @Body() dto: ManagerCreateWeeklyOrderDto,
+    @Query('groupId') groupId?: string,
   ): Promise<{ data: Record<string, unknown> }> {
     return this.managerService.createWeeklyOrder(
       user.id,
@@ -160,6 +194,7 @@ export class ManagerController {
       dto.weekKey,
       dto.items,
       dto.notes,
+      groupId,
     );
   }
 
@@ -168,10 +203,12 @@ export class ManagerController {
     summary: 'Upsert weekly order',
     description: 'יצירה או עדכון הזמנה שבועית למשפחה (upsert)',
   })
+  @ApiQuery({ name: 'groupId', required: false, description: 'מזהה הקבוצה (אופציונלי — ברירת מחדל: הקבוצה הראשונה שבניהול)' })
   async upsertFamilyWeeklyOrder(
     @CurrentUser() user: ICurrentUser,
     @Param('familyId') familyId: string,
     @Body() dto: UpsertWeeklyOrderDto,
+    @Query('groupId') groupId?: string,
   ): Promise<{ data: Record<string, unknown> }> {
     return this.managerService.upsertFamilyWeeklyOrder(
       user.id,
@@ -179,6 +216,7 @@ export class ManagerController {
       familyId,
       dto.content,
       dto.weekKey,
+      groupId,
     );
   }
 
@@ -187,12 +225,14 @@ export class ManagerController {
     summary: 'Update family metadata',
     description: 'עדכון פרטי משפחה (טלפון, כתובת, מספר ילדים, סך חברים, הערות)',
   })
+  @ApiQuery({ name: 'groupId', required: false, description: 'מזהה הקבוצה (אופציונלי — ברירת מחדל: הקבוצה הראשונה שבניהול)' })
   async updateFamily(
     @CurrentUser() user: ICurrentUser,
     @Param('familyId') familyId: string,
     @Body() dto: UpdateFamilyDto,
+    @Query('groupId') groupId?: string,
   ): Promise<{ data: Record<string, unknown> }> {
-    return this.managerService.updateFamily(user.id, user.organizationId, familyId, dto);
+    return this.managerService.updateFamily(user.id, user.organizationId, familyId, dto, groupId);
   }
 
   @Get('donation-info')
@@ -222,10 +262,12 @@ export class ManagerController {
     summary: 'Update weekly order',
     description: 'עדכון הזמנה שבועית',
   })
+  @ApiQuery({ name: 'groupId', required: false, description: 'מזהה הקבוצה (אופציונלי — ברירת מחדל: הקבוצה הראשונה שבניהול)' })
   async updateWeeklyOrder(
     @CurrentUser() user: ICurrentUser,
     @Param('orderId') orderId: string,
     @Body() dto: UpdateWeeklyOrderDto,
+    @Query('groupId') groupId?: string,
   ): Promise<{ data: Record<string, unknown> }> {
     return this.managerService.updateWeeklyOrder(
       user.id,
@@ -234,6 +276,7 @@ export class ManagerController {
       dto.items,
       dto.notes,
       dto.status,
+      groupId,
     );
   }
 
@@ -242,15 +285,18 @@ export class ManagerController {
     summary: 'Assign weekly distributor',
     description: 'הקצאת מחלק שבועי לקבוצה',
   })
+  @ApiQuery({ name: 'groupId', required: false, description: 'מזהה הקבוצה (אופציונלי — ברירת מחדל: הקבוצה הראשונה שבניהול)' })
   async assignWeeklyDistributor(
     @CurrentUser() user: ICurrentUser,
     @Body() dto: AssignDistributorDto,
+    @Query('groupId') groupId?: string,
   ): Promise<{ data: Record<string, unknown> }> {
     return this.managerService.assignWeeklyDistributor(
       user.id,
       user.organizationId,
       dto.userId,
       dto.weekKey ?? this.managerService.getCurrentWeekKey(),
+      groupId,
     );
   }
 }
