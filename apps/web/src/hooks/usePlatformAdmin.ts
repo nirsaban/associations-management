@@ -44,6 +44,7 @@ type ListParams = {
   page?: number;
   limit?: number;
   search?: string;
+  filters?: Record<string, string>;
   organizationId?: string;
   orderBy?: string;
   orderDir?: 'asc' | 'desc';
@@ -80,6 +81,11 @@ export function useAdminRecords(model: string, params: ListParams = {}) {
       if (params.page) sp.set('page', params.page.toString());
       if (params.limit) sp.set('limit', params.limit.toString());
       if (params.search) sp.set('search', params.search);
+      if (params.filters) {
+        for (const [field, value] of Object.entries(params.filters)) {
+          if (value !== '' && value != null) sp.set(`filter[${field}]`, value);
+        }
+      }
       if (params.organizationId) sp.set('organizationId', params.organizationId);
       if (params.orderBy) sp.set('orderBy', params.orderBy);
       if (params.orderDir) sp.set('orderDir', params.orderDir);

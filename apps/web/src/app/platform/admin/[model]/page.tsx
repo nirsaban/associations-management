@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import {
@@ -244,6 +244,78 @@ function DynamicForm({
   );
 }
 
+// ── Per-Column Filter Input ───────────────────────────────────────────────────
+
+function ColumnFilter({
+  field,
+  value,
+  onChange,
+}: {
+  field: FieldMeta;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const base =
+    'w-full min-w-[6.5rem] rounded-md border border-outline-variant px-2 py-1 text-label-sm bg-surface outline-none focus:border-primary transition-colors';
+
+  if (field.kind === 'enum' && field.enumValues) {
+    return (
+      <select className={base} value={value} onChange={(e) => onChange(e.target.value)} dir="rtl">
+        <option value="">הכל</option>
+        {field.enumValues.map((v) => (
+          <option key={v} value={v}>{v}</option>
+        ))}
+      </select>
+    );
+  }
+
+  if (field.type === 'Boolean') {
+    return (
+      <select className={base} value={value} onChange={(e) => onChange(e.target.value)} dir="rtl">
+        <option value="">הכל</option>
+        <option value="true">כן</option>
+        <option value="false">לא</option>
+      </select>
+    );
+  }
+
+  if (field.type === 'DateTime') {
+    return (
+      <input
+        type="date"
+        className={base}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        dir="ltr"
+      />
+    );
+  }
+
+  if (['Int', 'BigInt', 'Float', 'Decimal'].includes(field.type)) {
+    return (
+      <input
+        type="number"
+        className={base}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="סינון..."
+        dir="ltr"
+      />
+    );
+  }
+
+  return (
+    <input
+      type="text"
+      className={base}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder="סינון..."
+      dir={/email|url|slug|phone|Id$/i.test(field.name) ? 'ltr' : 'rtl'}
+    />
+  );
+}
+
 // ── Main Page ────────────────────────────────────────────────────────────────
 
 export default function AdminModelPage() {
@@ -254,14 +326,23 @@ export default function AdminModelPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [filters, setFilters] = useState<Record<string, string>>({});
+  const [debouncedFilters, setDebouncedFilters] = useState<Record<string, string>>({});
   const [modal, setModal] = useState<'create' | 'edit' | 'delete' | null>(null);
   const [selectedRecord, setSelectedRecord] = useState<Record<string, unknown> | null>(null);
+
+  // Debounce per-column filters
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedFilters(filters), 300);
+    return () => clearTimeout(t);
+  }, [filters]);
 
   const { data: schema } = useAdminSchema(modelName);
   const { data: result, isLoading, isError } = useAdminRecords(modelName, {
     page,
     limit: ITEMS_PER_PAGE,
     search: debouncedSearch || undefined,
+    filters: Object.keys(debouncedFilters).length > 0 ? debouncedFilters : undefined,
   });
   const createMutation = useAdminCreate(modelName);
   const updateMutation = useAdminUpdate(modelName);
@@ -272,6 +353,23 @@ export default function AdminModelPage() {
     setPage(1);
     setTimeout(() => setDebouncedSearch(val), 300);
   };
+
+  const handleFilterChange = (field: string, value: string) => {
+    setPage(1);
+    setFilters((prev) => {
+      const next = { ...prev };
+      if (value === '') delete next[field];
+      else next[field] = value;
+      return next;
+    });
+  };
+
+  const clearFilters = () => {
+    setPage(1);
+    setFilters({});
+  };
+
+  const activeFilterCount = Object.keys(filters).length;
 
   const handleCreate = async (data: Record<string, unknown>) => {
     try {
@@ -349,15 +447,23 @@ export default function AdminModelPage() {
       </div>
 
       {/* Search */}
-      <div className="mb-4">
+      <div className="mb-4 flex items-center gap-3">
         <input
           type="text"
           value={search}
           onChange={(e) => handleSearchChange(e.target.value)}
-          placeholder="חיפוש..."
+          placeholder="חיפוש כללי..."
           className="w-full sm:max-w-md rounded-lg border border-outline-variant px-3 py-2 text-body-md bg-surface-container-lowest outline-none focus:border-primary transition-colors"
           dir="rtl"
         />
+        {activeFilterCount > 0 && (
+          <button
+            onClick={clearFilters}
+            className="whitespace-nowrap text-label-md text-primary hover:underline"
+          >
+            נקה סינון ({activeFilterCount})
+          </button>
+        )}
       </div>
 
       {/* Loading / Error */}
@@ -375,13 +481,8 @@ export default function AdminModelPage() {
       {/* Table */}
       {!isLoading && !isError && (
         <>
-          {records.length === 0 ? (
-            <div className="rounded-xl border border-outline-variant p-8 text-center">
-              <p className="text-title-lg mb-2">אין רשומות</p>
-            </div>
-          ) : (
-            <div className="rounded-xl border border-outline-variant overflow-hidden">
-              <div className="overflow-x-auto">
+          <div className="rounded-xl border border-outline-variant overflow-hidden">
+            <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-surface-container-low">
                     <tr>
@@ -392,8 +493,28 @@ export default function AdminModelPage() {
                       ))}
                       <th className="px-3 py-2.5 text-start text-label-sm text-on-surface-variant">פעולות</th>
                     </tr>
+                    {/* Per-column filter row */}
+                    <tr className="border-t border-outline-variant">
+                      {tableFields.map((f) => (
+                        <th key={f.name} className="px-3 py-2 align-top font-normal">
+                          <ColumnFilter
+                            field={f}
+                            value={filters[f.name] ?? ''}
+                            onChange={(v) => handleFilterChange(f.name, v)}
+                          />
+                        </th>
+                      ))}
+                      <th className="px-3 py-2" />
+                    </tr>
                   </thead>
                   <tbody className="divide-y divide-outline-variant">
+                    {records.length === 0 && (
+                      <tr>
+                        <td colSpan={tableFields.length + 1} className="px-3 py-10 text-center text-on-surface-variant">
+                          אין רשומות
+                        </td>
+                      </tr>
+                    )}
                     {records.map((record, idx) => (
                       <tr key={(record.id as string) || idx} className="hover:bg-surface-container-low/50 transition-colors">
                         {tableFields.map((f) => (
@@ -429,7 +550,6 @@ export default function AdminModelPage() {
                 </table>
               </div>
             </div>
-          )}
 
           {/* Pagination */}
           {totalPages > 1 && (

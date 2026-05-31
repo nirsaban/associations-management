@@ -5,12 +5,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '@common/prisma/prisma.service';
-import { PlatformAdminSchemaService } from './platform-admin-schema.service';
+import { PlatformAdminSchemaService, FieldMeta } from './platform-admin-schema.service';
 
 interface FindManyParams {
   page: number;
   limit: number;
   search?: string;
+  filters?: Record<string, string>;
   organizationId?: string;
   orderBy?: string;
   orderDir?: 'asc' | 'desc';
@@ -39,7 +40,7 @@ export class PlatformAdminCrudService {
     params: FindManyParams,
   ): Promise<{ data: unknown[]; meta: { total: number; page: number; limit: number } }> {
     const delegate = this.getDelegate(modelName);
-    const { page, limit, search, organizationId, orderBy, orderDir } = params;
+    const { page, limit, search, filters, organizationId, orderBy, orderDir } = params;
     const skip = (page - 1) * limit;
 
     // Build where clause
@@ -66,6 +67,21 @@ export class PlatformAdminCrudService {
       }
     }
 
+    // Per-field filters (professional search) — type-aware, combined with AND
+    if (filters && typeof filters === 'object' && schema) {
+      const andConditions: Record<string, unknown>[] = [];
+      for (const [fieldName, rawValue] of Object.entries(filters)) {
+        if (rawValue === undefined || rawValue === null || rawValue === '') continue;
+        const field = schema.fields.find((f) => f.name === fieldName);
+        if (!field) continue;
+        const condition = this.buildFieldCondition(field, String(rawValue));
+        if (condition) andConditions.push(condition);
+      }
+      if (andConditions.length > 0) {
+        where.AND = andConditions;
+      }
+    }
+
     // Build orderBy
     const orderByClause = orderBy
       ? { [orderBy]: orderDir || 'desc' }
@@ -87,6 +103,64 @@ export class PlatformAdminCrudService {
     ]);
 
     return { data, meta: { total, page, limit } };
+  }
+
+  /**
+   * Build a type-aware Prisma `where` condition for a single field filter.
+   * Returns null when the value is unusable for the field's type.
+   */
+  private buildFieldCondition(
+    field: FieldMeta,
+    rawValue: string,
+  ): Record<string, unknown> | null {
+    const value = rawValue.trim();
+    if (!value) return null;
+
+    // Relation object: filter by the related record's display field (contains)
+    if (field.kind === 'object') {
+      if (!field.displayField) return null;
+      return {
+        [field.name]: {
+          [field.displayField]: { contains: value, mode: 'insensitive' },
+        },
+      };
+    }
+
+    // Enum: exact match against a known value
+    if (field.kind === 'enum') {
+      if (field.enumValues && !field.enumValues.includes(value)) return null;
+      return { [field.name]: value };
+    }
+
+    switch (field.type) {
+      case 'Boolean': {
+        if (value !== 'true' && value !== 'false') return null;
+        return { [field.name]: value === 'true' };
+      }
+      case 'Int':
+      case 'BigInt': {
+        const n = Number(value);
+        if (!Number.isFinite(n)) return null;
+        return { [field.name]: Math.trunc(n) };
+      }
+      case 'Float':
+      case 'Decimal': {
+        const n = Number(value);
+        if (!Number.isFinite(n)) return null;
+        return { [field.name]: n };
+      }
+      case 'DateTime': {
+        // value is expected as YYYY-MM-DD — match within that calendar day
+        const start = new Date(value);
+        if (Number.isNaN(start.getTime())) return null;
+        const end = new Date(start);
+        end.setDate(end.getDate() + 1);
+        return { [field.name]: { gte: start, lt: end } };
+      }
+      default:
+        // String (incl. FK id) — case-insensitive partial match
+        return { [field.name]: { contains: value, mode: 'insensitive' } };
+    }
   }
 
   async findOne(modelName: string, id: string): Promise<unknown> {
