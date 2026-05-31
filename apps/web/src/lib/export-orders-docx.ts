@@ -1,4 +1,4 @@
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle } from 'docx';
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } from 'docx';
 import { saveAs } from 'file-saver';
 
 interface OrderFamily {
@@ -97,94 +97,38 @@ export async function exportOrdersToDocx(
     }),
   );
 
-  for (const group of groups) {
-    // Group header
+  // Flatten all families across every group — no group sections.
+  // Each family shows only its name and its items (פריטים).
+  const families = groups.flatMap((g) => g.families);
+
+  families.forEach((family, index) => {
+    // Family name with sequential number (no address, no group, no status, no notes)
     children.push(
       new Paragraph({
         alignment: AlignmentType.RIGHT,
         bidirectional: true,
         children: [
-          new TextRun({ text: group.groupName, bold: true, size: 28, font: 'David' }),
+          new TextRun({ text: `${index + 1}. ${family.familyName}`, bold: true, size: 24, font: 'David' }),
         ],
-        heading: HeadingLevel.HEADING_2,
         spacing: { before: 300 },
-        border: {
-          bottom: { style: BorderStyle.SINGLE, size: 1, color: '999999' },
-        },
       }),
     );
 
-    if (group.families.length === 0) {
-      children.push(
-        new Paragraph({
-          alignment: AlignmentType.RIGHT,
-          bidirectional: true,
-          children: [
-            new TextRun({ text: 'אין הזמנות לקבוצה זו', italics: true, size: 22, font: 'David', color: '999999' }),
-          ],
-          spacing: { after: 200 },
-        }),
-      );
-      continue;
-    }
-
-    for (const family of group.families) {
-      // Family name (address intentionally omitted)
-      children.push(
-        new Paragraph({
-          alignment: AlignmentType.RIGHT,
-          bidirectional: true,
-          children: [
-            new TextRun({ text: `${family.familyName}`, bold: true, size: 24, font: 'David' }),
-          ],
-          spacing: { before: 200 },
-        }),
-      );
-
-      // Items — the focus of the document, rendered larger
-      const itemsText = formatItems(family.items);
-      children.push(
-        new Paragraph({
-          alignment: AlignmentType.RIGHT,
-          bidirectional: true,
-          children: [
-            new TextRun({ text: `פריטים: `, bold: true, size: 32, font: 'David' }),
-            new TextRun({ text: itemsText, bold: true, size: 32, font: 'David' }),
-          ],
-          indent: { right: 400 },
-          spacing: { before: 100, after: 100 },
-        }),
-      );
-
-      // Status
-      const statusText = family.status === 'COMPLETED' ? 'הושלם' : 'טיוטה';
-      children.push(
-        new Paragraph({
-          alignment: AlignmentType.RIGHT,
-          bidirectional: true,
-          children: [
-            new TextRun({ text: `סטטוס: ${statusText}`, size: 20, font: 'David', color: family.status === 'COMPLETED' ? '008000' : 'CC8800' }),
-          ],
-          indent: { right: 400 },
-          spacing: { after: 200 },
-        }),
-      );
-
-      if (family.notes) {
-        children.push(
-          new Paragraph({
-            alignment: AlignmentType.RIGHT,
-            bidirectional: true,
-            children: [
-              new TextRun({ text: `הערות: ${family.notes}`, size: 20, font: 'David', italics: true }),
-            ],
-            indent: { right: 400 },
-            spacing: { after: 200 },
-          }),
-        );
-      }
-    }
-  }
+    // Items — the focus of the document, rendered larger
+    const itemsText = formatItems(family.items);
+    children.push(
+      new Paragraph({
+        alignment: AlignmentType.RIGHT,
+        bidirectional: true,
+        children: [
+          new TextRun({ text: `פריטים: `, bold: true, size: 32, font: 'David' }),
+          new TextRun({ text: itemsText, bold: true, size: 32, font: 'David' }),
+        ],
+        indent: { right: 400 },
+        spacing: { before: 100, after: 200 },
+      }),
+    );
+  });
 
   const doc = new Document({
     sections: [{
