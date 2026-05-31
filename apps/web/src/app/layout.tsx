@@ -7,7 +7,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'נחלת דוד',
-  description: 'נחלת דוד — מפעל חסדים לזכר הרב דויד עשור זצ״ל',
+  description: 'נחלת דוד — מוסדות תורה וחסד לעילוי נשמת הרה״ג דוד עשור זצ״ל',
   manifest: '/manifest.json',
   icons: {
     icon: [
