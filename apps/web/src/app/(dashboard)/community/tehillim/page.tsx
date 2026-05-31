@@ -332,7 +332,7 @@ export default function TehillimPage() {
       </div>
 
       <p className="text-center text-label-md text-on-surface-variant pt-2">
-        תהילים יומי — לעילוי נשמת הרב דויד עשור זצ״ל
+        תהילים יומי — לעילוי נשמת הרה״ג דוד עשור זצ״ל
       </p>
 
       {/* Tomorrow dedication banner — visible if user already dedicated for tomorrow */}

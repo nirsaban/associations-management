@@ -193,7 +193,7 @@ export default function LoginPage() {
         <div className="mb-12 text-center">
           <img src="/logo.jpeg" alt="נחלת דוד" className="h-20 w-20 rounded-full mx-auto mb-3 object-cover shadow-md" />
           <h1 className="text-headline-lg font-headline mb-2">נחלת דוד</h1>
-          <p className="text-body-md text-on-surface-variant">מפעל חסדים לזכר הרב דויד עשור זצ״ל</p>
+          <p className="text-body-md text-on-surface-variant">מוסדות תורה וחסד לעילוי נשמת הרה״ג דוד עשור זצ״ל</p>
         </div>
 
         {/* Card */}
