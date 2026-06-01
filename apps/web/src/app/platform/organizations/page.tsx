@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useOrganizations, useToggleOrganizationStatus, OrganizationListItem } from '@/hooks/usePlatform';
@@ -89,18 +89,17 @@ export default function OrganizationsListPage() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [page, setPage] = useState(1);
 
-  // Debounce search input
-  useState(() => {
+  // Debounce search input — depends only on `search`, so the status filter
+  // (and other state) never re-triggers or interferes with it.
+  useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 300);
     return () => clearTimeout(timer);
-  });
+  }, [search]);
 
   // Reset page when filters change
   const handleSearchChange = (val: string) => {
     setSearch(val);
     setPage(1);
-    // Debounce
-    setTimeout(() => setDebouncedSearch(val), 300);
   };
 
   const handleStatusChange = (val: 'all' | 'active' | 'inactive') => {
