@@ -258,6 +258,9 @@ function ColumnFilter({
   const base =
     'w-full min-w-[6.5rem] rounded-md border border-outline-variant px-2 py-1 text-label-sm bg-surface outline-none focus:border-primary transition-colors';
 
+  // Discrete controls (select / date) commit their value immediately — they
+  // must NOT be coupled to any text-input debounce. Each control's filter is
+  // driven only by its own change.
   if (field.kind === 'enum' && field.enumValues) {
     return (
       <select className={base} value={value} onChange={(e) => onChange(e.target.value)} dir="rtl">
@@ -291,27 +294,58 @@ function ColumnFilter({
     );
   }
 
-  if (['Int', 'BigInt', 'Float', 'Decimal'].includes(field.type)) {
-    return (
-      <input
-        type="number"
-        className={base}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder="סינון..."
-        dir="ltr"
-      />
-    );
-  }
+  const isNumber = ['Int', 'BigInt', 'Float', 'Decimal'].includes(field.type);
+
+  return (
+    <DebouncedTextFilter
+      className={base}
+      type={isNumber ? 'number' : 'text'}
+      value={value}
+      onChange={onChange}
+      dir={isNumber || /email|url|slug|phone|Id$/i.test(field.name) ? 'ltr' : 'rtl'}
+    />
+  );
+}
+
+// Free-text / number filter: debounces locally so typing in one column never
+// re-triggers other columns' filters, and only commits when its own value
+// settles. Empty values are committed too (so clearing removes the filter).
+function DebouncedTextFilter({
+  className,
+  type,
+  value,
+  onChange,
+  dir,
+}: {
+  className: string;
+  type: 'text' | 'number';
+  value: string;
+  onChange: (value: string) => void;
+  dir: 'ltr' | 'rtl';
+}) {
+  const [local, setLocal] = useState(value);
+
+  // Keep local input in sync when the committed value changes externally
+  // (e.g. "clear filters"), without clobbering active typing.
+  useEffect(() => {
+    setLocal(value);
+  }, [value]);
+
+  useEffect(() => {
+    if (local === value) return;
+    const t = setTimeout(() => onChange(local), 300);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [local]);
 
   return (
     <input
-      type="text"
-      className={base}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
+      type={type}
+      className={className}
+      value={local}
+      onChange={(e) => setLocal(e.target.value)}
       placeholder="סינון..."
-      dir={/email|url|slug|phone|Id$/i.test(field.name) ? 'ltr' : 'rtl'}
+      dir={dir}
     />
   );
 }
@@ -327,22 +361,15 @@ export default function AdminModelPage() {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [filters, setFilters] = useState<Record<string, string>>({});
-  const [debouncedFilters, setDebouncedFilters] = useState<Record<string, string>>({});
   const [modal, setModal] = useState<'create' | 'edit' | 'delete' | null>(null);
   const [selectedRecord, setSelectedRecord] = useState<Record<string, unknown> | null>(null);
-
-  // Debounce per-column filters
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedFilters(filters), 300);
-    return () => clearTimeout(t);
-  }, [filters]);
 
   const { data: schema } = useAdminSchema(modelName);
   const { data: result, isLoading, isError } = useAdminRecords(modelName, {
     page,
     limit: ITEMS_PER_PAGE,
     search: debouncedSearch || undefined,
-    filters: Object.keys(debouncedFilters).length > 0 ? debouncedFilters : undefined,
+    filters: Object.keys(filters).length > 0 ? filters : undefined,
   });
   const createMutation = useAdminCreate(modelName);
   const updateMutation = useAdminUpdate(modelName);
@@ -358,7 +385,9 @@ export default function AdminModelPage() {
     setPage(1);
     setFilters((prev) => {
       const next = { ...prev };
-      if (value === '') delete next[field];
+      // Only fields with a non-empty value constrain the query — an untouched
+      // or cleared filter is removed entirely so it can't interfere with others.
+      if (value.trim() === '') delete next[field];
       else next[field] = value;
       return next;
     });
