@@ -67,14 +67,19 @@ export class PlatformAdminCrudService {
       }
     }
 
-    // Per-field filters (professional search) — type-aware, combined with AND
+    // Per-field filters (professional search) — type-aware, combined with AND.
+    // Only meaningful, non-empty values constrain the query. Stray sentinel
+    // values ('', 'null', 'undefined', whitespace) from untouched/cleared
+    // column inputs are ignored so they cannot zero-out other active filters.
     if (filters && typeof filters === 'object' && schema) {
       const andConditions: Record<string, unknown>[] = [];
       for (const [fieldName, rawValue] of Object.entries(filters)) {
-        if (rawValue === undefined || rawValue === null || rawValue === '') continue;
+        if (rawValue === undefined || rawValue === null) continue;
+        const trimmed = String(rawValue).trim();
+        if (trimmed === '' || trimmed === 'null' || trimmed === 'undefined') continue;
         const field = schema.fields.find((f) => f.name === fieldName);
         if (!field) continue;
-        const condition = this.buildFieldCondition(field, String(rawValue));
+        const condition = this.buildFieldCondition(field, trimmed);
         if (condition) andConditions.push(condition);
       }
       if (andConditions.length > 0) {

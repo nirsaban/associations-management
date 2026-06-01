@@ -83,7 +83,13 @@ export function useAdminRecords(model: string, params: ListParams = {}) {
       if (params.search) sp.set('search', params.search);
       if (params.filters) {
         for (const [field, value] of Object.entries(params.filters)) {
-          if (value !== '' && value != null) sp.set(`filter[${field}]`, value);
+          // Only send filters with a meaningful, non-empty value. Skip blanks
+          // and sentinel strings so an untouched/cleared column input can never
+          // be sent as a real filter (which would wrongly constrain results).
+          if (value == null) continue;
+          const trimmed = String(value).trim();
+          if (trimmed === '' || trimmed === 'null' || trimmed === 'undefined') continue;
+          sp.set(`filter[${field}]`, trimmed);
         }
       }
       if (params.organizationId) sp.set('organizationId', params.organizationId);
