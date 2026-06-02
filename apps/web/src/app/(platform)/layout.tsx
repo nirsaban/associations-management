@@ -3,6 +3,7 @@
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth.store';
+import { PushNotificationGate } from '@/components/pwa/PushNotificationGate';
 
 export default function PlatformLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -49,5 +50,9 @@ export default function PlatformLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  return <div className="min-h-screen bg-surface">{children}</div>;
+  return (
+    <PushNotificationGate>
+      <div className="min-h-screen bg-surface">{children}</div>
+    </PushNotificationGate>
+  );
 }

@@ -8,7 +8,7 @@ import { Menu, LogOut, Home, Users, CreditCard, Upload, Bell, Truck, ShoppingCar
 import { useAuth } from '@/hooks/useAuth';
 import Link from 'next/link';
 import { api } from '@/lib/api';
-import { AutoPushSubscribe } from '@/components/pwa/AutoPushSubscribe';
+import { PushNotificationGate } from '@/components/pwa/PushNotificationGate';
 import { COMMUNITY_PROFESSIONS_ENABLED } from '@/lib/feature-flags';
 
 // Full navigation items per role
@@ -277,8 +277,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   };
 
   return (
+    <PushNotificationGate>
     <div className="flex h-screen bg-surface" dir="rtl">
-      <AutoPushSubscribe />
       {/* Desktop Sidebar — hidden on mobile */}
       <aside className="hidden md:flex md:flex-col md:w-64 border-s border-outline/30 bg-surface-container-low">
         <div className="border-b border-outline/30 px-6 py-5">
@@ -439,5 +439,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </>
       )}
     </div>
+    </PushNotificationGate>
   );
 }

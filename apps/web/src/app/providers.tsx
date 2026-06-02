@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ServiceWorkerRegistration } from '@/components/pwa/ServiceWorkerRegistration';
 import { ToastProvider } from '@/components/ui/Toast';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
-import { ThemeToggle } from '@/components/theme/ThemeToggle';
+// import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { AuthCookieSync } from '@/components/auth-cookie-sync';
 
 const queryClient = new QueryClient({
@@ -25,7 +25,7 @@ export function Providers({ children }: { children: ReactNode }) {
           <ServiceWorkerRegistration />
           <AuthCookieSync />
           {children}
-          <ThemeToggle />
+          {/* <ThemeToggle /> */}
         </ToastProvider>
       </ThemeProvider>
     </QueryClientProvider>

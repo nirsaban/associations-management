@@ -5,3 +5,4 @@
 
 export { ServiceWorkerRegistration } from './ServiceWorkerRegistration';
 export { PushNotificationToggle } from './PushNotificationToggle';
+export { PushNotificationGate } from './PushNotificationGate';

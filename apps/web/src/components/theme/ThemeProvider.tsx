@@ -30,13 +30,16 @@ function applyToDocument(theme: ThemeName) {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<ThemeName>('tulip');
+  const [theme, setThemeState] = useState<ThemeName>('nachalat');
 
   useEffect(() => {
     const stored = (typeof window !== 'undefined' && (localStorage.getItem(STORAGE_KEY) as ThemeName | null)) || null;
     if (stored === 'nachalat' || stored === 'tulip') {
       setThemeState(stored);
       applyToDocument(stored);
+    } else {
+      // No persisted choice → use the default (dark) and make sure the document reflects it.
+      applyToDocument('nachalat');
     }
   }, []);
 
