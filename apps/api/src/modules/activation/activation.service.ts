@@ -383,7 +383,11 @@ export class ActivationService {
   async completeActivation(userId: string) {
     await this.prisma.user.update({
       where: { id: userId },
-      data: { activationCompleted: true },
+      // Set both flags. registrationCompleted was never written by any flow
+      // before, leaving the column stuck at false even for fully-onboarded
+      // users; from now on, finishing activation also marks registration as
+      // complete so admin reports become accurate going forward.
+      data: { activationCompleted: true, registrationCompleted: true },
     });
 
     return { ok: true };

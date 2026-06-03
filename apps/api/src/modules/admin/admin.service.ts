@@ -198,6 +198,7 @@ export class AdminService {
         phone: true,
         email: true,
         registrationCompleted: true,
+        activationCompleted: true,
       },
       orderBy: {
         fullName: 'asc',
@@ -214,7 +215,11 @@ export class AdminService {
         phone: u.phone,
         email: u.email ?? undefined,
       };
-      if (u.registrationCompleted) {
+      // registrationCompleted was never wired into the live signup flow — the
+      // real "finished onboarding" signal is activationCompleted (set at the
+      // end of the activation wizard). Treat either flag as completed so the
+      // dashboard reflects reality without a separate backfill.
+      if (u.registrationCompleted || u.activationCompleted) {
         completed.push(entry);
       } else {
         notCompleted.push(entry);

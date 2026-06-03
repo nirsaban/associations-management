@@ -213,7 +213,7 @@ export class PlatformAdminCrudService {
     return delegate.update({ where: { id }, data: cleaned });
   }
 
-  async remove(modelName: string, id: string): Promise<void> {
+  async remove(modelName: string, id: string, options: { hard?: boolean } = {}): Promise<void> {
     const delegate = this.getDelegate(modelName);
 
     const existing = await delegate.findFirst({ where: { id } });
@@ -221,16 +221,49 @@ export class PlatformAdminCrudService {
       throw new NotFoundException('רשומה לא נמצאה');
     }
 
-    this.logger.log(`Deleting ${modelName} record ${id}`);
+    const isSoftDelete = this.schemaService.isSoftDeleteModel(modelName);
+    const hard = options.hard === true;
 
-    if (this.schemaService.isSoftDeleteModel(modelName)) {
+    this.logger.log(
+      `${hard ? 'Hard-deleting' : isSoftDelete ? 'Soft-deleting' : 'Deleting'} ${modelName} record ${id}`,
+    );
+
+    if (isSoftDelete && !hard) {
       await delegate.update({
         where: { id },
         data: { deletedAt: new Date() },
       });
-    } else {
-      await delegate.delete({ where: { id } });
+      return;
     }
+
+    if (hard && modelName === 'User') {
+      // Users have RESTRICT FKs (alerts, tehillim, etc.) that block a naive
+      // delete — route through the dedicated hard-delete cleanup path.
+      await this.hardDeleteUser(id);
+      return;
+    }
+
+    await delegate.delete({ where: { id } });
+  }
+
+  /**
+   * SUPER_ADMIN hard-delete of a User. Mirrors UsersService.hardRemove but
+   * without an organization scope (super admin operates platform-wide).
+   */
+  private async hardDeleteUser(id: string): Promise<void> {
+    await this.prisma.$transaction([
+      this.prisma.passItOnItem.updateMany({
+        where: { claimedById: id },
+        data: { claimedById: null },
+      }),
+      this.prisma.tehillimReading.deleteMany({ where: { userId: id } }),
+      this.prisma.tehillimDedication.deleteMany({ where: { userId: id } }),
+      this.prisma.weeklyFamilyDelivery.deleteMany({ where: { markedByUserId: id } }),
+      this.prisma.passItOnItem.deleteMany({ where: { postedById: id } }),
+      this.prisma.alert.deleteMany({ where: { publishedById: id } }),
+      this.prisma.alertTemplate.deleteMany({ where: { createdById: id } }),
+      this.prisma.user.delete({ where: { id } }),
+    ]);
   }
 
   async count(modelName: string): Promise<number> {

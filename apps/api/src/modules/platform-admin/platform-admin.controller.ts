@@ -115,7 +115,8 @@ export class PlatformAdminController {
   async remove(
     @Param('model') model: string,
     @Param('id') id: string,
+    @Query('hard') hard?: string,
   ) {
-    await this.crudService.remove(model, id);
+    await this.crudService.remove(model, id, { hard: hard === 'true' });
   }
 }

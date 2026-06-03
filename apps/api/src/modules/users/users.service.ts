@@ -4,6 +4,7 @@ import {
   NotFoundException,
   ConflictException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '@common/prisma/prisma.service';
 import { GroupRole, Prisma, SystemRole } from '@prisma/client';
@@ -313,6 +314,72 @@ export class UsersService {
       where: { id },
       data: { deletedAt: new Date() },
     });
+  }
+
+  /**
+   * Hard delete: physically remove a user and all of their owned auxiliary
+   * records. Used by ADMIN ("מחיקה לצמיתות") and SUPER_ADMIN.
+   *
+   * Several FKs to User don't have ON DELETE rules in the schema (default
+   * RESTRICT in Postgres) — alerts, alert templates, tehillim activity,
+   * pass-it-on items, weekly delivery markings — so deleting the row directly
+   * would raise a FK violation. We clean those up inside a single transaction
+   * and then delete the user; the Cascade/SetNull FKs (memberships, payments,
+   * notifications, push subs, etc.) take care of themselves.
+   */
+  async hardRemove(organizationId: string, id: string, currentUserId?: string): Promise<void> {
+    this.logger.log(`Hard deleting user ${id} in organization ${organizationId}`);
+
+    if (currentUserId === id) {
+      throw new ForbiddenException('לא ניתן למחוק את עצמך');
+    }
+
+    // $queryRaw bypasses both the soft-delete middleware (we want to delete
+    // soft-deleted rows too) and the tenant middleware (we filter explicitly).
+    const rows = await this.prisma.$queryRaw<
+      Array<{ id: string; systemRole: string }>
+    >`
+      SELECT id, "systemRole"
+      FROM users
+      WHERE id = ${id} AND "organizationId" = ${organizationId}
+    `;
+
+    if (rows.length === 0) {
+      throw new NotFoundException('משתמש לא נמצא');
+    }
+
+    const target = rows[0];
+
+    if (target.systemRole === 'ADMIN') {
+      const otherAdmins = await this.prisma.user.count({
+        where: {
+          organizationId,
+          systemRole: SystemRole.ADMIN,
+          id: { not: id },
+          deletedAt: null,
+        },
+      });
+      if (otherAdmins === 0) {
+        throw new BadRequestException('לא ניתן למחוק את האדמין האחרון של העמותה');
+      }
+    }
+
+    await this.prisma.$transaction([
+      // Nullable FKs without a SetNull rule — detach instead of cascading.
+      this.prisma.passItOnItem.updateMany({
+        where: { organizationId, claimedById: id },
+        data: { claimedById: null },
+      }),
+      // RESTRICT FKs — must delete the dependent rows first.
+      this.prisma.tehillimReading.deleteMany({ where: { userId: id } }),
+      this.prisma.tehillimDedication.deleteMany({ where: { userId: id } }),
+      this.prisma.weeklyFamilyDelivery.deleteMany({ where: { markedByUserId: id } }),
+      this.prisma.passItOnItem.deleteMany({ where: { postedById: id } }),
+      this.prisma.alert.deleteMany({ where: { publishedById: id } }),
+      this.prisma.alertTemplate.deleteMany({ where: { createdById: id } }),
+      // Now the user row — Cascade/SetNull FKs handle the rest.
+      this.prisma.user.delete({ where: { id } }),
+    ]);
   }
 
   private mapToDto(user: Record<string, unknown>): UserResponseDto {

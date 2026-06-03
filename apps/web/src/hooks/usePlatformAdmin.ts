@@ -148,8 +148,11 @@ export function useAdminUpdate(model: string) {
 export function useAdminDelete(model: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (id: string) => {
-      await api.delete(`${BASE}/${model}/${id}`);
+    mutationFn: async (arg: string | { id: string; hard?: boolean }) => {
+      const id = typeof arg === 'string' ? arg : arg.id;
+      const hard = typeof arg === 'string' ? false : !!arg.hard;
+      const url = `${BASE}/${model}/${id}${hard ? '?hard=true' : ''}`;
+      await api.delete(url);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['platform-admin', model] });

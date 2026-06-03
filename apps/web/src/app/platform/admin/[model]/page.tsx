@@ -424,11 +424,18 @@ export default function AdminModelPage() {
     }
   };
 
-  const handleDelete = async () => {
+  const handleDelete = async (hard = false) => {
     if (!selectedRecord) return;
+    if (hard) {
+      const confirmed = window.confirm('למחוק את הרשומה לצמיתות? פעולה זו אינה הפיכה.');
+      if (!confirmed) return;
+    }
     try {
-      await deleteMutation.mutateAsync(selectedRecord.id as string);
-      showToast(schema?.hasSoftDelete ? 'רשומה סומנה כמחוקה' : 'רשומה נמחקה', 'success');
+      await deleteMutation.mutateAsync({ id: selectedRecord.id as string, hard });
+      showToast(
+        hard ? 'רשומה נמחקה לצמיתות' : schema?.hasSoftDelete ? 'רשומה סומנה כמחוקה' : 'רשומה נמחקה',
+        'success',
+      );
       setModal(null);
       setSelectedRecord(null);
     } catch (err) {
@@ -640,26 +647,40 @@ export default function AdminModelPage() {
       {/* Delete Confirmation */}
       {modal === 'delete' && selectedRecord && (
         <div className="fixed inset-0 z-50 bg-on-surface/40 flex items-center justify-center p-4" onClick={() => setModal(null)}>
-          <div className="bg-surface rounded-2xl shadow-ambient-lg p-6 w-full max-w-sm text-center" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-title-lg font-headline mb-3">
-              {schema.hasSoftDelete ? 'סימון כמחוק' : 'מחיקה לצמיתות'}
+          <div className="bg-surface rounded-2xl shadow-ambient-lg p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-title-lg font-headline mb-3 text-center">
+              {schema.hasSoftDelete ? 'מחיקת רשומה' : 'מחיקה לצמיתות'}
             </h3>
-            <p className="text-body-md text-on-surface-variant mb-6">
+            <p className="text-body-md text-on-surface-variant mb-5 text-center">
               {schema.hasSoftDelete
-                ? 'הרשומה תסומן כמחוקה ולא תופיע ברשימות.'
+                ? 'מחיקה רכה מסתירה את הרשומה (deletedAt); מחיקה לצמיתות מוחקת מה-DB ואינה הפיכה.'
                 : 'הרשומה תימחק לצמיתות. פעולה זו אינה הפיכה.'}
             </p>
-            <div className="flex items-center justify-center gap-3">
+            <div className="flex flex-col gap-2">
+              {schema.hasSoftDelete && (
+                <button
+                  onClick={() => handleDelete(false)}
+                  disabled={deleteMutation.isPending}
+                  className="w-full bg-error text-on-error px-4 py-2 rounded-lg text-label-md hover:bg-error/80 transition-colors disabled:opacity-50"
+                >
+                  {deleteMutation.isPending ? '...' : 'מחיקה רכה'}
+                </button>
+              )}
               <button
-                onClick={handleDelete}
+                onClick={() => handleDelete(true)}
                 disabled={deleteMutation.isPending}
-                className="bg-error text-on-error px-4 py-2 rounded-lg text-label-md hover:bg-error/80 transition-colors disabled:opacity-50"
+                className={
+                  schema.hasSoftDelete
+                    ? 'w-full border-2 border-error text-error px-4 py-2 rounded-lg text-label-md hover:bg-error/10 transition-colors disabled:opacity-50'
+                    : 'w-full bg-error text-on-error px-4 py-2 rounded-lg text-label-md hover:bg-error/80 transition-colors disabled:opacity-50'
+                }
               >
-                {deleteMutation.isPending ? '...' : 'מחק'}
+                {deleteMutation.isPending ? '...' : 'מחיקה לצמיתות'}
               </button>
               <button
                 onClick={() => { setModal(null); setSelectedRecord(null); }}
-                className="text-label-md text-on-surface-variant hover:text-on-surface"
+                disabled={deleteMutation.isPending}
+                className="w-full px-4 py-2 rounded-lg text-label-md text-on-surface-variant hover:bg-surface-container transition-colors mt-1"
               >
                 ביטול
               </button>

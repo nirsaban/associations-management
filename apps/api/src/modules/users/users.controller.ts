@@ -116,4 +116,16 @@ export class UsersController {
   async remove(@CurrentUser() user: ICurrentUser, @Param('id') id: string): Promise<void> {
     await this.usersService.remove(user.organizationId, id);
   }
+
+  @Delete(':id/hard')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: 'מחיקת משתמש לצמיתות',
+    description:
+      'מחיקה פיזית של משתמש ושל כל הרשומות התלויות בו (התראות, תהילים, פריטי "העברה הלאה" וכו׳). פעולה לא הפיכה.',
+  })
+  @ApiParam({ name: 'id', description: 'מזהה המשתמש' })
+  async hardRemove(@CurrentUser() user: ICurrentUser, @Param('id') id: string): Promise<void> {
+    await this.usersService.hardRemove(user.organizationId, id, user.sub);
+  }
 }

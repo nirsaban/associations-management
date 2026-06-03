@@ -167,12 +167,17 @@ export default function AdminUsersPage() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      await api.delete(`/admin/users/${id}`);
+    mutationFn: async ({ id, hard }: { id: string; hard: boolean }) => {
+      const url = hard ? `/admin/users/${id}/hard` : `/admin/users/${id}`;
+      await api.delete(url);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
       setDeletingUser(null);
+    },
+    onError: (err: unknown) => {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      alert(msg || 'שגיאה במחיקת משתמש');
     },
   });
 
@@ -588,18 +593,37 @@ export default function AdminUsersPage() {
         <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
           <div className="bg-surface rounded-t-2xl sm:rounded-lg max-w-sm w-full shadow-xl p-6">
             <h2 className="text-headline-sm font-headline mb-4">מחיקת משתמש</h2>
-            <p className="text-body-md text-on-surface-variant mb-6">
-              האם אתה בטוח שברצונך למחוק את {deletingUser.fullName || deletingUser.phone}? פעולה זו
-              אינה ניתנת לביטול.
+            <p className="text-body-md text-on-surface-variant mb-3">
+              משתמש: <span className="font-medium text-on-surface">{deletingUser.fullName || deletingUser.phone}</span>
             </p>
-            <div className="flex gap-3">
-              <button onClick={() => setDeletingUser(null)} className="btn-outline flex-1">ביטול</button>
+            <p className="text-body-sm text-on-surface-variant mb-5">
+              <span className="font-medium">מחיקה רכה</span> — המשתמש מוסתר אך הנתונים נשמרים וניתן לשחזר על ידי יצירה מחדש עם אותו טלפון.<br />
+              <span className="font-medium">מחיקה לצמיתות</span> — מחיקה פיזית של המשתמש ושל כל הנתונים שלו (התראות, תהילים, פריטים שפרסם). פעולה לא הפיכה.
+            </p>
+            <div className="flex flex-col gap-2">
               <button
-                onClick={() => deleteMutation.mutate(deletingUser.id)}
+                onClick={() => deleteMutation.mutate({ id: deletingUser.id, hard: false })}
                 disabled={deleteMutation.isPending}
-                className="flex-1 px-4 py-2 rounded-lg bg-error text-on-error font-medium hover:bg-error/90 disabled:opacity-50"
+                className="w-full px-4 py-2 rounded-lg bg-error text-on-error font-medium hover:bg-error/90 disabled:opacity-50"
               >
-                {deleteMutation.isPending ? 'מוחק...' : 'מחק'}
+                {deleteMutation.isPending ? 'מוחק...' : 'מחיקה רכה'}
+              </button>
+              <button
+                onClick={() => {
+                  if (!confirm(`למחוק את ${deletingUser.fullName || deletingUser.phone} לצמיתות? פעולה זו אינה הפיכה.`)) return;
+                  deleteMutation.mutate({ id: deletingUser.id, hard: true });
+                }}
+                disabled={deleteMutation.isPending}
+                className="w-full px-4 py-2 rounded-lg border-2 border-error text-error font-medium hover:bg-error/10 disabled:opacity-50"
+              >
+                מחיקה לצמיתות
+              </button>
+              <button
+                onClick={() => setDeletingUser(null)}
+                disabled={deleteMutation.isPending}
+                className="btn-outline w-full mt-1"
+              >
+                ביטול
               </button>
             </div>
           </div>
