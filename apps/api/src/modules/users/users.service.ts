@@ -6,7 +6,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '@common/prisma/prisma.service';
-import { GroupRole, SystemRole } from '@prisma/client';
+import { GroupRole, Prisma, SystemRole } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
@@ -41,14 +41,25 @@ export class UsersService {
     const fullName = stripHtml(createUserDto.fullName);
 
     // Look across ALL rows (including soft-deleted) because the UNIQUE
-    // constraint (organizationId, phone) doesn't honour deletedAt.
+    // constraint (organizationId, phone) doesn't honour deletedAt. We use
+    // $queryRaw so PrismaService's global soft-delete middleware (which
+    // auto-injects `deletedAt: null` on findMany) doesn't hide rows we need
+    // to restore — otherwise the create below trips a P2002 (500).
     const phoneVariants = [phone, rawPhone, legacyIntlPhone].filter(Boolean) as string[];
-    const matching = await this.prisma.user.findMany({
-      where: {
-        organizationId,
-        phone: { in: phoneVariants },
-      },
-    });
+    const matching = await this.prisma.$queryRaw<
+      Array<{
+        id: string;
+        fullName: string;
+        phone: string;
+        email: string | null;
+        deletedAt: Date | null;
+      }>
+    >`
+      SELECT id, "fullName", phone, email, "deletedAt"
+      FROM users
+      WHERE "organizationId" = ${organizationId}
+        AND phone IN (${Prisma.join(phoneVariants)})
+    `;
 
     const activeMatch = matching.find(u => !u.deletedAt);
     if (activeMatch) {
@@ -87,17 +98,34 @@ export class UsersService {
       }
     }
 
-    const user = await this.prisma.user.create({
-      data: {
-        organizationId,
-        email: createUserDto.email ?? null,
-        fullName,
-        phone,
-        systemRole: SystemRole.USER,
-      },
-    });
+    try {
+      const user = await this.prisma.user.create({
+        data: {
+          organizationId,
+          email: createUserDto.email ?? null,
+          fullName,
+          phone,
+          systemRole: SystemRole.USER,
+        },
+      });
 
-    return this.mapToDto(user);
+      return this.mapToDto(user);
+    } catch (err) {
+      // Safety net: if a row slipped through the lookup above (e.g. race
+      // condition or a phone-format variant we didn't anticipate), surface a
+      // proper 409 instead of leaking a Prisma 500.
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+        const target = (err.meta?.target as string[] | undefined)?.join(',') ?? '';
+        if (target.includes('phone')) {
+          throw new ConflictException('משתמש עם מספר טלפון זה כבר קיים בעמותה');
+        }
+        if (target.includes('email')) {
+          throw new ConflictException('משתמש עם כתובת אימייל זו כבר קיים בעמותה');
+        }
+        throw new ConflictException('משתמש עם נתונים אלו כבר קיים בעמותה');
+      }
+      throw err;
+    }
   }
 
   async findAll(
