@@ -74,16 +74,82 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keygen -y -f ~/.ssh/deploy_key > /dev/null
 
-      - name: Copy compose and nginx config to server
+      # Common SSH/SCP options:
+      # - ConnectTimeout=20      → fail fast on dead servers (default is ~120s)
+      # - ServerAliveInterval=15 → don't leave half-open sessions on the server
+      # - ServerAliveCountMax=4  → cap idle hang at ~60s
+      # - ConnectionAttempts=1   → don't retry inside ssh; we retry in shell
+      # - BatchMode=yes          → never prompt for password
+      # NOTE: env vars are intentionally NOT prefixed with `secrets.` here so
+      # the workflow YAML stays single-source for the SSH knobs.
+      - name: SSH pre-flight (fail fast if server unreachable / sshd wedged)
+        env:
+          DEPLOY_SSH_HOST: ${{ secrets.DEPLOY_SSH_HOST }}
         run: |
-          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no docker-compose.prod.yml ${{ secrets.DEPLOY_SSH_USER }}@${{ secrets.DEPLOY_SSH_HOST }}:/opt/miltech-association/docker-compose.prod.yml
-          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no docker/nginx.conf ${{ secrets.DEPLOY_SSH_USER }}@${{ secrets.DEPLOY_SSH_HOST }}:/opt/miltech-association/nginx.conf
+          set -euo pipefail
+          echo "Probing TCP/22 on $DEPLOY_SSH_HOST..."
+          if ! timeout 10 bash -c "</dev/tcp/$DEPLOY_SSH_HOST/22"; then
+            echo "::error::TCP/22 unreachable on $DEPLOY_SSH_HOST — check VPS / network / firewall"
+            exit 1
+          fi
+          echo "Reading SSH banner (5s budget) — detects wedged sshd..."
+          BANNER=$(timeout 5 bash -c "exec 3<>/dev/tcp/$DEPLOY_SSH_HOST/22; head -c 64 <&3" || true)
+          if [[ -z "$BANNER" ]]; then
+            echo "::error::TCP/22 accepts but sshd never sent its protocol banner."
+            echo "::error::sshd is wedged on $DEPLOY_SSH_HOST. Reboot the VPS or restart ssh via the provider console."
+            exit 1
+          fi
+          echo "SSH banner: $BANNER"
+
+      - name: Copy compose and nginx config to server
+        env:
+          DEPLOY_SSH_HOST: ${{ secrets.DEPLOY_SSH_HOST }}
+          DEPLOY_SSH_USER: ${{ secrets.DEPLOY_SSH_USER }}
+        run: |
+          set -euo pipefail
+          SSH_OPTS="-i $HOME/.ssh/deploy_key \
+            -o StrictHostKeyChecking=no \
+            -o BatchMode=yes \
+            -o ConnectTimeout=20 \
+            -o ConnectionAttempts=1 \
+            -o ServerAliveInterval=15 \
+            -o ServerAliveCountMax=4"
+          retry() {
+            local n=1 max=3 delay=10
+            while true; do
+              if "$@"; then return 0; fi
+              if (( n >= max )); then
+                echo "::error::Command failed after $n attempts: $*"
+                return 1
+              fi
+              echo "Attempt $n failed — retrying in ${delay}s..."
+              sleep "$delay"
+              n=$((n + 1)); delay=$((delay * 3))
+            done
+          }
+          retry scp $SSH_OPTS docker-compose.prod.yml "$DEPLOY_SSH_USER@$DEPLOY_SSH_HOST:/opt/miltech-association/docker-compose.prod.yml"
+          retry scp $SSH_OPTS docker/nginx.conf "$DEPLOY_SSH_USER@$DEPLOY_SSH_HOST:/opt/miltech-association/nginx.conf"
 
       - name: Deploy on server
+        env:
+          DEPLOY_SSH_HOST: ${{ secrets.DEPLOY_SSH_HOST }}
+          DEPLOY_SSH_USER: ${{ secrets.DEPLOY_SSH_USER }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          REPO_OWNER: ${{ github.repository_owner }}
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_SSH_USER }}@${{ secrets.DEPLOY_SSH_HOST }} << 'ENDSSH'
+          set -euo pipefail
+          SSH_OPTS="-i $HOME/.ssh/deploy_key \
+            -o StrictHostKeyChecking=no \
+            -o BatchMode=yes \
+            -o ConnectTimeout=20 \
+            -o ConnectionAttempts=1 \
+            -o ServerAliveInterval=15 \
+            -o ServerAliveCountMax=4"
+          ssh $SSH_OPTS "$DEPLOY_SSH_USER@$DEPLOY_SSH_HOST" \
+            "GHCR_TOKEN='$GHCR_TOKEN' REPO_OWNER='$REPO_OWNER' bash -s" << 'ENDSSH'
+            set -e
             cd /opt/miltech-association
-            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$REPO_OWNER" --password-stdin
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d
             echo "Waiting for backend to be healthy..."
@@ -93,9 +159,21 @@ jobs:
           ENDSSH
 
       - name: Health check
+        env:
+          DEPLOY_SSH_HOST: ${{ secrets.DEPLOY_SSH_HOST }}
+          DEPLOY_SSH_USER: ${{ secrets.DEPLOY_SSH_USER }}
         run: |
+          set -euo pipefail
           sleep 20
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_SSH_USER }}@${{ secrets.DEPLOY_SSH_HOST }} '
+          SSH_OPTS="-i $HOME/.ssh/deploy_key \
+            -o StrictHostKeyChecking=no \
+            -o BatchMode=yes \
+            -o ConnectTimeout=20 \
+            -o ConnectionAttempts=1 \
+            -o ServerAliveInterval=15 \
+            -o ServerAliveCountMax=4"
+          ssh $SSH_OPTS "$DEPLOY_SSH_USER@$DEPLOY_SSH_HOST" bash -s <<'ENDSSH'
+            set -e
             STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 http://localhost:3100/health)
             echo "Health check status: $STATUS"
             if [ "$STATUS" != "200" ]; then
@@ -103,4 +181,4 @@ jobs:
               exit 1
             fi
             echo "Health check passed!"
-          '
+          ENDSSH
