@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Users, Home, CreditCard, AlertCircle, Bell, Upload, Send, Trash2, X, AlertTriangle, BookOpen, Save, Truck } from 'lucide-react';
+import { Users, Home, CreditCard, AlertCircle, Bell, Upload, Send, Trash2, X, AlertTriangle, BookOpen, Save, Truck, UserCheck, UserX } from 'lucide-react';
 import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
@@ -58,6 +58,21 @@ interface WeeklyStatusIncompleteOrders {
     totalGroups: number;
     incompleteGroups: number;
   };
+}
+
+interface RegistrationStatusUser {
+  id: string;
+  fullName: string;
+  phone: string;
+  email?: string;
+}
+
+interface UsersRegistrationStatus {
+  completed: RegistrationStatusUser[];
+  notCompleted: RegistrationStatusUser[];
+  completedCount: number;
+  notCompletedCount: number;
+  totalCount: number;
 }
 
 type AlertAudience = 'ALL_USERS' | 'GROUP_MANAGERS' | 'UNPAID_THIS_MONTH' | 'CURRENT_DISTRIBUTORS';
@@ -286,6 +301,16 @@ export default function AdminDashboardPage() {
     queryKey: ['admin', 'weekly-status', 'incomplete-orders'],
     queryFn: async () => {
       const response = await api.get('/admin/weekly-status/incomplete-orders');
+      return response.data;
+    },
+    enabled: !!user,
+  });
+
+  // Users registration status
+  const { data: registrationStatusData } = useQuery<{ data: UsersRegistrationStatus }>({
+    queryKey: ['admin', 'registration-status'],
+    queryFn: async () => {
+      const response = await api.get('/admin/registration-status');
       return response.data;
     },
     enabled: !!user,
@@ -640,6 +665,70 @@ export default function AdminDashboardPage() {
           </div>
         )}
       </div>
+
+      {/* Users Registration Status */}
+      {registrationStatusData?.data && (
+        <div className="card-elevated">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="text-title-lg font-medium flex items-center gap-3 min-w-0">
+              <UserCheck className="h-6 w-6 text-primary shrink-0" />
+              <span className="truncate">משתמשים שהשלימו הרשמה</span>
+            </h2>
+            <div className="flex items-center gap-2 text-body-sm">
+              <span className="inline-flex items-center gap-1 rounded-full bg-success/10 text-success px-3 py-1 whitespace-nowrap">
+                <UserCheck className="h-4 w-4 shrink-0" />
+                השלימו {registrationStatusData.data.completedCount}
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-warning/10 text-warning px-3 py-1 whitespace-nowrap">
+                <UserX className="h-4 w-4 shrink-0" />
+                לא השלימו {registrationStatusData.data.notCompletedCount}
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Completed */}
+            <div className="rounded-xl border border-success/30 bg-success-container/10 p-4">
+              <p className="text-label-md font-medium text-success mb-3 flex items-center gap-2">
+                <UserCheck className="h-4 w-4 shrink-0" />
+                השלימו הרשמה ({registrationStatusData.data.completedCount})
+              </p>
+              {registrationStatusData.data.completed.length > 0 ? (
+                <div className="space-y-2 max-h-72 overflow-auto">
+                  {registrationStatusData.data.completed.map((u) => (
+                    <div key={u.id} className="p-2.5 rounded-lg bg-surface flex items-center justify-between gap-3">
+                      <p className="text-body-md font-medium truncate min-w-0 flex-1">{u.fullName}</p>
+                      <p className="text-label-sm text-on-surface-variant shrink-0" dir="ltr">{u.phone}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-body-sm text-on-surface-variant py-4 text-center">אין משתמשים</p>
+              )}
+            </div>
+
+            {/* Not completed */}
+            <div className="rounded-xl border border-warning/30 bg-warning/5 p-4">
+              <p className="text-label-md font-medium text-warning mb-3 flex items-center gap-2">
+                <UserX className="h-4 w-4 shrink-0" />
+                טרם השלימו הרשמה ({registrationStatusData.data.notCompletedCount})
+              </p>
+              {registrationStatusData.data.notCompleted.length > 0 ? (
+                <div className="space-y-2 max-h-72 overflow-auto">
+                  {registrationStatusData.data.notCompleted.map((u) => (
+                    <div key={u.id} className="p-2.5 rounded-lg bg-surface flex items-center justify-between gap-3">
+                      <p className="text-body-md font-medium truncate min-w-0 flex-1">{u.fullName}</p>
+                      <p className="text-label-sm text-on-surface-variant shrink-0" dir="ltr">{u.phone}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-body-sm text-on-surface-variant py-4 text-center">כל המשתמשים השלימו הרשמה</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Groups Overview */}
       {data?.groupsOverview && data.groupsOverview.length > 0 && (

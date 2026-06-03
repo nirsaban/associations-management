@@ -176,6 +176,17 @@ export class AdminController {
     return this.adminService.getUnpaidUsers(user.organizationId, monthKey);
   }
 
+  @Get('registration-status')
+  @ApiOperation({
+    summary: 'Get users by registration completion',
+    description: 'קבלת כל משתמשי העמותה מחולקים לפי השלמת הרשמה (השלימו / לא השלימו)',
+  })
+  async getUsersRegistrationStatus(
+    @CurrentUser() user: ICurrentUser,
+  ): Promise<{ data: Record<string, unknown> }> {
+    return this.adminService.getUsersRegistrationStatus(user.organizationId);
+  }
+
   @Get('weekly-status')
   @ApiOperation({
     summary: 'Get weekly status overview',

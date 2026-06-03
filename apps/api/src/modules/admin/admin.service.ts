@@ -172,6 +172,66 @@ export class AdminService {
     return { data };
   }
 
+  /**
+   * All users in the organization split by whether they completed registration.
+   * SUPER_ADMIN users (organizationId = null) are naturally excluded by the org filter.
+   */
+  async getUsersRegistrationStatus(organizationId: string): Promise<{
+    data: {
+      completed: Array<{ id: string; fullName: string; phone: string; email?: string }>;
+      notCompleted: Array<{ id: string; fullName: string; phone: string; email?: string }>;
+      completedCount: number;
+      notCompletedCount: number;
+      totalCount: number;
+    };
+  }> {
+    this.logger.log(`Getting users registration status for organization ${organizationId}`);
+
+    const users = await this.prisma.user.findMany({
+      where: {
+        organizationId,
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+        fullName: true,
+        phone: true,
+        email: true,
+        registrationCompleted: true,
+      },
+      orderBy: {
+        fullName: 'asc',
+      },
+    });
+
+    const completed: Array<{ id: string; fullName: string; phone: string; email?: string }> = [];
+    const notCompleted: Array<{ id: string; fullName: string; phone: string; email?: string }> = [];
+
+    for (const u of users) {
+      const entry = {
+        id: u.id,
+        fullName: u.fullName,
+        phone: u.phone,
+        email: u.email ?? undefined,
+      };
+      if (u.registrationCompleted) {
+        completed.push(entry);
+      } else {
+        notCompleted.push(entry);
+      }
+    }
+
+    return {
+      data: {
+        completed,
+        notCompleted,
+        completedCount: completed.length,
+        notCompletedCount: notCompleted.length,
+        totalCount: users.length,
+      },
+    };
+  }
+
   async getWeeklyStatus(
     organizationId: string,
     weekKey?: string,
