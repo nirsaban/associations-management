@@ -103,6 +103,7 @@ export class ManagerService {
       where: {
         groupId: group.id,
         organizationId,
+        status: 'ACTIVE',
       },
       include: {
         user: {
@@ -684,6 +685,7 @@ export class ManagerService {
       where: {
         groupId: group.id,
         organizationId,
+        status: 'ACTIVE',
       },
       include: {
         user: {
@@ -751,6 +753,7 @@ export class ManagerService {
       where: {
         groupId: group.id,
         organizationId,
+        status: 'ACTIVE',
       },
       include: {
         user: {
@@ -838,6 +841,7 @@ export class ManagerService {
       where: {
         groupId: group.id,
         organizationId,
+        status: 'ACTIVE',
       },
       select: { userId: true },
     });
