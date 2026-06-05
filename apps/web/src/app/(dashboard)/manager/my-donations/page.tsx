@@ -9,7 +9,6 @@ import {
   CheckCircle2,
   Clock,
   X,
-  Building2,
   ChevronRight,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
@@ -17,6 +16,7 @@ import api from '@/lib/api';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import Link from 'next/link';
+import { DonationIframeCard } from '@/components/group-experience/DonationIframeCard';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -154,45 +154,25 @@ function PaymentStatusBanner({ data }: { data: PaymentStatusData }) {
   );
 }
 
-// ─── Section B: Payment Iframe ────────────────────────────────────────────────
+// ─── Section B: Donation card (replaces iframe with animated CTA) ────────────
 
-function DonationIframeSection({ data }: { data: DonationInfoData }) {
+function DonationSection({
+  donation,
+  status,
+}: {
+  donation: DonationInfoData;
+  status?: PaymentStatusData;
+}) {
   return (
-    <div className="card-elevated space-y-4">
-      {/* Org header */}
-      <div className="flex items-center gap-3">
-        {data.organizationLogoUrl ? (
-          <img
-            src={data.organizationLogoUrl}
-            alt={data.organizationName}
-            className="h-10 w-10 rounded-full object-cover border border-outline/20 shrink-0"
-          />
-        ) : (
-          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-            <Building2 className="h-5 w-5 text-primary" />
-          </div>
-        )}
-        <span className="text-title-md font-medium text-on-surface">{data.organizationName}</span>
-      </div>
-
-      <div>
-        <h2 className="text-headline-md font-headline text-on-surface mb-1">תרומות לעמותה</h2>
-        <p className="text-body-md text-on-surface-variant">{data.paymentDescription}</p>
-      </div>
-
-      {data.paymentLink ? (
-        <iframe
-          src={data.paymentLink}
-          title="טופס תרומה"
-          sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-          className="w-full rounded-lg border border-outline/30 h-[500px] sm:h-[600px]"
-          loading="lazy"
-        />
-      ) : (
-        <div className="flex items-center justify-center h-32 rounded-lg bg-surface-container text-body-md text-on-surface-variant">
-          קישור לתשלום אינו זמין כרגע
-        </div>
-      )}
+    <div className="card-elevated">
+      <DonationIframeCard
+        paymentLink={donation.paymentLink || null}
+        paymentDescription={donation.paymentDescription}
+        organizationName={donation.organizationName}
+        organizationLogoUrl={donation.organizationLogoUrl ?? null}
+        isPaid={status?.isPaid ?? false}
+        paidAt={status?.paidAt ?? null}
+      />
     </div>
   );
 }
@@ -331,7 +311,7 @@ export default function ManagerMyDonationsPage() {
         <PaymentStatusBanner data={paymentStatusQuery.data} />
       ) : null}
 
-      {/* Section B: Donation iframe */}
+      {/* Section B: Donation card */}
       {donationInfoQuery.isLoading ? (
         <div className="card-elevated space-y-4">
           <div className="flex items-center gap-3">
@@ -339,7 +319,7 @@ export default function ManagerMyDonationsPage() {
             <Skeleton className="h-5 w-40" />
           </div>
           <Skeleton className="h-4 w-3/4" />
-          <Skeleton className="w-full h-[500px] sm:h-[600px] rounded-lg" />
+          <Skeleton className="w-full h-40 rounded-2xl" />
         </div>
       ) : donationInfoQuery.isError ? (
         <div className="rounded-lg bg-error-container px-5 py-4 text-on-error-container flex items-center gap-3">
@@ -347,7 +327,7 @@ export default function ManagerMyDonationsPage() {
           <span>שגיאה בטעינת פרטי תרומה</span>
         </div>
       ) : donationInfoQuery.data ? (
-        <DonationIframeSection data={donationInfoQuery.data} />
+        <DonationSection donation={donationInfoQuery.data} status={paymentStatusQuery.data} />
       ) : null}
 
       {/* Section C: Payment history */}
