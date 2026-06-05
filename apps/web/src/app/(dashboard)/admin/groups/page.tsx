@@ -7,6 +7,13 @@ import api from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import { AlertCircle, Plus, Users, X, Edit2, Trash2, Search } from 'lucide-react';
 import { WhatsAppLink } from '@/components/ui/WhatsAppLink';
+import { SearchableSelect, type SearchableSelectOption } from '@/components/ui/SearchableSelect';
+
+interface GroupManager {
+  id: string;
+  fullName?: string;
+  phone: string;
+}
 
 interface AdminGroup {
   id: string;
@@ -15,6 +22,7 @@ interface AdminGroup {
   managerId?: string;
   managerName?: string;
   managerPhone?: string;
+  managers?: GroupManager[];
   memberCount?: number;
   familyCount?: number;
   familyNames?: string[];
@@ -33,6 +41,10 @@ interface CreateGroupForm {
   managerId?: string;
 }
 
+interface EditGroupForm {
+  name: string;
+}
+
 type FilterStatus = 'all' | 'with-manager' | 'without-manager';
 
 
@@ -45,7 +57,7 @@ export default function AdminGroupsPage() {
   const [editingGroup, setEditingGroup] = useState<AdminGroup | null>(null);
   const [deletingGroup, setDeletingGroup] = useState<AdminGroup | null>(null);
   const [createForm, setCreateForm] = useState<CreateGroupForm>({ name: '' });
-  const [editForm, setEditForm] = useState<CreateGroupForm>({ name: '' });
+  const [editForm, setEditForm] = useState<EditGroupForm>({ name: '' });
   const [createError, setCreateError] = useState('');
   const [editError, setEditError] = useState('');
 
@@ -87,13 +99,15 @@ export default function AdminGroupsPage() {
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
         const nameMatch = g.name.toLowerCase().includes(q);
-        const managerMatch = g.managerName?.toLowerCase().includes(q) || false;
-        const phoneMatch = g.managerPhone?.includes(q) || false;
+        const managers = g.managers ?? [];
+        const managerMatch = managers.some((m) => m.fullName?.toLowerCase().includes(q));
+        const phoneMatch = managers.some((m) => m.phone.includes(q));
         if (!nameMatch && !managerMatch && !phoneMatch) return false;
       }
-      // Status filter
-      if (filterStatus === 'with-manager' && !g.managerId) return false;
-      if (filterStatus === 'without-manager' && g.managerId) return false;
+      // Status filter — "with-manager" means at least one manager
+      const hasManager = (g.managers?.length ?? 0) > 0 || !!g.managerId;
+      if (filterStatus === 'with-manager' && !hasManager) return false;
+      if (filterStatus === 'without-manager' && hasManager) return false;
       return true;
     });
   }, [groups, searchQuery, filterStatus]);
@@ -116,7 +130,7 @@ export default function AdminGroupsPage() {
   });
 
   const editMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: CreateGroupForm }) => {
+    mutationFn: async ({ id, data }: { id: string; data: EditGroupForm }) => {
       const res = await api.patch(`/admin/groups/${id}`, data);
       return res.data;
     },
@@ -143,7 +157,7 @@ export default function AdminGroupsPage() {
 
   const openEditModal = (g: AdminGroup) => {
     setEditingGroup(g);
-    setEditForm({ name: g.name, managerId: g.managerId });
+    setEditForm({ name: g.name });
     setEditError('');
   };
 
@@ -258,8 +272,12 @@ export default function AdminGroupsPage() {
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
                     <p className="text-body-md font-medium">{g.name}</p>
-                    {g.managerId && g.managerPhone ? (
-                      <WhatsAppLink phone={g.managerPhone} name={g.managerName} />
+                    {(g.managers && g.managers.length > 0) ? (
+                      <div className="space-y-0.5">
+                        {g.managers.map((m) => (
+                          <WhatsAppLink key={m.id} phone={m.phone} name={m.fullName} />
+                        ))}
+                      </div>
                     ) : (
                       <p className="text-body-sm text-on-surface-variant">ללא מנהל</p>
                     )}
@@ -346,13 +364,23 @@ export default function AdminGroupsPage() {
                   >
                     <td className="px-6 py-4 text-body-md font-medium">{g.name}</td>
                     <td className="px-6 py-4 text-body-md">
-                      {g.managerName || (
+                      {(g.managers && g.managers.length > 0) ? (
+                        <div className="space-y-0.5">
+                          {g.managers.map((m) => (
+                            <p key={m.id}>{m.fullName || m.phone}</p>
+                          ))}
+                        </div>
+                      ) : (
                         <span className="text-on-surface-variant text-body-sm">לא שובץ</span>
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      {g.managerPhone ? (
-                        <WhatsAppLink phone={g.managerPhone} name={g.managerPhone} />
+                      {(g.managers && g.managers.length > 0) ? (
+                        <div className="space-y-0.5">
+                          {g.managers.map((m) => (
+                            <WhatsAppLink key={m.id} phone={m.phone} name={m.phone} />
+                          ))}
+                        </div>
                       ) : (
                         <span className="text-on-surface-variant text-body-sm">—</span>
                       )}
@@ -438,20 +466,20 @@ export default function AdminGroupsPage() {
                 <label className="block text-label-md font-medium mb-2">
                   מנהל קבוצה (אופציונלי)
                 </label>
-                <select
+                <SearchableSelect
                   value={createForm.managerId ?? ''}
-                  onChange={(e) =>
-                    setCreateForm((f) => ({ ...f, managerId: e.target.value || undefined }))
+                  onChange={(v) =>
+                    setCreateForm((f) => ({ ...f, managerId: v || undefined }))
                   }
-                  className="w-full px-4 py-3 rounded-lg border border-outline bg-surface-container focus:border-primary focus:outline-none"
-                >
-                  <option value="">בחר מנהל...</option>
-                  {orgUsers?.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.fullName || u.phone}
-                    </option>
-                  ))}
-                </select>
+                  clearable
+                  placeholder="בחר מנהל..."
+                  searchPlaceholder="חפש לפי שם או טלפון..."
+                  options={(orgUsers ?? []).map<SearchableSelectOption>((u) => ({
+                    value: u.id,
+                    label: u.fullName || u.phone,
+                    sublabel: u.fullName ? u.phone : undefined,
+                  }))}
+                />
               </div>
             </div>
             <div className="flex gap-3 p-6 border-t border-outline/20">
@@ -504,23 +532,9 @@ export default function AdminGroupsPage() {
                   className="w-full px-4 py-3 rounded-lg border border-outline bg-surface-container focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
               </div>
-              <div>
-                <label className="block text-label-md font-medium mb-2">מנהל קבוצה</label>
-                <select
-                  value={editForm.managerId ?? ''}
-                  onChange={(e) =>
-                    setEditForm((f) => ({ ...f, managerId: e.target.value || undefined }))
-                  }
-                  className="w-full px-4 py-3 rounded-lg border border-outline bg-surface-container focus:border-primary focus:outline-none"
-                >
-                  <option value="">ללא מנהל</option>
-                  {orgUsers?.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.fullName || u.phone}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <p className="text-body-sm text-on-surface-variant">
+                ניהול מנהלי הקבוצה (עד 2) זמין בדף הקבוצה.
+              </p>
             </div>
             <div className="flex gap-3 p-6 border-t border-outline/20">
               <button onClick={() => setEditingGroup(null)} className="btn-outline flex-1">

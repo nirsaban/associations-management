@@ -1,5 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+export class GroupManagerDto {
+  @ApiProperty({ description: 'מזהה מנהל' })
+  id!: string;
+
+  @ApiProperty({ description: 'שם מלא', required: false })
+  fullName?: string;
+
+  @ApiProperty({ description: 'טלפון' })
+  phone!: string;
+}
+
 export class GroupResponseDto {
   @ApiProperty({ description: 'מזהה קבוצה' })
   id!: string;
@@ -10,14 +21,24 @@ export class GroupResponseDto {
   @ApiProperty({ description: 'שם הקבוצה' })
   name!: string;
 
-  @ApiProperty({ description: 'מזהה מנהל הקבוצה', required: false })
+  @ApiProperty({
+    description: 'מזהה המנהל הראשי (תאימות לאחור — מפנה ל-managers[0])',
+    required: false,
+  })
   managerId?: string;
 
-  @ApiProperty({ description: 'שם מנהל הקבוצה', required: false })
+  @ApiProperty({ description: 'שם המנהל הראשי (תאימות לאחור)', required: false })
   managerName?: string;
 
-  @ApiProperty({ description: 'טלפון מנהל הקבוצה', required: false })
+  @ApiProperty({ description: 'טלפון המנהל הראשי (תאימות לאחור)', required: false })
   managerPhone?: string;
+
+  @ApiProperty({
+    description: 'רשימת מנהלי הקבוצה (עד 2)',
+    type: [GroupManagerDto],
+    required: false,
+  })
+  managers?: GroupManagerDto[];
 
   @ApiProperty({ description: 'מספר חברים', required: false })
   memberCount?: number;

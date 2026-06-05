@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
-import { AlertCircle, Plus, Home, X, Edit2, Trash2, Phone, MapPin, Search, ChevronDown } from 'lucide-react';
+import { AlertCircle, Plus, Home, X, Edit2, Trash2, Phone, MapPin, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { SearchableSelect, type SearchableSelectOption } from '@/components/ui/SearchableSelect';
 
 interface AdminFamily {
   id: string;
@@ -41,119 +42,6 @@ const emptyForm: FamilyForm = {
   notes: '',
   groupId: '',
 };
-
-interface GroupSearchInputProps {
-  value: string;
-  onChange: (groupId: string, groupName: string) => void;
-  groups: AdminGroup[];
-  placeholder?: string;
-  currentGroupName?: string;
-}
-
-function GroupSearchInput({ value, onChange, groups, placeholder = 'חפש קבוצה...', currentGroupName }: GroupSearchInputProps) {
-  const [search, setSearch] = useState('');
-  const [open, setOpen] = useState(false);
-  const [displayName, setDisplayName] = useState(currentGroupName ?? '');
-  const ref = useRef<HTMLDivElement>(null);
-
-  // Update display name when value changes externally (e.g., edit modal opens)
-  useEffect(() => {
-    if (!value) {
-      setDisplayName('');
-    } else if (currentGroupName) {
-      setDisplayName(currentGroupName);
-    } else {
-      const found = groups.find((g) => g.id === value);
-      if (found) setDisplayName(found.name);
-    }
-  }, [value, currentGroupName, groups]);
-
-  // Close on outside click
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-        setSearch('');
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  const filtered = groups.filter((g) =>
-    g.name.toLowerCase().includes(search.toLowerCase()),
-  );
-
-  return (
-    <div ref={ref} className="relative">
-      <div
-        className="w-full flex items-center justify-between px-4 py-3 rounded-lg border border-outline bg-surface-container cursor-pointer focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20"
-        onClick={() => { setOpen((o) => !o); setSearch(''); }}
-      >
-        <span className={displayName ? 'text-body-md' : 'text-on-surface-variant text-body-md'}>
-          {displayName || placeholder}
-        </span>
-        <div className="flex items-center gap-2">
-          {value && (
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); onChange('', ''); setDisplayName(''); setOpen(false); }}
-              className="p-0.5 rounded hover:bg-surface-container-high text-on-surface-variant"
-              title="נקה בחירה"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          )}
-          <ChevronDown className="h-4 w-4 text-on-surface-variant" />
-        </div>
-      </div>
-
-      {open && (
-        <div className="absolute z-50 mt-1 w-full bg-surface border border-outline rounded-lg shadow-lg max-h-56 overflow-hidden flex flex-col">
-          <div className="p-2 border-b border-outline/20">
-            <div className="relative">
-              <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-on-surface-variant pointer-events-none" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="חיפוש..."
-                autoFocus
-                onClick={(e) => e.stopPropagation()}
-                className="w-full pr-8 pl-3 py-1.5 rounded-md border border-outline/50 bg-surface-container text-body-sm focus:border-primary focus:outline-none"
-              />
-            </div>
-          </div>
-          <div className="overflow-y-auto flex-1">
-            <button
-              type="button"
-              className="w-full text-start px-4 py-2.5 text-body-sm text-on-surface-variant hover:bg-surface-container-low transition-colors"
-              onClick={() => { onChange('', ''); setDisplayName(''); setOpen(false); setSearch(''); }}
-            >
-              ללא שיוך לקבוצה
-            </button>
-            {filtered.length === 0 ? (
-              <p className="px-4 py-3 text-body-sm text-on-surface-variant text-center">לא נמצאו קבוצות</p>
-            ) : (
-              filtered.map((g) => (
-                <button
-                  key={g.id}
-                  type="button"
-                  className={`w-full text-start px-4 py-2.5 text-body-sm hover:bg-surface-container-low transition-colors ${
-                    g.id === value ? 'bg-primary/10 text-primary font-medium' : ''
-                  }`}
-                  onClick={() => { onChange(g.id, g.name); setDisplayName(g.name); setOpen(false); setSearch(''); }}
-                >
-                  {g.name}
-                </button>
-              ))
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default function AdminFamiliesPage() {
   const { user } = useAuthStore();
@@ -330,12 +218,24 @@ export default function AdminFamiliesPage() {
       </div>
       <div>
         <label className="block text-label-md font-medium mb-2">שיוך לקבוצה (אופציונלי)</label>
-        <GroupSearchInput
+        <SearchableSelect
           value={form.groupId}
-          onChange={(groupId) => setForm((f) => ({ ...f, groupId }))}
-          groups={groups ?? []}
+          onChange={(v) => setForm((f) => ({ ...f, groupId: v }))}
+          clearable
           placeholder="ללא שיוך לקבוצה"
-          currentGroupName={currentGroupName}
+          searchPlaceholder="חפש קבוצה..."
+          options={(() => {
+            const opts = (groups ?? []).map<SearchableSelectOption>((g) => ({
+              value: g.id,
+              label: g.name,
+            }));
+            // If editing and the current group isn't in the loaded list yet,
+            // synthesize an option from the family's groupName so the trigger label is correct.
+            if (form.groupId && currentGroupName && !opts.some((o) => o.value === form.groupId)) {
+              opts.unshift({ value: form.groupId, label: currentGroupName });
+            }
+            return opts;
+          })()}
         />
       </div>
       <div>

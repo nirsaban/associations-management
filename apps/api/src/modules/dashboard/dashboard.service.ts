@@ -67,12 +67,15 @@ export class DashboardService {
   }
 
   private async getManagerDashboard(organizationId: string, userId: string): Promise<DashboardData> {
-    // Get groups managed by this manager
+    // Get groups managed by this manager (primary OR active MANAGER membership)
     const groups = await this.prisma.group.findMany({
       where: {
         organizationId,
-        managerUserId: userId,
         deletedAt: null,
+        OR: [
+          { managerUserId: userId },
+          { memberships: { some: { userId, role: 'MANAGER', status: 'ACTIVE' } } },
+        ],
       },
       select: { id: true },
     });

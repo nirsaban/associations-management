@@ -107,8 +107,8 @@ export class GroupsController {
 
   @Post(':id/assign-manager')
   @ApiOperation({
-    summary: 'הקצאת מנהל לקבוצה',
-    description: 'הקצאת משתמש כמנהל הקבוצה — חייב להיות חבר בעמותה',
+    summary: 'הוספת מנהל לקבוצה',
+    description: 'מקדם משתמש להיות מנהל הקבוצה — עד 2 מנהלים פעילים לקבוצה. המשתמש חייב להיות חבר בעמותה.',
   })
   @ApiParam({ name: 'id', description: 'מזהה הקבוצה' })
   async assignManager(
@@ -121,6 +121,22 @@ export class GroupsController {
       id,
       assignManagerDto,
     );
+    return { data: group };
+  }
+
+  @Delete(':id/managers/:userId')
+  @ApiOperation({
+    summary: 'הסרת מנהל מהקבוצה',
+    description: 'מוריד משתמש מתפקיד מנהל ומחזיר אותו לחבר רגיל בקבוצה',
+  })
+  @ApiParam({ name: 'id', description: 'מזהה הקבוצה' })
+  @ApiParam({ name: 'userId', description: 'מזהה המנהל להסרה' })
+  async removeManager(
+    @CurrentUser() user: ICurrentUser,
+    @Param('id') id: string,
+    @Param('userId') userId: string,
+  ): Promise<{ data: GroupResponseDto }> {
+    const group = await this.groupsService.removeManager(user.organizationId, id, userId);
     return { data: group };
   }
 

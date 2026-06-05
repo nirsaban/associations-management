@@ -17,6 +17,13 @@ import {
   MessageCircle,
   Phone,
 } from 'lucide-react';
+import { SearchableSelect, type SearchableSelectOption } from '@/components/ui/SearchableSelect';
+
+interface GroupManager {
+  id: string;
+  fullName?: string;
+  phone: string;
+}
 
 interface GroupDetail {
   id: string;
@@ -25,12 +32,15 @@ interface GroupDetail {
   managerId?: string;
   managerName?: string;
   managerPhone?: string;
+  managers?: GroupManager[];
   memberCount?: number;
   familyCount?: number;
   familyNames?: string[];
   createdAt: string;
   updatedAt: string;
 }
+
+const MAX_MANAGERS = 2;
 
 interface GroupMember {
   memberId: string;
@@ -72,10 +82,11 @@ export default function GroupDetailPage() {
   const [editError, setEditError] = useState('');
 
   const [showAddMember, setShowAddMember] = useState(false);
-  const [selectedUserId, setSelectedUserId] = useState('');
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
+  const [bulkError, setBulkError] = useState('');
 
   const [showAssignFamily, setShowAssignFamily] = useState(false);
-  const [selectedFamilyId, setSelectedFamilyId] = useState('');
+  const [selectedFamilyIds, setSelectedFamilyIds] = useState<string[]>([]);
 
   const { data: group, isLoading, error } = useQuery<GroupDetail>({
     queryKey: ['admin', 'group', id],
@@ -130,28 +141,60 @@ export default function GroupDetailPage() {
     },
   });
 
-  const assignManagerMutation = useMutation({
+  const [managerError, setManagerError] = useState('');
+
+  const addManagerMutation = useMutation({
     mutationFn: async (userId: string) => {
-      const res = await api.patch(`/admin/groups/${id}`, { managerId: userId });
+      const res = await api.post(`/admin/groups/${id}/assign-manager`, { userId });
       return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'group', id] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'groups'] });
+      setManagerError('');
+    },
+    onError: (err: unknown) => {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      setManagerError(msg || 'שגיאה בהוספת המנהל');
     },
   });
 
-  const addMemberMutation = useMutation({
+  const removeManagerMutation = useMutation({
     mutationFn: async (userId: string) => {
-      const res = await api.post(`/admin/groups/${id}/members`, { userId });
+      const res = await api.delete(`/admin/groups/${id}/managers/${userId}`);
       return res.data;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'group', id] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'groups'] });
+      setManagerError('');
+    },
+    onError: (err: unknown) => {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      setManagerError(msg || 'שגיאה בהסרת המנהל');
+    },
+  });
+
+  const addMembersMutation = useMutation({
+    mutationFn: async (userIds: string[]) => {
+      const results = await Promise.allSettled(
+        userIds.map((uid) => api.post(`/admin/groups/${id}/members`, { userId: uid })),
+      );
+      const failures = results.filter((r) => r.status === 'rejected');
+      return { added: userIds.length - failures.length, failed: failures.length };
+    },
+    onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'group-members', id] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'group', id] });
-      setShowAddMember(false);
-      setSelectedUserId('');
+      if (res.failed === 0) {
+        setShowAddMember(false);
+        setSelectedUserIds([]);
+        setBulkError('');
+      } else {
+        setBulkError(`${res.added} נוספו, ${res.failed} נכשלו`);
+      }
     },
+    onError: () => setBulkError('שגיאה בהוספת חברים'),
   });
 
   const removeMemberMutation = useMutation({
@@ -164,17 +207,28 @@ export default function GroupDetailPage() {
     },
   });
 
-  const assignFamilyMutation = useMutation({
-    mutationFn: async (familyId: string) => {
-      const res = await api.post(`/admin/families/${familyId}/assign-group`, { groupId: id });
-      return res.data;
+  const assignFamiliesMutation = useMutation({
+    mutationFn: async (familyIds: string[]) => {
+      const results = await Promise.allSettled(
+        familyIds.map((fid) =>
+          api.post(`/admin/families/${fid}/assign-group`, { groupId: id }),
+        ),
+      );
+      const failures = results.filter((r) => r.status === 'rejected');
+      return { assigned: familyIds.length - failures.length, failed: failures.length };
     },
-    onSuccess: () => {
+    onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'group', id] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'families-list'] });
-      setShowAssignFamily(false);
-      setSelectedFamilyId('');
+      if (res.failed === 0) {
+        setShowAssignFamily(false);
+        setSelectedFamilyIds([]);
+        setBulkError('');
+      } else {
+        setBulkError(`${res.assigned} שויכו, ${res.failed} נכשלו`);
+      }
     },
+    onError: () => setBulkError('שגיאה בשיוך משפחות'),
   });
 
   const unassignFamilyMutation = useMutation({
@@ -292,47 +346,85 @@ export default function GroupDetailPage() {
           </div>
         </div>
 
-        {/* Manager */}
+        {/* Managers (up to 2) */}
         <div className="mt-4 pt-4 border-t border-outline/20">
-          <p className="text-label-md font-medium mb-2">מנהל הקבוצה</p>
-          {group.managerId && group.managerPhone ? (
-            <div className="flex items-center gap-3">
-              <div>
-                <p className="text-body-md">{group.managerName || group.managerPhone}</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-body-sm text-on-surface-variant" dir="ltr">{group.managerPhone}</span>
-                  <a
-                    href={`https://wa.me/${formatPhoneForWhatsApp(group.managerPhone)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-success hover:text-success/80"
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-label-md font-medium">מנהלי הקבוצה (עד {MAX_MANAGERS})</p>
+            <span className="text-label-sm text-on-surface-variant">
+              {(group.managers?.length ?? 0)}/{MAX_MANAGERS}
+            </span>
+          </div>
+
+          {(group.managers && group.managers.length > 0) ? (
+            <div className="space-y-2">
+              {group.managers.map((m, idx) => (
+                <div key={m.id} className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-surface-container-low border border-outline/20">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-body-md">{m.fullName || m.phone}</p>
+                      {idx === 0 && (
+                        <span className="text-label-sm text-on-surface-variant px-2 py-0.5 rounded bg-primary/10 text-primary">
+                          ראשי
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-body-sm text-on-surface-variant" dir="ltr">{m.phone}</span>
+                      <a
+                        href={`https://wa.me/${formatPhoneForWhatsApp(m.phone)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-success hover:text-success/80"
+                      >
+                        <MessageCircle className="h-4 w-4" />
+                      </a>
+                      <a href={`tel:${m.phone}`} className="inline-flex items-center text-primary hover:text-primary/80">
+                        <Phone className="h-3.5 w-3.5" />
+                      </a>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => removeManagerMutation.mutate(m.id)}
+                    disabled={removeManagerMutation.isPending}
+                    className="p-2 hover:bg-surface-container rounded-md text-error"
+                    title="הסר מנהל"
                   >
-                    <MessageCircle className="h-4 w-4" />
-                  </a>
-                  <a href={`tel:${group.managerPhone}`} className="inline-flex items-center text-primary hover:text-primary/80">
-                    <Phone className="h-3.5 w-3.5" />
-                  </a>
+                    <Trash2 className="h-4 w-4" />
+                  </button>
                 </div>
-              </div>
+              ))}
             </div>
           ) : (
             <p className="text-body-sm text-on-surface-variant">לא שובץ מנהל</p>
           )}
-          <div className="mt-3">
-            <label className="block text-label-sm text-on-surface-variant mb-1">שנה מנהל</label>
-            <select
-              onChange={(e) => { if (e.target.value) assignManagerMutation.mutate(e.target.value); }}
-              defaultValue=""
-              className="px-3 py-2 rounded-lg border border-outline bg-surface-container focus:border-primary focus:outline-none text-body-sm"
-            >
-              <option value="">בחר מנהל...</option>
-              {orgUsers?.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.fullName || u.phone}
-                </option>
-              ))}
-            </select>
-          </div>
+
+          {managerError && (
+            <p className="mt-2 text-body-sm text-error">{managerError}</p>
+          )}
+
+          {(group.managers?.length ?? 0) < MAX_MANAGERS && (
+            <div className="mt-3 max-w-sm">
+              <label className="block text-label-sm text-on-surface-variant mb-1">
+                {(group.managers?.length ?? 0) === 0 ? 'הוסף מנהל' : 'הוסף מנהל נוסף'}
+              </label>
+              <SearchableSelect
+                value=""
+                onChange={(v) => { if (v) addManagerMutation.mutate(v); }}
+                disabled={addManagerMutation.isPending}
+                placeholder="בחר מנהל..."
+                searchPlaceholder="חפש לפי שם או טלפון..."
+                options={
+                  (orgUsers ?? [])
+                    .filter((u) => !group.managers?.some((m) => m.id === u.id))
+                    .map<SearchableSelectOption>((u) => ({
+                      value: u.id,
+                      label: u.fullName || u.phone,
+                      sublabel: u.fullName ? u.phone : undefined,
+                    }))
+                }
+              />
+            </div>
+          )}
         </div>
       </div>
 
@@ -353,32 +445,46 @@ export default function GroupDetailPage() {
         </div>
 
         {showAddMember && (
-          <div className="mb-4 p-4 rounded-lg bg-surface-container-low border border-outline/20 flex items-end gap-3">
-            <div className="flex-1">
-              <label className="block text-label-sm text-on-surface-variant mb-1">בחר משתמש להוספה</label>
-              <select
-                value={selectedUserId}
-                onChange={(e) => setSelectedUserId(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-outline bg-surface-container focus:border-primary focus:outline-none text-body-sm"
-              >
-                <option value="">בחר משתמש...</option>
-                {orgUsers?.filter((u) => !memberIds.has(u.id)).map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.fullName || u.phone}
-                  </option>
-                ))}
-              </select>
+          <div className="mb-4 p-4 rounded-lg bg-surface-container-low border border-outline/20 space-y-3">
+            <div>
+              <label className="block text-label-sm text-on-surface-variant mb-1">
+                בחר משתמשים להוספה (ניתן לבחור מספר)
+              </label>
+              <SearchableSelect
+                multiple
+                value={selectedUserIds}
+                onChange={setSelectedUserIds}
+                placeholder="בחר משתמשים..."
+                searchPlaceholder="חפש לפי שם או טלפון..."
+                options={
+                  (orgUsers ?? [])
+                    .filter((u) => !memberIds.has(u.id))
+                    .map<SearchableSelectOption>((u) => ({
+                      value: u.id,
+                      label: u.fullName || u.phone,
+                      sublabel: u.fullName ? u.phone : undefined,
+                    }))
+                }
+              />
             </div>
-            <button
-              onClick={() => { if (selectedUserId) addMemberMutation.mutate(selectedUserId); }}
-              disabled={!selectedUserId || addMemberMutation.isPending}
-              className="btn-primary text-body-sm px-4 py-2 disabled:opacity-50"
-            >
-              {addMemberMutation.isPending ? 'מוסיף...' : 'הוסף'}
-            </button>
-            <button onClick={() => { setShowAddMember(false); setSelectedUserId(''); }} className="p-2 hover:bg-surface-container rounded-md">
-              <X className="h-4 w-4" />
-            </button>
+            {bulkError && <p className="text-body-sm text-error">{bulkError}</p>}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => { if (selectedUserIds.length > 0) addMembersMutation.mutate(selectedUserIds); }}
+                disabled={selectedUserIds.length === 0 || addMembersMutation.isPending}
+                className="btn-primary text-body-sm px-4 py-2 disabled:opacity-50"
+              >
+                {addMembersMutation.isPending
+                  ? 'מוסיף...'
+                  : `הוסף${selectedUserIds.length > 0 ? ` (${selectedUserIds.length})` : ''}`}
+              </button>
+              <button
+                onClick={() => { setShowAddMember(false); setSelectedUserIds([]); setBulkError(''); }}
+                className="p-2 hover:bg-surface-container rounded-md"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         )}
 
@@ -423,32 +529,42 @@ export default function GroupDetailPage() {
         </div>
 
         {showAssignFamily && (
-          <div className="mb-4 p-4 rounded-lg bg-surface-container-low border border-outline/20 flex items-end gap-3">
-            <div className="flex-1">
-              <label className="block text-label-sm text-on-surface-variant mb-1">בחר משפחה לשיוך</label>
-              <select
-                value={selectedFamilyId}
-                onChange={(e) => setSelectedFamilyId(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-outline bg-surface-container focus:border-primary focus:outline-none text-body-sm"
-              >
-                <option value="">בחר משפחה...</option>
-                {unassignedFamilies.map((f) => (
-                  <option key={f.id} value={f.id}>
-                    {f.familyName}{f.groupName ? ` (${f.groupName})` : ''}
-                  </option>
-                ))}
-              </select>
+          <div className="mb-4 p-4 rounded-lg bg-surface-container-low border border-outline/20 space-y-3">
+            <div>
+              <label className="block text-label-sm text-on-surface-variant mb-1">
+                בחר משפחות לשיוך (ניתן לבחור מספר)
+              </label>
+              <SearchableSelect
+                multiple
+                value={selectedFamilyIds}
+                onChange={setSelectedFamilyIds}
+                placeholder="בחר משפחות..."
+                searchPlaceholder="חפש לפי שם משפחה..."
+                options={unassignedFamilies.map<SearchableSelectOption>((f) => ({
+                  value: f.id,
+                  label: f.familyName,
+                  sublabel: f.groupName ?? undefined,
+                }))}
+              />
             </div>
-            <button
-              onClick={() => { if (selectedFamilyId) assignFamilyMutation.mutate(selectedFamilyId); }}
-              disabled={!selectedFamilyId || assignFamilyMutation.isPending}
-              className="btn-primary text-body-sm px-4 py-2 disabled:opacity-50"
-            >
-              {assignFamilyMutation.isPending ? 'משייך...' : 'שייך'}
-            </button>
-            <button onClick={() => { setShowAssignFamily(false); setSelectedFamilyId(''); }} className="p-2 hover:bg-surface-container rounded-md">
-              <X className="h-4 w-4" />
-            </button>
+            {bulkError && <p className="text-body-sm text-error">{bulkError}</p>}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => { if (selectedFamilyIds.length > 0) assignFamiliesMutation.mutate(selectedFamilyIds); }}
+                disabled={selectedFamilyIds.length === 0 || assignFamiliesMutation.isPending}
+                className="btn-primary text-body-sm px-4 py-2 disabled:opacity-50"
+              >
+                {assignFamiliesMutation.isPending
+                  ? 'משייך...'
+                  : `שייך${selectedFamilyIds.length > 0 ? ` (${selectedFamilyIds.length})` : ''}`}
+              </button>
+              <button
+                onClick={() => { setShowAssignFamily(false); setSelectedFamilyIds([]); setBulkError(''); }}
+                className="p-2 hover:bg-surface-container rounded-md"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         )}
 

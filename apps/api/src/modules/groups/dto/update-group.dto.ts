@@ -10,12 +10,4 @@ export class UpdateGroupDto {
   @IsOptional()
   @MinLength(2)
   name?: string;
-
-  @ApiProperty({
-    description: 'מזהה מנהל הקבוצה',
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  managerId?: string;
 }

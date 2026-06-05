@@ -7,6 +7,7 @@ import {
   Plus, Search, Upload, Loader2, X, MapPin, Phone, Tag, Trash2, Check,
   Sofa, Refrigerator, UtensilsCrossed, Shirt, Baby, BookOpen, Package, Image as ImageIcon,
 } from 'lucide-react';
+import { SearchableSelect, type SearchableSelectOption } from '@/components/ui/SearchableSelect';
 
 type Status = 'AVAILABLE' | 'RESERVED' | 'TAKEN';
 type Category = 'FURNITURE' | 'APPLIANCE' | 'KITCHEN' | 'CLOTHING' | 'BABY' | 'BOOKS' | 'OTHER';
@@ -98,7 +99,7 @@ export default function PassItOnPage() {
       {/* Header */}
       <div className="flex items-center justify-between gap-3 flex-wrap mb-6">
         <div>
-          <h2 className="text-headline-sm font-headline">העברה הלאה</h2>
+          <h2 className="text-headline-sm font-headline">למסירה</h2>
           <p className="text-label-md text-on-surface-variant">חפצים וריהוט שאפשר למסור — בקהילה</p>
         </div>
         <button
@@ -121,16 +122,19 @@ export default function PassItOnPage() {
             className="w-full ps-3 pe-9 py-2 rounded-lg border border-outline/30 bg-surface text-body-sm focus:ring-2 focus:ring-primary/30 focus:outline-none"
           />
         </div>
-        <select
-          value={category}
-          onChange={e => setCategory(e.target.value as Category | '')}
-          className="px-3 py-2 rounded-lg border border-outline/30 bg-surface text-body-sm"
-        >
-          <option value="">כל הקטגוריות</option>
-          {(Object.keys(CATEGORY_LABELS) as Category[]).map(c => (
-            <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>
-          ))}
-        </select>
+        <div className="min-w-[180px]">
+          <SearchableSelect
+            value={category}
+            onChange={v => setCategory(v as Category | '')}
+            clearable
+            placeholder="כל הקטגוריות"
+            searchPlaceholder="חפש קטגוריה..."
+            options={(Object.keys(CATEGORY_LABELS) as Category[]).map<SearchableSelectOption>(c => ({
+              value: c,
+              label: CATEGORY_LABELS[c],
+            }))}
+          />
+        </div>
       </div>
 
       {/* Grid */}
@@ -313,15 +317,16 @@ function CreateModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
 
         <div className="grid grid-cols-2 gap-3">
           <FormField label="קטגוריה" required>
-            <select
+            <SearchableSelect
               value={form.category}
-              onChange={e => setForm(f => ({ ...f, category: e.target.value as Category }))}
-              className="w-full px-3 py-2 rounded-lg border border-outline/30 text-body-sm"
-            >
-              {(Object.keys(CATEGORY_LABELS) as Category[]).map(c => (
-                <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>
-              ))}
-            </select>
+              onChange={v => setForm(f => ({ ...f, category: v as Category }))}
+              placeholder="בחר קטגוריה..."
+              searchPlaceholder="חפש קטגוריה..."
+              options={(Object.keys(CATEGORY_LABELS) as Category[]).map<SearchableSelectOption>(c => ({
+                value: c,
+                label: CATEGORY_LABELS[c],
+              }))}
+            />
           </FormField>
           <FormField label="עיר/שכונה">
             <input

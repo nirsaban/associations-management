@@ -64,9 +64,12 @@ export class ManagerService {
 
     const groups = await this.prisma.group.findMany({
       where: {
-        managerUserId: userId,
         organizationId,
         deletedAt: null,
+        OR: [
+          { managerUserId: userId },
+          { memberships: { some: { userId, role: 'MANAGER', status: 'ACTIVE' } } },
+        ],
       },
       include: {
         _count: {
@@ -1320,12 +1323,17 @@ export class ManagerService {
   // ─── Private helpers ─────────────────────────────────────────────────────────
 
   private async resolveManagedGroup(userId: string, organizationId: string, groupId?: string) {
+    // Authorize via either the denormalized primary (Group.managerUserId) OR an
+    // active MANAGER membership. Supports up to 2 managers per group.
     const group = await this.prisma.group.findFirst({
       where: {
         ...(groupId ? { id: groupId } : {}),
-        managerUserId: userId,
         organizationId,
         deletedAt: null,
+        OR: [
+          { managerUserId: userId },
+          { memberships: { some: { userId, role: 'MANAGER', status: 'ACTIVE' } } },
+        ],
       },
       orderBy: { createdAt: 'asc' },
     });

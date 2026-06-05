@@ -12,6 +12,7 @@ import {
   ProfessionTypeahead,
   type ProfessionOption,
 } from '@/components/profession-typeahead';
+import { SearchableSelect, type SearchableSelectOption } from '@/components/ui/SearchableSelect';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -314,19 +315,18 @@ export default function CommunityPeoplePage() {
           <label className="block text-label-sm text-on-surface-variant mb-1">
             קטגוריה
           </label>
-          <select
+          <SearchableSelect
             value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="w-full rounded-lg border border-outline bg-surface px-3 py-2.5 text-body-md text-right focus:outline-none focus:ring-2 focus:ring-primary/40"
-            dir="rtl"
-          >
-            <option value="">כל הקטגוריות</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.nameHe}
-              </option>
-            ))}
-          </select>
+            onChange={(v) => setSelectedCategory(v)}
+            clearable
+            placeholder="כל הקטגוריות"
+            searchPlaceholder="חפש קטגוריה..."
+            options={categories.map<SearchableSelectOption>((cat) => ({
+              value: cat.id,
+              label: cat.nameHe,
+            }))}
+          />
+
         </div>
 
         {/* Profession typeahead */}

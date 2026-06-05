@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Clock, Sunrise, Sun, Sunset, Moon, Star, Flame, BookOpen, Loader2, RefreshCw, MapPin } from 'lucide-react';
+import { SearchableSelect, type SearchableSelectOption } from '@/components/ui/SearchableSelect';
 
 // Hebcal city geonameids — popular Israeli cities
 const CITIES: { id: number; name: string }[] = [
@@ -151,16 +152,19 @@ export default function ZmanimPage() {
         </div>
         <div className="flex items-center gap-2">
           <MapPin className="h-4 w-4 text-on-surface-variant" />
-          <select
-            value={cityId}
-            onChange={e => setCityId(parseInt(e.target.value, 10))}
-            disabled={loading}
-            className="px-3 py-1.5 rounded-lg border border-outline/30 bg-surface text-body-sm focus:ring-2 focus:ring-primary/30 focus:outline-none"
-          >
-            {CITIES.map(c => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
+          <div className="min-w-[160px]">
+            <SearchableSelect
+              value={String(cityId)}
+              onChange={v => v && setCityId(parseInt(v, 10))}
+              disabled={loading}
+              placeholder="בחר עיר..."
+              searchPlaceholder="חפש עיר..."
+              options={CITIES.map<SearchableSelectOption>(c => ({
+                value: String(c.id),
+                label: c.name,
+              }))}
+            />
+          </div>
         </div>
       </div>
 

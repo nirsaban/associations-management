@@ -108,12 +108,15 @@ export class HomepageService {
       lastPaymentDate: lastPayment?.paymentDate ?? undefined,
     };
 
-    // Check if user is GROUP_MANAGER
+    // Check if user is GROUP_MANAGER (primary OR active MANAGER membership)
     const managedGroups = await this.prisma.group.findMany({
       where: {
-        managerUserId: userId,
         organizationId: organizationId ?? undefined,
         deletedAt: null,
+        OR: [
+          { managerUserId: userId },
+          { memberships: { some: { userId, role: 'MANAGER', status: 'ACTIVE' } } },
+        ],
       },
       select: {
         id: true,

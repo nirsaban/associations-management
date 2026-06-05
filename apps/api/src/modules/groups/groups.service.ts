@@ -11,13 +11,20 @@ import { UpdateGroupDto } from './dto/update-group.dto';
 import { AssignManagerDto } from './dto/assign-manager.dto';
 import { GroupResponseDto } from './dto/group-response.dto';
 
-type GroupWithCounts = Prisma.GroupGetPayload<{
-  include: {
-    _count: { select: { memberships: true; families: true } };
-    manager: { select: { fullName: true; phone: true } };
-    families: { select: { familyName: true } };
-  };
-}>;
+const MAX_MANAGERS_PER_GROUP = 2;
+
+const groupInclude = {
+  _count: { select: { memberships: true, families: true } },
+  manager: { select: { fullName: true, phone: true } },
+  families: { where: { deletedAt: null }, select: { familyName: true }, orderBy: { familyName: 'asc' } },
+  memberships: {
+    where: { role: 'MANAGER', status: 'ACTIVE' },
+    include: { user: { select: { id: true, fullName: true, phone: true } } },
+    orderBy: { joinedAt: 'asc' },
+  },
+} as const satisfies Prisma.GroupInclude;
+
+type GroupWithCounts = Prisma.GroupGetPayload<{ include: typeof groupInclude }>;
 
 @Injectable()
 export class GroupsService {
@@ -45,11 +52,7 @@ export class GroupsService {
           name: createGroupDto.name,
           managerUserId: createGroupDto.managerId ?? null,
         },
-        include: {
-          _count: { select: { memberships: true, families: true } },
-          manager: { select: { fullName: true, phone: true } },
-          families: { where: { deletedAt: null }, select: { familyName: true }, orderBy: { familyName: 'asc' } },
-        },
+        include: groupInclude,
       });
 
       if (createGroupDto.managerId) {
@@ -60,7 +63,8 @@ export class GroupsService {
         });
       }
 
-      return created;
+      // Re-read so memberships array reflects the upsert.
+      return tx.group.findUniqueOrThrow({ where: { id: created.id }, include: groupInclude });
     });
 
     return this.mapToDto(group);
@@ -83,11 +87,7 @@ export class GroupsService {
         skip,
         take: safeLimit,
         orderBy: { createdAt: 'desc' },
-        include: {
-          _count: { select: { memberships: true, families: true } },
-          manager: { select: { fullName: true, phone: true } },
-          families: { where: { deletedAt: null }, select: { familyName: true }, orderBy: { familyName: 'asc' } },
-        },
+        include: groupInclude,
       }),
       this.prisma.group.count({ where: { organizationId, deletedAt: null } }),
     ]);
@@ -103,11 +103,7 @@ export class GroupsService {
 
     const group = await this.prisma.group.findFirst({
       where: { id, organizationId, deletedAt: null },
-      include: {
-        _count: { select: { memberships: true, families: true } },
-        manager: { select: { fullName: true, phone: true } },
-        families: { where: { deletedAt: null }, select: { familyName: true }, orderBy: { familyName: 'asc' } },
-      },
+      include: groupInclude,
     });
 
     if (!group) {
@@ -132,49 +128,12 @@ export class GroupsService {
       throw new NotFoundException('קבוצה לא נמצאה');
     }
 
-    // Validate new manager belongs to org if changing manager
-    if (updateGroupDto.managerId) {
-      const manager = await this.prisma.user.findFirst({
-        where: { id: updateGroupDto.managerId, organizationId, deletedAt: null },
-      });
-      if (!manager) {
-        throw new BadRequestException('מנהל הקבוצה לא נמצא בעמותה');
-      }
-    }
-
-    const updated = await this.prisma.$transaction(async (tx) => {
-      const result = await tx.group.update({
-        where: { id },
-        data: {
-          ...(updateGroupDto.name !== undefined && { name: updateGroupDto.name }),
-          ...(updateGroupDto.managerId !== undefined && { managerUserId: updateGroupDto.managerId }),
-        },
-        include: {
-          _count: { select: { memberships: true, families: true } },
-          manager: { select: { fullName: true, phone: true } },
-          families: { where: { deletedAt: null }, select: { familyName: true }, orderBy: { familyName: 'asc' } },
-        },
-      });
-
-      if (updateGroupDto.managerId !== undefined) {
-        // Demote old manager if different
-        if (group.managerUserId && group.managerUserId !== updateGroupDto.managerId) {
-          await tx.groupMembership.updateMany({
-            where: { groupId: id, userId: group.managerUserId, role: 'MANAGER' },
-            data: { role: 'MEMBER' },
-          });
-        }
-        // Promote new manager
-        if (updateGroupDto.managerId) {
-          await tx.groupMembership.upsert({
-            where: { groupId_userId: { groupId: id, userId: updateGroupDto.managerId } },
-            update: { role: 'MANAGER', status: 'ACTIVE' },
-            create: { organizationId, groupId: id, userId: updateGroupDto.managerId, role: 'MANAGER' },
-          });
-        }
-      }
-
-      return result;
+    const updated = await this.prisma.group.update({
+      where: { id },
+      data: {
+        ...(updateGroupDto.name !== undefined && { name: updateGroupDto.name }),
+      },
+      include: groupInclude,
     });
 
     return this.mapToDto(updated);
@@ -197,13 +156,14 @@ export class GroupsService {
     });
   }
 
+  // Add a manager to the group (max 2 active managers). Idempotent for already-managers.
   async assignManager(
     organizationId: string,
     groupId: string,
     assignManagerDto: AssignManagerDto,
   ): Promise<GroupResponseDto> {
     this.logger.log(
-      `Assigning manager ${assignManagerDto.userId} to group ${groupId}`,
+      `Adding manager ${assignManagerDto.userId} to group ${groupId}`,
     );
 
     const group = await this.prisma.group.findFirst({
@@ -222,33 +182,83 @@ export class GroupsService {
       throw new BadRequestException('המשתמש לא נמצא בעמותה');
     }
 
+    const existingManagers = await this.prisma.groupMembership.findMany({
+      where: { groupId, role: 'MANAGER', status: 'ACTIVE' },
+      select: { userId: true },
+    });
+    const alreadyManager = existingManagers.some((m) => m.userId === assignManagerDto.userId);
+
+    if (!alreadyManager && existingManagers.length >= MAX_MANAGERS_PER_GROUP) {
+      throw new BadRequestException(
+        `לקבוצה יכולים להיות עד ${MAX_MANAGERS_PER_GROUP} מנהלים. הסר מנהל קיים לפני הוספת חדש.`,
+      );
+    }
+
     const updated = await this.prisma.$transaction(async (tx) => {
-      // Demote old manager
-      if (group.managerUserId && group.managerUserId !== assignManagerDto.userId) {
-        await tx.groupMembership.updateMany({
-          where: { groupId, userId: group.managerUserId, role: 'MANAGER' },
-          data: { role: 'MEMBER' },
-        });
-      }
-
-      const result = await tx.group.update({
-        where: { id: groupId },
-        data: { managerUserId: assignManagerDto.userId },
-        include: {
-          _count: { select: { memberships: true, families: true } },
-          manager: { select: { fullName: true, phone: true } },
-          families: { where: { deletedAt: null }, select: { familyName: true }, orderBy: { familyName: 'asc' } },
-        },
-      });
-
-      // Promote new manager
       await tx.groupMembership.upsert({
         where: { groupId_userId: { groupId, userId: assignManagerDto.userId } },
         update: { role: 'MANAGER', status: 'ACTIVE' },
         create: { organizationId, groupId, userId: assignManagerDto.userId, role: 'MANAGER' },
       });
 
-      return result;
+      // Ensure the denormalized primary manager pointer is filled in.
+      if (!group.managerUserId) {
+        await tx.group.update({
+          where: { id: groupId },
+          data: { managerUserId: assignManagerDto.userId },
+        });
+      }
+
+      return tx.group.findUniqueOrThrow({ where: { id: groupId }, include: groupInclude });
+    });
+
+    return this.mapToDto(updated);
+  }
+
+  // Demote a manager back to MEMBER (keeps them in the group). If they were the
+  // denormalized primary, the pointer is reassigned to the remaining manager (or nulled).
+  async removeManager(
+    organizationId: string,
+    groupId: string,
+    userId: string,
+  ): Promise<GroupResponseDto> {
+    this.logger.log(`Removing manager ${userId} from group ${groupId}`);
+
+    const group = await this.prisma.group.findFirst({
+      where: { id: groupId, organizationId, deletedAt: null },
+    });
+
+    if (!group) {
+      throw new NotFoundException('קבוצה לא נמצאה');
+    }
+
+    const membership = await this.prisma.groupMembership.findUnique({
+      where: { groupId_userId: { groupId, userId } },
+    });
+
+    if (!membership || membership.role !== 'MANAGER' || membership.status !== 'ACTIVE') {
+      throw new BadRequestException('המשתמש אינו מנהל פעיל של הקבוצה');
+    }
+
+    const updated = await this.prisma.$transaction(async (tx) => {
+      await tx.groupMembership.update({
+        where: { groupId_userId: { groupId, userId } },
+        data: { role: 'MEMBER' },
+      });
+
+      if (group.managerUserId === userId) {
+        const nextManager = await tx.groupMembership.findFirst({
+          where: { groupId, role: 'MANAGER', status: 'ACTIVE', userId: { not: userId } },
+          orderBy: { joinedAt: 'asc' },
+          select: { userId: true },
+        });
+        await tx.group.update({
+          where: { id: groupId },
+          data: { managerUserId: nextManager?.userId ?? null },
+        });
+      }
+
+      return tx.group.findUniqueOrThrow({ where: { id: groupId }, include: groupInclude });
     });
 
     return this.mapToDto(updated);
@@ -340,25 +350,46 @@ export class GroupsService {
       data: members.map((member) => ({
         memberId: member.id,
         joinedAt: member.joinedAt,
+        role: member.role,
         ...member.user,
       })),
     };
   }
 
-  private mapToDto(group: GroupWithCounts | Record<string, unknown>): GroupResponseDto {
-    const g = group as GroupWithCounts;
+  private mapToDto(group: GroupWithCounts): GroupResponseDto {
+    const managers = (group.memberships ?? [])
+      .filter((m) => m.role === 'MANAGER' && m.status === 'ACTIVE' && m.user)
+      .map((m) => ({
+        id: m.user.id,
+        fullName: m.user.fullName ?? undefined,
+        phone: m.user.phone,
+      }));
+
+    // Surface the denormalized primary first so the legacy single-manager fields
+    // (managerId/Name/Phone) and managers[0] stay aligned for existing consumers.
+    if (group.managerUserId) {
+      const idx = managers.findIndex((m) => m.id === group.managerUserId);
+      if (idx > 0) {
+        const [primary] = managers.splice(idx, 1);
+        managers.unshift(primary);
+      }
+    }
+
+    const primary = managers[0];
+
     return {
-      id: g.id,
-      organizationId: g.organizationId,
-      name: g.name,
-      managerId: g.managerUserId ?? undefined,
-      managerName: g.manager?.fullName ?? undefined,
-      managerPhone: g.manager?.phone ?? undefined,
-      memberCount: g._count?.memberships,
-      familyCount: g._count?.families,
-      familyNames: g.families?.map((f) => f.familyName) ?? [],
-      createdAt: g.createdAt,
-      updatedAt: g.updatedAt,
+      id: group.id,
+      organizationId: group.organizationId,
+      name: group.name,
+      managerId: primary?.id ?? group.managerUserId ?? undefined,
+      managerName: primary?.fullName ?? group.manager?.fullName ?? undefined,
+      managerPhone: primary?.phone ?? group.manager?.phone ?? undefined,
+      managers,
+      memberCount: group._count?.memberships,
+      familyCount: group._count?.families,
+      familyNames: group.families?.map((f) => f.familyName) ?? [],
+      createdAt: group.createdAt,
+      updatedAt: group.updatedAt,
     };
   }
 }

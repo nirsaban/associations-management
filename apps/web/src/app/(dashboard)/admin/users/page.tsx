@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import { AlertCircle, Search, Plus, Edit2, Trash2, X, CheckCircle, XCircle, Users } from 'lucide-react';
+import { SearchableSelect, type SearchableSelectOption } from '@/components/ui/SearchableSelect';
 
 interface AdminGroup {
   id: string;
@@ -28,6 +29,7 @@ interface CreateUserForm {
   fullName: string;
   phone: string;
   email?: string;
+  groupId?: string;
 }
 
 interface EditUserForm {
@@ -110,11 +112,17 @@ export default function AdminUsersPage() {
 
   const createMutation = useMutation({
     mutationFn: async (data: CreateUserForm) => {
-      const res = await api.post('/admin/users', data);
+      const { groupId, ...userData } = data;
+      const res = await api.post<{ data: { id: string } }>('/admin/users', userData);
+      const newUserId = res.data.data.id;
+      if (groupId) {
+        await api.post(`/admin/groups/${groupId}/members`, { userId: newUserId });
+      }
       return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'groups'] });
       setShowCreateModal(false);
       setCreateForm({ fullName: '', phone: '' });
       setCreateError('');
@@ -473,6 +481,20 @@ export default function AdminUsersPage() {
                   className="w-full px-4 py-3 rounded-lg border border-outline bg-surface-container focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
               </div>
+              <div>
+                <label className="block text-label-md font-medium mb-2">שיוך לקבוצה (אופציונלי)</label>
+                <SearchableSelect
+                  value={createForm.groupId ?? ''}
+                  onChange={(v) => setCreateForm((f) => ({ ...f, groupId: v || undefined }))}
+                  clearable
+                  placeholder="ללא קבוצה"
+                  searchPlaceholder="חפש קבוצה..."
+                  options={(groups ?? []).map<SearchableSelectOption>((g) => ({
+                    value: g.id,
+                    label: g.name,
+                  }))}
+                />
+              </div>
             </div>
             <div className="flex gap-3 p-6 border-t border-outline/20">
               <button onClick={() => setShowCreateModal(false)} className="btn-outline flex-1">ביטול</button>
@@ -529,16 +551,17 @@ export default function AdminUsersPage() {
               {/* Group assignment */}
               <div>
                 <label className="block text-label-md font-medium mb-2">קבוצה</label>
-                <select
+                <SearchableSelect
                   value={editForm.groupId}
-                  onChange={(e) => setEditForm((f) => ({ ...f, groupId: e.target.value }))}
-                  className="w-full px-4 py-3 rounded-lg border border-outline bg-surface-container focus:border-primary focus:outline-none"
-                >
-                  <option value="">ללא קבוצה</option>
-                  {groups?.map((g) => (
-                    <option key={g.id} value={g.id}>{g.name}</option>
-                  ))}
-                </select>
+                  onChange={(v) => setEditForm((f) => ({ ...f, groupId: v }))}
+                  clearable
+                  placeholder="ללא קבוצה"
+                  searchPlaceholder="חפש קבוצה..."
+                  options={(groups ?? []).map<SearchableSelectOption>((g) => ({
+                    value: g.id,
+                    label: g.name,
+                  }))}
+                />
               </div>
 
               {/* Role */}

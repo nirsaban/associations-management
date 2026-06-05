@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import api from '@/lib/api';
 import { BookOpen, Loader2, Check, Crown, Clock, AlertTriangle, Heart, Sparkles, X } from 'lucide-react';
+import { SearchableSelect, type SearchableSelectOption } from '@/components/ui/SearchableSelect';
 
 type DedicationType =
   | 'BRIAUT' | 'HATZLACHA' | 'PARNASSA' | 'ZIVUG' | 'SIMCHA'
@@ -213,7 +214,7 @@ export default function TehillimPage() {
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-on-primary text-body-sm font-medium hover:bg-primary/90"
             >
               <Heart className="h-3.5 w-3.5" />
-              תפוס סלוט
+              שריין הקדשה
             </button>
           )}
           {!today.canDedicate && !today.myDedication && today.slotsLeft! > 0 && today.inGraceWindow && (
@@ -226,7 +227,7 @@ export default function TehillimPage() {
         <div className="divide-y divide-outline/10">
           {today.dedications!.length === 0 && (
             <p className="px-4 py-6 text-center text-body-sm text-on-surface-variant">
-              עדיין אין הקדשות להיום. היה הראשון לתפוס סלוט!
+              עדיין אין הקדשות להיום. היה הראשון לשריין!
             </p>
           )}
           {today.dedications!.map(d => (
@@ -253,7 +254,7 @@ export default function TehillimPage() {
               <div className="w-7 h-7 rounded-full border-2 border-dashed border-outline/40 flex items-center justify-center text-label-md text-on-surface-variant flex-shrink-0">
                 {today.dedications!.length + i + 1}
               </div>
-              <span className="text-body-sm text-on-surface-variant">סלוט פתוח</span>
+              <span className="text-body-sm text-on-surface-variant">מקום פנוי</span>
             </div>
           ))}
         </div>
@@ -264,7 +265,7 @@ export default function TehillimPage() {
         <div className="rounded-xl bg-primary/5 border border-primary/20 p-3 flex items-center gap-2">
           <Check className="h-4 w-4 text-primary" />
           <p className="text-body-sm">
-            <strong>תפסת סלוט #{today.myDedication.position}:</strong>{' '}
+            <strong>שריינת הקדשה #{today.myDedication.position}:</strong>{' '}
             {DEDICATION_LABELS[today.myDedication.type]}
             {today.myDedication.dedicateeName && (
               <> עבור {today.myDedication.dedicateeName}
@@ -435,7 +436,7 @@ function DedicateModal({
       onDedicated();
     } catch (err) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setError(msg || 'שגיאה בתפיסת הסלוט');
+      setError(msg || 'שגיאה בשריון ההקדשה');
     } finally {
       setSubmitting(false);
     }
@@ -478,16 +479,17 @@ function DedicateModal({
             <label className="text-label-sm text-on-surface-variant block mb-1">
               סוג הברכה <span className="text-error">*</span>
             </label>
-            <select
-              ref={initialFocus}
+            <SearchableSelect
               value={type}
-              onChange={e => setType(e.target.value as DedicationType)}
-              className="w-full px-3 py-2 rounded-lg border border-outline/30 text-body-sm focus:ring-2 focus:ring-primary/30 focus:outline-none"
-            >
-              {(Object.keys(DEDICATION_LABELS) as DedicationType[]).map(t => (
-                <option key={t} value={t}>{DEDICATION_LABELS[t]}</option>
-              ))}
-            </select>
+              onChange={v => setType(v as DedicationType)}
+              placeholder="בחר סוג ברכה..."
+              searchPlaceholder="חפש..."
+              options={(Object.keys(DEDICATION_LABELS) as DedicationType[]).map<SearchableSelectOption>(t => ({
+                value: t,
+                label: DEDICATION_LABELS[t],
+              }))}
+            />
+
           </div>
 
           <div>
@@ -535,7 +537,7 @@ function DedicateModal({
             className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-on-primary text-body-sm font-medium hover:bg-primary/90 disabled:opacity-50"
           >
             <Heart className="h-4 w-4" />
-            {submitting ? 'תופס...' : 'תפוס סלוט'}
+            {submitting ? 'משריין...' : 'שריין הקדשה'}
           </button>
         </div>
       </div>
