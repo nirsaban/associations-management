@@ -7,6 +7,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import { useToast } from '@/components/ui/Toast';
+import DeepLinkPicker from './_components/DeepLinkPicker';
+import { isValidDeepLink } from '@/lib/deep-links';
 
 interface AdminDashboardData {
   stats: {
@@ -109,6 +111,7 @@ interface AlertTemplate {
   title: string;
   body: string;
   audience: AlertAudience;
+  linkUrl?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -119,7 +122,7 @@ interface AlertTemplate {
 function DashboardAlertComposer({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
   const { showToast } = useToast();
   const queryClient = useQueryClient();
-  const [form, setForm] = useState({ title: '', body: '', audience: 'ALL_USERS' as AlertAudience });
+  const [form, setForm] = useState({ title: '', body: '', audience: 'ALL_USERS' as AlertAudience, linkUrl: '' });
   const [showTemplates, setShowTemplates] = useState(false);
 
   // Fetch templates from API
@@ -133,7 +136,7 @@ function DashboardAlertComposer({ onClose, onSuccess }: { onClose: () => void; o
   const templates = templatesData?.data ?? [];
 
   const mutation = useMutation({
-    mutationFn: async (payload: { title: string; body: string; audience: AlertAudience }) => {
+    mutationFn: async (payload: { title: string; body: string; audience: AlertAudience; linkUrl?: string }) => {
       const { data } = await api.post('/admin/alerts', payload);
       return data;
     },
@@ -142,7 +145,7 @@ function DashboardAlertComposer({ onClose, onSuccess }: { onClose: () => void; o
   });
 
   const saveTemplateMutation = useMutation({
-    mutationFn: async (payload: { name: string; title: string; body: string; audience: AlertAudience }) => {
+    mutationFn: async (payload: { name: string; title: string; body: string; audience: AlertAudience; linkUrl?: string }) => {
       const { data } = await api.post('/admin/alerts/templates', payload);
       return data;
     },
@@ -199,7 +202,7 @@ function DashboardAlertComposer({ onClose, onSuccess }: { onClose: () => void; o
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setForm({ title: t.title, body: t.body, audience: t.audience }); setShowTemplates(false); }}
+                    onClick={() => { setForm({ title: t.title, body: t.body, audience: t.audience, linkUrl: t.linkUrl ?? '' }); setShowTemplates(false); }}
                     className="flex-1 text-right text-sm min-w-0 truncate"
                   >
                     {t.name}
@@ -215,7 +218,9 @@ function DashboardAlertComposer({ onClose, onSuccess }: { onClose: () => void; o
             if (!form.title.trim()) { showToast('נא למלא כותרת לפני שמירה', 'error'); return; }
             const name = prompt('שם התבנית:');
             if (!name) return;
-            saveTemplateMutation.mutate({ name, title: form.title, body: form.body, audience: form.audience });
+            const templatePayload: { name: string; title: string; body: string; audience: AlertAudience; linkUrl?: string } = { name, title: form.title, body: form.body, audience: form.audience };
+            if (form.linkUrl) templatePayload.linkUrl = form.linkUrl;
+            saveTemplateMutation.mutate(templatePayload);
           }}
           disabled={saveTemplateMutation.isPending}
           className="btn-outline text-sm flex items-center justify-center gap-2 whitespace-nowrap disabled:opacity-60"
@@ -253,12 +258,19 @@ function DashboardAlertComposer({ onClose, onSuccess }: { onClose: () => void; o
           ))}
         </select>
       </div>
+      <DeepLinkPicker
+        value={form.linkUrl}
+        onChange={(v) => setForm((f) => ({ ...f, linkUrl: v }))}
+      />
       <div className="flex gap-2 pt-1">
         <button
           type="button"
           onClick={() => {
             if (!form.title.trim() || !form.body.trim()) { showToast('נא למלא כותרת ותוכן', 'error'); return; }
-            mutation.mutate(form);
+            if (form.linkUrl && !isValidDeepLink(form.linkUrl)) { showToast('קישור לא תקין — חובה נתיב פנימי המתחיל ב-/', 'error'); return; }
+            const alertPayload: { title: string; body: string; audience: AlertAudience; linkUrl?: string } = { title: form.title, body: form.body, audience: form.audience };
+            if (form.linkUrl) alertPayload.linkUrl = form.linkUrl;
+            mutation.mutate(alertPayload);
           }}
           disabled={mutation.isPending}
           className="btn-primary btn-sm flex items-center gap-1"

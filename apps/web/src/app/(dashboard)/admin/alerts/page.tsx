@@ -2,12 +2,14 @@
 
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Bell, Trash2, X, AlertCircle, ChevronRight, ChevronLeft, Save, BookOpen } from 'lucide-react';
+import { Bell, Trash2, X, AlertCircle, ChevronRight, ChevronLeft, Save, BookOpen, Link2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import { useToast } from '@/components/ui/Toast';
+import DeepLinkPicker from '../_components/DeepLinkPicker';
+import { isValidDeepLink, deepLinkLabel } from '@/lib/deep-links';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -19,6 +21,7 @@ interface Alert {
   body: string;
   audience: AlertAudience;
   expiresAt?: string | null;
+  linkUrl?: string | null;
   createdAt: string;
   deliveredCount: number;
   recipientCount: number;
@@ -38,6 +41,7 @@ interface CreateAlertForm {
   body: string;
   audience: AlertAudience;
   expiresAt: string;
+  linkUrl: string;
 }
 
 interface AlertTemplate {
@@ -46,6 +50,7 @@ interface AlertTemplate {
   title: string;
   body: string;
   audience: AlertAudience;
+  linkUrl?: string;
 }
 
 const AUDIENCE_OPTIONS: AlertAudience[] = [
@@ -120,13 +125,14 @@ function CreateAlertModal({ onClose, onSuccess }: CreateModalProps) {
     body: '',
     audience: 'ALL_USERS',
     expiresAt: '',
+    linkUrl: '',
   });
   const [errors, setErrors] = useState<Partial<Record<keyof CreateAlertForm, string>>>({});
   const [templates, setTemplates] = useState<AlertTemplate[]>(() => getTemplates());
   const [showTemplates, setShowTemplates] = useState(false);
 
   const handleLoadTemplate = (t: AlertTemplate) => {
-    setForm({ title: t.title, body: t.body, audience: t.audience, expiresAt: '' });
+    setForm({ title: t.title, body: t.body, audience: t.audience, expiresAt: '', linkUrl: t.linkUrl ?? '' });
     setShowTemplates(false);
   };
 
@@ -140,6 +146,7 @@ function CreateAlertModal({ onClose, onSuccess }: CreateModalProps) {
       title: form.title,
       body: form.body,
       audience: form.audience,
+      ...(form.linkUrl ? { linkUrl: form.linkUrl } : {}),
     };
     saveTemplate(template);
     setTemplates(getTemplates());
@@ -176,12 +183,17 @@ function CreateAlertModal({ onClose, onSuccess }: CreateModalProps) {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!validate()) return;
+    if (form.linkUrl && !isValidDeepLink(form.linkUrl)) {
+      showToast('קישור לא תקין — חובה נתיב פנימי המתחיל ב-/', 'error');
+      return;
+    }
     const payload: Partial<CreateAlertForm> = {
       title: form.title.trim(),
       body: form.body.trim(),
       audience: form.audience,
     };
     if (form.expiresAt) payload.expiresAt = form.expiresAt;
+    if (form.linkUrl) payload.linkUrl = form.linkUrl;
     mutation.mutate(payload);
   }
 
@@ -293,6 +305,12 @@ function CreateAlertModal({ onClose, onSuccess }: CreateModalProps) {
               ))}
             </select>
           </div>
+
+          {/* Deep link */}
+          <DeepLinkPicker
+            value={form.linkUrl}
+            onChange={(v) => setForm((f) => ({ ...f, linkUrl: v }))}
+          />
 
           {/* Expiry date */}
           <div className="flex flex-col gap-1">
@@ -441,6 +459,7 @@ export default function AdminAlertsPage() {
                   <th className="px-4 py-3 text-start font-medium">קהל יעד</th>
                   <th className="px-4 py-3 text-start font-medium">תאריך פרסום</th>
                   <th className="px-4 py-3 text-start font-medium">נשלח / נמענים</th>
+                  <th className="px-4 py-3 text-start font-medium">קישור</th>
                   <th className="px-4 py-3 text-start font-medium">פעולות</th>
                 </tr>
               </thead>
@@ -456,6 +475,16 @@ export default function AdminAlertsPage() {
                     </td>
                     <td className="px-4 py-3 text-on-surface-variant">
                       {alert.deliveredCount}/{alert.recipientCount}
+                    </td>
+                    <td className="px-4 py-3">
+                      {alert.linkUrl ? (
+                        <span className="inline-flex items-center gap-1 text-xs text-primary">
+                          <Link2 className="w-3 h-3 shrink-0" />
+                          {deepLinkLabel(alert.linkUrl)}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-on-surface-variant">דף הבית</span>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <button
@@ -499,6 +528,12 @@ export default function AdminAlertsPage() {
                 <p className="text-xs text-on-surface-variant">
                   נשלח: {alert.deliveredCount}/{alert.recipientCount}
                 </p>
+                {alert.linkUrl ? (
+                  <span className="inline-flex items-center gap-1 text-xs text-primary">
+                    <Link2 className="w-3 h-3 shrink-0" />
+                    פתיחה: {deepLinkLabel(alert.linkUrl)}
+                  </span>
+                ) : null}
               </div>
             ))}
           </div>

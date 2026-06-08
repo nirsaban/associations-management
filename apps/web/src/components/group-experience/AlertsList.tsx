@@ -1,12 +1,14 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Bell, BellRing, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Bell, BellRing, AlertCircle, ChevronDown, ChevronUp, ArrowLeft } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import api from '@/lib/api';
 import { isPushSupported, subscribeToPush, isAlreadySubscribed } from '@/lib/push-notifications';
+import { isValidDeepLink, deepLinkLabel } from '@/lib/deep-links';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -16,6 +18,7 @@ interface Alert {
   body: string;
   publishedAt: string;
   audience: string;
+  linkUrl?: string | null;
 }
 
 interface AlertsListProps {
@@ -38,9 +41,12 @@ function relativeDate(date: string): string {
 // ─── Single alert card ────────────────────────────────────────────────────────
 
 function AlertCard({ alert }: { alert: Alert }) {
+  const router = useRouter();
   const [expanded, setExpanded] = useState(false);
   const isManagerAudience = alert.audience === 'GROUP_MANAGERS';
   const isLong = alert.body.length > 120;
+  // Only honor a safe, same-origin relative deep link.
+  const hasLink = !!alert.linkUrl && isValidDeepLink(alert.linkUrl);
 
   return (
     <div className="card-elevated py-4 px-5">
@@ -79,9 +85,21 @@ function AlertCard({ alert }: { alert: Alert }) {
         </button>
       )}
 
-      <p className="mt-2 text-label-sm text-on-surface-variant/70">
-        {relativeDate(alert.publishedAt)}
-      </p>
+      <div className="mt-2 flex items-center justify-between gap-3">
+        <p className="text-label-sm text-on-surface-variant/70">
+          {relativeDate(alert.publishedAt)}
+        </p>
+        {hasLink && (
+          <button
+            type="button"
+            onClick={() => router.push(alert.linkUrl as string)}
+            className="inline-flex items-center gap-1 text-body-sm text-primary font-medium hover:underline"
+          >
+            {deepLinkLabel(alert.linkUrl)}
+            <ArrowLeft className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
     </div>
   );
 }

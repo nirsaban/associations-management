@@ -1,6 +1,7 @@
 import { IsString, IsNotEmpty, IsOptional, IsEnum, MaxLength, MinLength } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { AlertAudience } from '@prisma/client';
+import { IsDeepLink } from '../deep-link.util';
 
 export class CreateAlertTemplateDto {
   @ApiProperty({ description: 'שם תבנית פנימי (לזיהוי ע"י האדמין)', minLength: 1, maxLength: 255 })
@@ -33,4 +34,13 @@ export class CreateAlertTemplateDto {
   @IsOptional()
   @IsEnum(AlertAudience)
   audience?: AlertAudience;
+
+  @ApiPropertyOptional({
+    description: 'קישור פנימי שייפתח בלחיצה על ההתראה (deep link). נתיב יחסי המתחיל ב-/',
+    example: '/weekly',
+  })
+  @IsOptional()
+  @IsString()
+  @IsDeepLink()
+  linkUrl?: string;
 }

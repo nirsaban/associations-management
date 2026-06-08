@@ -1,6 +1,7 @@
 import { IsString, IsNotEmpty, IsOptional, IsEnum, IsDateString } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { AlertAudience } from '@prisma/client';
+import { IsDeepLink } from '../deep-link.util';
 
 export class CreateAlertDto {
   @ApiProperty({ description: 'כותרת ההתראה' })
@@ -27,4 +28,14 @@ export class CreateAlertDto {
   @IsOptional()
   @IsDateString()
   expiresAt?: string;
+
+  @ApiPropertyOptional({
+    description:
+      'קישור פנימי שייפתח בלחיצה על ההתראה (deep link). חייב להיות נתיב יחסי המתחיל ב-/ , למשל /weekly או /community/tehillim. ברירת מחדל: דף הבית',
+    example: '/community/tehillim',
+  })
+  @IsOptional()
+  @IsString()
+  @IsDeepLink()
+  linkUrl?: string;
 }

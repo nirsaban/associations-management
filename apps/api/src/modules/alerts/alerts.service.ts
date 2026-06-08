@@ -6,6 +6,7 @@ import webpush from 'web-push';
 import { CreateAlertDto } from './dto/create-alert.dto';
 import { CreateAlertTemplateDto } from './dto/create-alert-template.dto';
 import { UpdateAlertTemplateDto } from './dto/update-alert-template.dto';
+import { normalizeDeepLink } from './deep-link.util';
 
 /** Returns the ISO week key for the given date, e.g. "2026-W19" */
 function isoWeekKey(date: Date): string {
@@ -77,6 +78,8 @@ export class AlertsService {
   ): Promise<AlertWithPublisher> {
     const audience = dto.audience ?? AlertAudience.ALL_USERS;
 
+    const linkUrl = normalizeDeepLink(dto.linkUrl);
+
     const alert = await this.prisma.alert.create({
       data: {
         organizationId,
@@ -84,6 +87,7 @@ export class AlertsService {
         title: dto.title,
         body: dto.body,
         audience,
+        linkUrl: linkUrl ?? null,
         expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : undefined,
       },
       include: {
@@ -107,7 +111,7 @@ export class AlertsService {
           type: 'alert',
           title: dto.title,
           body: dto.body,
-          url: '/manager',
+          url: linkUrl ?? '/',
         });
       }
     } catch (err) {
@@ -125,6 +129,8 @@ export class AlertsService {
   ): Promise<AlertWithPublisher> {
     const audience = dto.audience ?? AlertAudience.ALL_USERS;
 
+    const linkUrl = normalizeDeepLink(dto.linkUrl);
+
     const alert = await this.prisma.alert.create({
       data: {
         organizationId,
@@ -132,6 +138,7 @@ export class AlertsService {
         title: dto.title,
         body: dto.body,
         audience,
+        linkUrl: linkUrl ?? null,
         expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : undefined,
       },
       include: {
@@ -163,7 +170,7 @@ export class AlertsService {
           type: 'alert',
           title: dto.title,
           body: dto.body,
-          url: '/manager',
+          url: linkUrl ?? '/',
         });
       }
     } catch (err) {
@@ -442,6 +449,7 @@ export class AlertsService {
         title: dto.title,
         body: dto.body,
         audience: dto.audience ?? AlertAudience.ALL_USERS,
+        linkUrl: normalizeDeepLink(dto.linkUrl) ?? null,
       },
     });
   }
@@ -466,6 +474,7 @@ export class AlertsService {
         ...(dto.title !== undefined && { title: dto.title }),
         ...(dto.body !== undefined && { body: dto.body }),
         ...(dto.audience !== undefined && { audience: dto.audience }),
+        ...(dto.linkUrl !== undefined && { linkUrl: normalizeDeepLink(dto.linkUrl) ?? null }),
       },
     });
   }

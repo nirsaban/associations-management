@@ -647,6 +647,7 @@ model Alert {
   title          String        @db.VarChar(255)
   body           String        @db.Text
   audience       AlertAudience @default(ALL_USERS)
+  linkUrl        String?       @db.VarChar(512)
   publishedById  String
   deliveredCount Int           @default(0)
   recipientCount Int           @default(0)
@@ -670,6 +671,7 @@ model AlertTemplate {
   title          String        @db.VarChar(255)
   body           String        @db.Text
   audience       AlertAudience @default(ALL_USERS)
+  linkUrl        String?       @db.VarChar(512)
   createdById    String
   deletedAt      DateTime?
 

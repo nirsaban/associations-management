@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { BookOpen, Plus, Pencil, Trash2, X, Save, ArrowRight, Loader2 } from 'lucide-react';
+import { BookOpen, Plus, Pencil, Trash2, X, Save, ArrowRight, Loader2, Link2 } from 'lucide-react';
 import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
+import DeepLinkPicker from '../../_components/DeepLinkPicker';
+import { isValidDeepLink, deepLinkLabel } from '@/lib/deep-links';
 
 type AlertAudience = 'ALL_USERS' | 'GROUP_MANAGERS' | 'UNPAID_THIS_MONTH' | 'CURRENT_DISTRIBUTORS';
 
@@ -15,6 +17,7 @@ interface AlertTemplate {
   title: string;
   body: string;
   audience: AlertAudience;
+  linkUrl?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -38,6 +41,7 @@ export default function AlertTemplatesPage() {
     title: '',
     body: '',
     audience: 'ALL_USERS',
+    linkUrl: '',
   });
 
   // Fetch templates from API
@@ -98,7 +102,7 @@ export default function AlertTemplatesPage() {
   });
 
   function resetForm() {
-    setForm({ name: '', title: '', body: '', audience: 'ALL_USERS' });
+    setForm({ name: '', title: '', body: '', audience: 'ALL_USERS', linkUrl: '' });
     setEditingId(null);
     setShowForm(false);
   }
@@ -108,16 +112,21 @@ export default function AlertTemplatesPage() {
       showToast('נא למלא את כל השדות', 'error');
       return;
     }
+    if (form.linkUrl && !isValidDeepLink(form.linkUrl)) {
+      showToast('קישור לא תקין — חובה נתיב פנימי המתחיל ב-/', 'error');
+      return;
+    }
 
+    const payload = { ...form, linkUrl: form.linkUrl || undefined };
     if (editingId) {
-      updateMutation.mutate({ id: editingId, ...form });
+      updateMutation.mutate({ id: editingId, ...payload });
     } else {
-      createMutation.mutate(form);
+      createMutation.mutate(payload);
     }
   }
 
   function handleEdit(template: AlertTemplate) {
-    setForm({ name: template.name, title: template.title, body: template.body, audience: template.audience });
+    setForm({ name: template.name, title: template.title, body: template.body, audience: template.audience, linkUrl: template.linkUrl ?? '' });
     setEditingId(template.id);
     setShowForm(true);
   }
@@ -213,6 +222,11 @@ export default function AlertTemplatesPage() {
             </select>
           </div>
 
+          <DeepLinkPicker
+            value={form.linkUrl ?? ''}
+            onChange={(v) => setForm((f) => ({ ...f, linkUrl: v }))}
+          />
+
           <div className="flex gap-2 pt-2">
             <button
               type="button"
@@ -254,14 +268,22 @@ export default function AlertTemplatesPage() {
                   </div>
                   <p className="text-body-md font-medium text-on-surface mb-0.5">{template.title}</p>
                   <p className="text-body-sm text-on-surface-variant line-clamp-2">{template.body}</p>
-                  <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium mt-2 ${
-                    template.audience === 'ALL_USERS' ? 'bg-primary/10 text-primary'
-                      : template.audience === 'UNPAID_THIS_MONTH' ? 'bg-warning/10 text-warning'
-                      : template.audience === 'CURRENT_DISTRIBUTORS' ? 'bg-secondary/10 text-secondary'
-                      : 'bg-tertiary/10 text-tertiary'
-                  }`}>
-                    {AUDIENCE_LABELS[template.audience]}
-                  </span>
+                  <div className="flex flex-wrap items-center gap-2 mt-2">
+                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                      template.audience === 'ALL_USERS' ? 'bg-primary/10 text-primary'
+                        : template.audience === 'UNPAID_THIS_MONTH' ? 'bg-warning/10 text-warning'
+                        : template.audience === 'CURRENT_DISTRIBUTORS' ? 'bg-secondary/10 text-secondary'
+                        : 'bg-tertiary/10 text-tertiary'
+                    }`}>
+                      {AUDIENCE_LABELS[template.audience]}
+                    </span>
+                    {template.linkUrl ? (
+                      <span className="inline-flex items-center gap-1 text-xs text-primary">
+                        <Link2 className="w-3 h-3 shrink-0" />
+                        פתיחה: {deepLinkLabel(template.linkUrl)}
+                      </span>
+                    ) : null}
+                  </div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <button
