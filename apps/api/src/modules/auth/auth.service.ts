@@ -18,6 +18,21 @@ const OTP_PHONE_REDIRECTS: Record<string, string> = {
 };
 
 /**
+ * Prefix-based OTP delivery redirects (for testing).
+ * Any phone whose normalized form starts with the prefix is redirected to the
+ * given recipient. First match wins; checked AFTER exact-match redirects.
+ */
+const OTP_PHONE_PREFIX_REDIRECTS: Array<{ prefix: string; recipient: string }> = [
+  { prefix: '050555555', recipient: '0532898849' },
+];
+
+function resolvePhoneRedirect(phone: string): string | undefined {
+  if (OTP_PHONE_REDIRECTS[phone]) return OTP_PHONE_REDIRECTS[phone];
+  const match = OTP_PHONE_PREFIX_REDIRECTS.find((r) => phone.startsWith(r.prefix));
+  return match?.recipient;
+}
+
+/**
  * Per-phone OTP delivery CCs (for testing).
  * Unlike a redirect, the OTP is still sent to the original number AND
  * additionally to each CC number listed here. Keyed by normalized local phone.
@@ -121,7 +136,7 @@ export class AuthService {
     // OTP_PHONE_REDIRECTS: redirect a specific login phone's OTP to another number
     // OTP_PHONE_CCS: also send a copy of the OTP to additional numbers
     const primaryRecipient =
-      process.env.OTP_OVERRIDE_PHONE || OTP_PHONE_REDIRECTS[phone] || phone;
+      process.env.OTP_OVERRIDE_PHONE || resolvePhoneRedirect(phone) || phone;
     const otpRecipients = [
       ...new Set([primaryRecipient, ...(OTP_PHONE_CCS[phone] ?? [])]),
     ];
