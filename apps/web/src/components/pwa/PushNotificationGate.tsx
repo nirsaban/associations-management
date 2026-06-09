@@ -27,6 +27,11 @@ type GateStatus =
 export function PushNotificationGate({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<GateStatus>('checking');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    setIsMobile(window.matchMedia('(max-width: 767px)').matches);
+  }, []);
 
   const refresh = useCallback(async () => {
     if (!isPushNotificationSupported()) {
@@ -70,7 +75,9 @@ export function PushNotificationGate({ children }: { children: React.ReactNode }
     }
   }, [refresh]);
 
-  if (status === 'subscribed') {
+  // Bypass the gate entirely on non-mobile (desktop/tablet) viewports —
+  // push notifications are a mobile/PWA-first experience.
+  if (isMobile === false || status === 'subscribed') {
     return <>{children}</>;
   }
 

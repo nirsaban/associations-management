@@ -26,12 +26,12 @@ async function upsertSuperAdmin() {
     },
     update: {
       fullName: 'ניר סבן',
-      phone: '0542603498',
+      phone: '0501111111',
       isActive: true,
     },
     create: {
       id: 'super-admin-prod',
-      phone: '0542603498',
+      phone: '0501111111',
       fullName: 'ניר סבן',
       email: 'nir@amutot.cloud',
       platformRole: 'SUPER_ADMIN',
