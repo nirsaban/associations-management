@@ -221,13 +221,13 @@ export class TehillimService {
     const existing = await this.prisma.tehillimDedication.findUnique({
       where: { dailyTehillimId_userId: { dailyTehillimId: daily.id, userId } },
     });
-    if (existing) throw new ConflictException('כבר תפסת סלוט');
+    if (existing) throw new ConflictException('כבר שריינת הקדשה');
 
     const count = await this.prisma.tehillimDedication.count({
       where: { dailyTehillimId: daily.id },
     });
     if (count >= MAX_DEDICATIONS_PER_DAY) {
-      throw new ConflictException('כל הסלוטים נתפסו');
+      throw new ConflictException('כל המקומות להקדשה נתפסו');
     }
 
     if (forTomorrow) {

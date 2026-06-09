@@ -24,7 +24,7 @@ export class TehillimController {
   }
 
   @Post('dedicate')
-  @ApiOperation({ summary: 'תפיסת סלוט והקדשה (היום או מחר)' })
+  @ApiOperation({ summary: 'שריון מקום והקדשה (היום או מחר)' })
   @ApiQuery({ name: 'for', required: false, enum: ['today', 'tomorrow'] })
   async dedicate(
     @CurrentUser() user: ICurrentUser,

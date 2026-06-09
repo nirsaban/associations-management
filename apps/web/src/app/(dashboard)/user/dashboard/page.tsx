@@ -577,7 +577,7 @@ export default function UserDashboardPage() {
 function CommunityHeroCard() {
   const tiles: { href: string; label: string; sub: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { href: '/community/tehillim', label: 'תהילים יומי', sub: 'פרק קהילתי + הקדשה', icon: BookOpen },
-    { href: '/community/pass-it-on', label: 'העברה הלאה', sub: 'חפצים וריהוט בקהילה', icon: Recycle },
+    { href: '/community/pass-it-on', label: 'למסירה', sub: 'חפצים וריהוט בקהילה', icon: Recycle },
     { href: '/community/zmanim', label: 'זמני היום', sub: 'שבת, פרשה, זמני תפילה', icon: Clock },
     { href: '/community/people', label: 'אנשים', sub: 'מאגר בעלי מקצוע', icon: Users2 },
   ];

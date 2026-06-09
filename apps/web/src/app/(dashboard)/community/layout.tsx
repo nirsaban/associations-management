@@ -12,7 +12,7 @@ interface Tab {
 
 const TABS: Tab[] = [
   { label: 'אנשים', href: '/community/people' },
-  { label: 'העברה הלאה', href: '/community/pass-it-on' },
+  { label: 'למסירה', href: '/community/pass-it-on' },
   { label: 'תהילים', href: '/community/tehillim' },
   { label: 'זמני היום', href: '/community/zmanim' },
 ];
