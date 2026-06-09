@@ -88,6 +88,8 @@ export default function GroupDetailPage() {
   const [showAssignFamily, setShowAssignFamily] = useState(false);
   const [selectedFamilyIds, setSelectedFamilyIds] = useState<string[]>([]);
 
+  const [managerSource, setManagerSource] = useState<'members' | 'all'>('members');
+
   const { data: group, isLoading, error } = useQuery<GroupDetail>({
     queryKey: ['admin', 'group', id],
     queryFn: async () => {
@@ -407,20 +409,55 @@ export default function GroupDetailPage() {
               <label className="block text-label-sm text-on-surface-variant mb-1">
                 {(group.managers?.length ?? 0) === 0 ? 'הוסף מנהל' : 'הוסף מנהל נוסף'}
               </label>
+              <div className="flex gap-1 mb-2 p-1 rounded-lg bg-surface-container-low border border-outline/20 w-fit">
+                <button
+                  type="button"
+                  onClick={() => setManagerSource('members')}
+                  className={[
+                    'px-3 py-1 rounded-md text-label-sm transition-colors',
+                    managerSource === 'members'
+                      ? 'bg-primary text-on-primary'
+                      : 'text-on-surface-variant hover:bg-surface-container',
+                  ].join(' ')}
+                >
+                  מחברי הקבוצה ({members.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setManagerSource('all')}
+                  className={[
+                    'px-3 py-1 rounded-md text-label-sm transition-colors',
+                    managerSource === 'all'
+                      ? 'bg-primary text-on-primary'
+                      : 'text-on-surface-variant hover:bg-surface-container',
+                  ].join(' ')}
+                >
+                  מכל המשתמשים
+                </button>
+              </div>
               <SearchableSelect
                 value=""
                 onChange={(v) => { if (v) addManagerMutation.mutate(v); }}
                 disabled={addManagerMutation.isPending}
-                placeholder="בחר מנהל..."
+                placeholder={managerSource === 'members' ? 'בחר מחברי הקבוצה...' : 'בחר מנהל...'}
                 searchPlaceholder="חפש לפי שם או טלפון..."
+                emptyText={managerSource === 'members' ? 'אין חברים זמינים' : 'אין תוצאות'}
                 options={
-                  (orgUsers ?? [])
-                    .filter((u) => !group.managers?.some((m) => m.id === u.id))
-                    .map<SearchableSelectOption>((u) => ({
-                      value: u.id,
-                      label: u.fullName || u.phone,
-                      sublabel: u.fullName ? u.phone : undefined,
-                    }))
+                  managerSource === 'members'
+                    ? members
+                        .filter((m) => !group.managers?.some((mgr) => mgr.id === m.id))
+                        .map<SearchableSelectOption>((m) => ({
+                          value: m.id,
+                          label: m.fullName || m.phone,
+                          sublabel: m.fullName ? m.phone : undefined,
+                        }))
+                    : (orgUsers ?? [])
+                        .filter((u) => !group.managers?.some((m) => m.id === u.id))
+                        .map<SearchableSelectOption>((u) => ({
+                          value: u.id,
+                          label: u.fullName || u.phone,
+                          sublabel: u.fullName ? u.phone : undefined,
+                        }))
                 }
               />
             </div>
