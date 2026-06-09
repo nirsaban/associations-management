@@ -116,3 +116,12 @@ uploads/
 
 # TypeScript incremental build info
 *.tsbuildinfo
+
+# Claude Code local artifacts
+.claude/worktrees/
+.claude/settings.local.json
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
