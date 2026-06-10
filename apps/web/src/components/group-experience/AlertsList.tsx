@@ -8,7 +8,7 @@ import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import api from '@/lib/api';
 import { isPushSupported, subscribeToPush, isAlreadySubscribed } from '@/lib/push-notifications';
-import { isValidDeepLink, deepLinkLabel } from '@/lib/deep-links';
+import { isValidAlertLink, isExternalLink, deepLinkLabel } from '@/lib/deep-links';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -45,8 +45,18 @@ function AlertCard({ alert }: { alert: Alert }) {
   const [expanded, setExpanded] = useState(false);
   const isManagerAudience = alert.audience === 'GROUP_MANAGERS';
   const isLong = alert.body.length > 120;
-  // Only honor a safe, same-origin relative deep link.
-  const hasLink = !!alert.linkUrl && isValidDeepLink(alert.linkUrl);
+  // Honor a safe link: an internal relative path or a full external http(s) URL.
+  const hasLink = !!alert.linkUrl && isValidAlertLink(alert.linkUrl);
+  const external = hasLink && isExternalLink(alert.linkUrl);
+
+  function openLink() {
+    const url = alert.linkUrl as string;
+    if (external) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } else {
+      router.push(url);
+    }
+  }
 
   return (
     <div className="card-elevated py-4 px-5">
@@ -92,7 +102,7 @@ function AlertCard({ alert }: { alert: Alert }) {
         {hasLink && (
           <button
             type="button"
-            onClick={() => router.push(alert.linkUrl as string)}
+            onClick={openLink}
             className="inline-flex items-center gap-1 text-body-sm text-primary font-medium hover:underline"
           >
             {deepLinkLabel(alert.linkUrl)}

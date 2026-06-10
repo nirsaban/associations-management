@@ -8,7 +8,7 @@ import api from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import { useToast } from '@/components/ui/Toast';
 import DeepLinkPicker from './_components/DeepLinkPicker';
-import { isValidDeepLink } from '@/lib/deep-links';
+import { isValidAlertLink } from '@/lib/deep-links';
 
 interface AdminDashboardData {
   stats: {
@@ -267,7 +267,7 @@ function DashboardAlertComposer({ onClose, onSuccess }: { onClose: () => void; o
           type="button"
           onClick={() => {
             if (!form.title.trim() || !form.body.trim()) { showToast('נא למלא כותרת ותוכן', 'error'); return; }
-            if (form.linkUrl && !isValidDeepLink(form.linkUrl)) { showToast('קישור לא תקין — חובה נתיב פנימי המתחיל ב-/', 'error'); return; }
+            if (form.linkUrl && !isValidAlertLink(form.linkUrl)) { showToast('קישור לא תקין — נתיב פנימי המתחיל ב-/ או כתובת אתר מלאה (https://...)', 'error'); return; }
             const alertPayload: { title: string; body: string; audience: AlertAudience; linkUrl?: string } = { title: form.title, body: form.body, audience: form.audience };
             if (form.linkUrl) alertPayload.linkUrl = form.linkUrl;
             mutation.mutate(alertPayload);

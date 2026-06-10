@@ -31,7 +31,7 @@ export class CreateAlertDto {
 
   @ApiPropertyOptional({
     description:
-      'קישור פנימי שייפתח בלחיצה על ההתראה (deep link). חייב להיות נתיב יחסי המתחיל ב-/ , למשל /weekly או /community/tehillim. ברירת מחדל: דף הבית',
+      'קישור שייפתח בלחיצה על ההתראה. יכול להיות נתיב פנימי המתחיל ב-/ (למשל /weekly או /community/tehillim) או כתובת אתר חיצוני מלאה (https://...). ברירת מחדל: דף הבית',
     example: '/community/tehillim',
   })
   @IsOptional()

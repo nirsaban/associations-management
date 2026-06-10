@@ -2,7 +2,12 @@
 
 import React, { useState } from 'react';
 import { Link2 } from 'lucide-react';
-import { DEEP_LINK_OPTIONS, isValidDeepLink } from '@/lib/deep-links';
+import {
+  DEEP_LINK_OPTIONS,
+  isValidDeepLink,
+  isValidExternalLink,
+  isExternalLink,
+} from '@/lib/deep-links';
 
 interface DeepLinkPickerProps {
   value: string;
@@ -10,26 +15,40 @@ interface DeepLinkPickerProps {
 }
 
 const CUSTOM_SENTINEL = '__custom__';
+const EXTERNAL_SENTINEL = '__external__';
+
+type Mode = 'preset' | 'custom' | 'external';
 
 // Build sorted unique group list preserving order of first appearance
 const GROUPS = Array.from(new Set(DEEP_LINK_OPTIONS.map((o) => o.group)));
 
-export default function DeepLinkPicker({ value, onChange }: DeepLinkPickerProps) {
-  // Determine whether the current value is a known catalog entry or custom
-  const isKnownOption = value === '' || DEEP_LINK_OPTIONS.some((o) => o.value === value);
-  const [showCustom, setShowCustom] = useState(!isKnownOption);
-  const [customInput, setCustomInput] = useState(!isKnownOption ? value : '');
+function initialMode(value: string): Mode {
+  if (value === '' || DEEP_LINK_OPTIONS.some((o) => o.value === value)) return 'preset';
+  return isExternalLink(value) ? 'external' : 'custom';
+}
 
-  const selectValue = showCustom ? CUSTOM_SENTINEL : value;
+export default function DeepLinkPicker({ value, onChange }: DeepLinkPickerProps) {
+  const [mode, setMode] = useState<Mode>(() => initialMode(value));
+  const [customInput, setCustomInput] = useState(initialMode(value) === 'custom' ? value : '');
+  const [externalInput, setExternalInput] = useState(
+    initialMode(value) === 'external' ? value : '',
+  );
+
+  const selectValue =
+    mode === 'custom' ? CUSTOM_SENTINEL : mode === 'external' ? EXTERNAL_SENTINEL : value;
 
   function handleSelectChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const v = e.target.value;
     if (v === CUSTOM_SENTINEL) {
-      setShowCustom(true);
-      // Don't clear parent value yet — wait for the user to type
+      setMode('custom');
+      onChange(customInput); // keep whatever was typed before (may be empty)
+    } else if (v === EXTERNAL_SENTINEL) {
+      setMode('external');
+      onChange(externalInput);
     } else {
-      setShowCustom(false);
+      setMode('preset');
       setCustomInput('');
+      setExternalInput('');
       onChange(v);
     }
   }
@@ -39,6 +58,16 @@ export default function DeepLinkPicker({ value, onChange }: DeepLinkPickerProps)
     setCustomInput(v);
     onChange(v);
   }
+
+  function handleExternalInput(e: React.ChangeEvent<HTMLInputElement>) {
+    const v = e.target.value;
+    setExternalInput(v);
+    onChange(v);
+  }
+
+  const customInvalid = mode === 'custom' && !!customInput && !isValidDeepLink(customInput);
+  const externalInvalid =
+    mode === 'external' && !!externalInput && !isValidExternalLink(externalInput);
 
   return (
     <div className="flex flex-col gap-1">
@@ -63,10 +92,11 @@ export default function DeepLinkPicker({ value, onChange }: DeepLinkPickerProps)
             ))}
           </optgroup>
         ))}
-        <option value={CUSTOM_SENTINEL}>מותאם אישית…</option>
+        <option value={CUSTOM_SENTINEL}>נתיב פנימי מותאם אישית…</option>
+        <option value={EXTERNAL_SENTINEL}>קישור לאתר חיצוני…</option>
       </select>
 
-      {showCustom && (
+      {mode === 'custom' && (
         <input
           type="text"
           dir="ltr"
@@ -74,17 +104,37 @@ export default function DeepLinkPicker({ value, onChange }: DeepLinkPickerProps)
           value={customInput}
           onChange={handleCustomInput}
           className={`w-full rounded-lg border px-3 py-2 text-sm bg-surface text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/50 ${
-            customInput && !isValidDeepLink(customInput) ? 'border-error' : 'border-outline'
+            customInvalid ? 'border-error' : 'border-outline'
           }`}
         />
       )}
 
-      {showCustom && customInput && !isValidDeepLink(customInput) && (
+      {customInvalid && (
         <p className="text-xs text-error">נתיב לא תקין — חייב להתחיל ב-/ ולא לכלול כתובת חיצונית</p>
       )}
 
+      {mode === 'external' && (
+        <input
+          type="url"
+          dir="ltr"
+          inputMode="url"
+          placeholder="https://example.com/page"
+          value={externalInput}
+          onChange={handleExternalInput}
+          className={`w-full rounded-lg border px-3 py-2 text-sm bg-surface text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/50 ${
+            externalInvalid ? 'border-error' : 'border-outline'
+          }`}
+        />
+      )}
+
+      {externalInvalid && (
+        <p className="text-xs text-error">כתובת לא תקינה — חייבת להתחיל ב-http:// או https://</p>
+      )}
+
       <p className="text-xs text-on-surface-variant">
-        המסך שייפתח כאשר המשתמש ילחץ על ההתראה
+        {mode === 'external'
+          ? 'אתר חיצוני שייפתח בלשונית חדשה כאשר המשתמש ילחץ על ההתראה'
+          : 'המסך שייפתח כאשר המשתמש ילחץ על ההתראה'}
       </p>
     </div>
   );

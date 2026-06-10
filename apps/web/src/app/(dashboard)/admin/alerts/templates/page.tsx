@@ -7,7 +7,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
 import DeepLinkPicker from '../../_components/DeepLinkPicker';
-import { isValidDeepLink, deepLinkLabel } from '@/lib/deep-links';
+import { isValidAlertLink, deepLinkLabel } from '@/lib/deep-links';
 
 type AlertAudience = 'ALL_USERS' | 'GROUP_MANAGERS' | 'UNPAID_THIS_MONTH' | 'CURRENT_DISTRIBUTORS';
 
@@ -112,8 +112,8 @@ export default function AlertTemplatesPage() {
       showToast('נא למלא את כל השדות', 'error');
       return;
     }
-    if (form.linkUrl && !isValidDeepLink(form.linkUrl)) {
-      showToast('קישור לא תקין — חובה נתיב פנימי המתחיל ב-/', 'error');
+    if (form.linkUrl && !isValidAlertLink(form.linkUrl)) {
+      showToast('קישור לא תקין — נתיב פנימי המתחיל ב-/ או כתובת אתר מלאה (https://...)', 'error');
       return;
     }
 

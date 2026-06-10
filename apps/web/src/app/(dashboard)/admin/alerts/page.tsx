@@ -9,7 +9,7 @@ import api from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 import { useToast } from '@/components/ui/Toast';
 import DeepLinkPicker from '../_components/DeepLinkPicker';
-import { isValidDeepLink, deepLinkLabel } from '@/lib/deep-links';
+import { isValidAlertLink, deepLinkLabel } from '@/lib/deep-links';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -183,8 +183,8 @@ function CreateAlertModal({ onClose, onSuccess }: CreateModalProps) {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!validate()) return;
-    if (form.linkUrl && !isValidDeepLink(form.linkUrl)) {
-      showToast('קישור לא תקין — חובה נתיב פנימי המתחיל ב-/', 'error');
+    if (form.linkUrl && !isValidAlertLink(form.linkUrl)) {
+      showToast('קישור לא תקין — נתיב פנימי המתחיל ב-/ או כתובת אתר מלאה (https://...)', 'error');
       return;
     }
     const payload: Partial<CreateAlertForm> = {

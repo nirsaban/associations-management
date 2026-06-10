@@ -64,9 +64,43 @@ export function isValidDeepLink(value: string): boolean {
   return true;
 }
 
-/** Human label for a stored linkUrl (falls back to the raw path). */
+/**
+ * A full external website link (another site). Only http(s) with a real host.
+ * Mirror of the backend `isValidExternalLink`.
+ */
+export function isValidExternalLink(value: string): boolean {
+  const v = value.trim();
+  if (v === '' || v.length > 512) return false;
+  if (/\s/.test(v)) return false;
+  try {
+    const url = new URL(v);
+    return (url.protocol === 'http:' || url.protocol === 'https:') && url.hostname.length > 0;
+  } catch {
+    return false;
+  }
+}
+
+/** True when the value looks like an external http(s) URL (not an internal path). */
+export function isExternalLink(value?: string | null): boolean {
+  return !!value && /^https?:\/\//i.test(value.trim());
+}
+
+/** An alert link may be an internal path OR a safe external URL. */
+export function isValidAlertLink(value: string): boolean {
+  return isValidDeepLink(value) || isValidExternalLink(value);
+}
+
+/** Human label for a stored linkUrl (falls back to the host / raw path). */
 export function deepLinkLabel(value?: string | null): string {
   if (!value) return 'דף הבית';
   const match = DEEP_LINK_OPTIONS.find((o) => o.value === value);
-  return match ? match.label : value;
+  if (match) return match.label;
+  if (isExternalLink(value)) {
+    try {
+      return new URL(value).hostname;
+    } catch {
+      return value;
+    }
+  }
+  return value;
 }
