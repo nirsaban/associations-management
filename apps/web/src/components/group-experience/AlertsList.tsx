@@ -49,13 +49,10 @@ function AlertCard({ alert }: { alert: Alert }) {
   const hasLink = !!alert.linkUrl && isValidAlertLink(alert.linkUrl);
   const external = hasLink && isExternalLink(alert.linkUrl);
 
+  // Internal links use the SPA router; external links are rendered as a real
+  // <a target="_blank"> below (more reliable than window.open in a PWA).
   function openLink() {
-    const url = alert.linkUrl as string;
-    if (external) {
-      window.open(url, '_blank', 'noopener,noreferrer');
-    } else {
-      router.push(url);
-    }
+    router.push(alert.linkUrl as string);
   }
 
   return (
@@ -99,16 +96,28 @@ function AlertCard({ alert }: { alert: Alert }) {
         <p className="text-label-sm text-on-surface-variant/70">
           {relativeDate(alert.publishedAt)}
         </p>
-        {hasLink && (
-          <button
-            type="button"
-            onClick={openLink}
-            className="inline-flex items-center gap-1 text-body-sm text-primary font-medium hover:underline"
-          >
-            {deepLinkLabel(alert.linkUrl)}
-            <ArrowLeft className="h-3.5 w-3.5" />
-          </button>
-        )}
+        {hasLink &&
+          (external ? (
+            // External sites: a real anchor opens reliably in a standalone PWA.
+            <a
+              href={alert.linkUrl as string}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-body-sm text-primary font-medium hover:underline"
+            >
+              {deepLinkLabel(alert.linkUrl)}
+              <ArrowLeft className="h-3.5 w-3.5" />
+            </a>
+          ) : (
+            <button
+              type="button"
+              onClick={openLink}
+              className="inline-flex items-center gap-1 text-body-sm text-primary font-medium hover:underline"
+            >
+              {deepLinkLabel(alert.linkUrl)}
+              <ArrowLeft className="h-3.5 w-3.5" />
+            </button>
+          ))}
       </div>
     </div>
   );

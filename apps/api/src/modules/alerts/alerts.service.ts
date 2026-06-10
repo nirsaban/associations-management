@@ -517,7 +517,16 @@ export class AlertsService {
       return;
     }
 
-    const payloadStr = JSON.stringify(payload);
+    // Send the click-target both at the top level (legacy) AND nested under
+    // `data`, because the service worker reads `notification.data.url`. Without
+    // the nested `data`, older SWs (registered before the nginx /sw.js bridge)
+    // see an empty `data` and fall back to "/" — opening the home page instead
+    // of the alert's link. Nesting here makes every SW version resolve the URL.
+    const wirePayload = {
+      ...payload,
+      data: { url: payload.url || '/', type: payload.type },
+    };
+    const payloadStr = JSON.stringify(wirePayload);
     let deliveredCount = 0;
     const staleIds: string[] = [];
 
